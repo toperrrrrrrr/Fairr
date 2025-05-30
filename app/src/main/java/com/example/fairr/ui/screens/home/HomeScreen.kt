@@ -25,14 +25,12 @@ import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
+
 import com.example.fairr.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    navController: NavController,
     onNavigateToCreateGroup: () -> Unit = {},
     onNavigateToProfile: () -> Unit = {},
     onNavigateToGroupDetail: (String) -> Unit = {}
@@ -425,7 +423,7 @@ data class GroupItem(
 @Composable
 fun HomeScreenPreview() {
     FairrTheme {
-        HomeScreen(navController = rememberNavController())
+        HomeScreen()
     }
 }
 

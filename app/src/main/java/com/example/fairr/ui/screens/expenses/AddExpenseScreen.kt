@@ -8,7 +8,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.AttachMoney
 import androidx.compose.material.icons.filled.Category
 import androidx.compose.material.icons.filled.Description
@@ -29,6 +29,7 @@ import com.example.fairr.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
+@Suppress("UNUSED_PARAMETER")
 fun AddExpenseScreen(
     navController: NavController,
     groupId: String,
@@ -40,7 +41,8 @@ fun AddExpenseScreen(
     var selectedSplitType by remember { mutableStateOf("Equal Split") }
     var isLoading by remember { mutableStateOf(false) }
     var showCategoryDropdown by remember { mutableStateOf(false) }
-    var showSplitDropdown by remember { mutableStateOf(false) }
+    // Uncomment and use this when implementing split functionality
+    // var showSplitDropdown by remember { mutableStateOf(false) }
     
     val categories = listOf("General", "Food & Dining", "Transportation", "Accommodation", "Entertainment", "Shopping", "Other")
     val splitTypes = listOf("Equal Split", "Percentage", "Custom Amount")
@@ -58,7 +60,7 @@ fun AddExpenseScreen(
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
-                            Icons.Default.ArrowBack,
+                            Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
                             tint = TextPrimary
                         )

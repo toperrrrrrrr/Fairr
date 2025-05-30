@@ -8,9 +8,9 @@ import androidx.compose.foundation.pager.rememberPagerState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Receipt
-import androidx.compose.material.icons.filled.TrendingUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -36,7 +36,6 @@ data class OnboardingPage(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OnboardingScreen(
-    navController: NavController,
     onGetStarted: () -> Unit
 ) {
     val pages = listOf(
@@ -48,7 +47,7 @@ fun OnboardingScreen(
         OnboardingPage(
             title = "Track Balances",
             description = "Keep track of who owes what and settle up with just a few taps",
-            icon = Icons.Default.TrendingUp
+            icon = Icons.AutoMirrored.Filled.TrendingUp
         ),
         OnboardingPage(
             title = "Group Management",
@@ -183,7 +182,6 @@ fun OnboardingPageContent(
 fun OnboardingScreenPreview() {
     FairrTheme {
         OnboardingScreen(
-            navController = rememberNavController(),
             onGetStarted = {}
         )
     }

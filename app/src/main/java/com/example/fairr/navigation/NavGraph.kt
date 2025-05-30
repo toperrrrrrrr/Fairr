@@ -55,7 +55,6 @@ fun FairrNavGraph(
         
         composable(Screen.Onboarding.route) {
             OnboardingScreen(
-                navController = navController,
                 onGetStarted = {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.Onboarding.route) { inclusive = true }
@@ -93,7 +92,6 @@ fun FairrNavGraph(
         
         composable(Screen.Home.route) {
             HomeScreen(
-                navController = navController,
                 onNavigateToCreateGroup = {
                     navController.navigate(Screen.CreateGroup.route)
                 },
@@ -108,11 +106,10 @@ fun FairrNavGraph(
         
         composable(Screen.Profile.route) {
             ProfileScreen(
-                navController = navController,
                 onSignOut = {
-                    // Navigate back to login and clear back stack
+                    // Handle sign out
                     navController.navigate(Screen.Login.route) {
-                        popUpTo(Screen.Home.route) { inclusive = true }
+                        popUpTo(0) { inclusive = true }
                     }
                 }
             )

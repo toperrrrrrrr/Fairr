@@ -7,12 +7,18 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
+import androidx.compose.material.icons.automirrored.filled.Help
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -24,7 +30,6 @@ import com.example.fairr.ui.theme.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ProfileScreen(
-    navController: NavController,
     onSignOut: () -> Unit = {}
 ) {
     // Sample user data
@@ -56,7 +61,7 @@ fun ProfileScreen(
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(LightBackground)
+                .background(color = LightBackground)
                 .padding(padding)
                 .verticalScroll(rememberScrollState())
         ) {
@@ -80,8 +85,8 @@ fun ProfileScreen(
                         modifier = Modifier
                             .size(80.dp)
                             .background(
-                                DarkGreen.copy(alpha = 0.1f),
-                                CircleShape
+                                color = DarkGreen.copy(alpha = 0.1f),
+                                shape = CircleShape
                             ),
                         contentAlignment = Alignment.Center
                     ) {
@@ -157,7 +162,7 @@ fun ProfileScreen(
                         onClick = { /* TODO: Navigate to edit profile */ }
                     )
                     
-                    Divider(
+                    HorizontalDivider(
                         modifier = Modifier.padding(horizontal = 16.dp),
                         color = PlaceholderText.copy(alpha = 0.2f)
                     )
@@ -169,7 +174,7 @@ fun ProfileScreen(
                         onClick = { /* TODO: Navigate to notifications */ }
                     )
                     
-                    Divider(
+                    HorizontalDivider(
                         modifier = Modifier.padding(horizontal = 16.dp),
                         color = PlaceholderText.copy(alpha = 0.2f)
                     )
@@ -181,13 +186,13 @@ fun ProfileScreen(
                         onClick = { /* TODO: Navigate to security */ }
                     )
                     
-                    Divider(
+                    HorizontalDivider(
                         modifier = Modifier.padding(horizontal = 16.dp),
                         color = PlaceholderText.copy(alpha = 0.2f)
                     )
                     
                     SettingsItem(
-                        icon = Icons.Default.Help,
+                        icon = Icons.AutoMirrored.Filled.Help,
                         title = "Help & Support",
                         subtitle = "Get help with FairShare",
                         onClick = { /* TODO: Navigate to help */ }
@@ -224,7 +229,7 @@ fun ProfileScreen(
                         onClick = { /* TODO: Show about dialog */ }
                     )
                     
-                    Divider(
+                    HorizontalDivider(
                         modifier = Modifier.padding(horizontal = 16.dp),
                         color = PlaceholderText.copy(alpha = 0.2f)
                     )
@@ -236,7 +241,7 @@ fun ProfileScreen(
                         onClick = { /* TODO: Open app store */ }
                     )
                     
-                    Divider(
+                    HorizontalDivider(
                         modifier = Modifier.padding(horizontal = 16.dp),
                         color = PlaceholderText.copy(alpha = 0.2f)
                     )
@@ -266,7 +271,7 @@ fun ProfileScreen(
                 shape = RoundedCornerShape(12.dp)
             ) {
                 Icon(
-                    Icons.Default.ExitToApp,
+                    Icons.AutoMirrored.Filled.ExitToApp,
                     contentDescription = "Sign out",
                     modifier = Modifier.size(20.dp)
                 )
@@ -327,8 +332,8 @@ fun SettingsItem(
                 modifier = Modifier
                     .size(40.dp)
                     .background(
-                        DarkGreen.copy(alpha = 0.1f),
-                        CircleShape
+                        color = DarkGreen.copy(alpha = 0.1f),
+                        shape = CircleShape
                     ),
                 contentAlignment = Alignment.Center
             ) {
@@ -357,7 +362,7 @@ fun SettingsItem(
             }
             
             Icon(
-                Icons.Default.KeyboardArrowRight,
+                Icons.AutoMirrored.Filled.KeyboardArrowRight,
                 contentDescription = "Navigate",
                 tint = PlaceholderText,
                 modifier = Modifier.size(20.dp)
@@ -377,8 +382,6 @@ data class UserProfile(
 @Composable
 fun ProfileScreenPreview() {
     FairrTheme {
-        ProfileScreen(
-            navController = rememberNavController()
-        )
+        ProfileScreen()
     }
 } 
