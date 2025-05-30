@@ -1,5 +1,6 @@
 package com.example.fairr.ui.screens.auth
 
+import android.util.Patterns
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -26,6 +27,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.fairr.ui.theme.*
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,6 +39,52 @@ fun LoginScreen(
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    var emailError by remember { mutableStateOf<String?>(null) }
+    var passwordError by remember { mutableStateOf<String?>(null) }
+
+    // Validation functions
+    fun validateEmail(): Boolean {
+        return when {
+            email.isBlank() -> {
+                emailError = "Email is required"
+                false
+            }
+            !Patterns.EMAIL_ADDRESS.matcher(email).matches() -> {
+                emailError = "Enter a valid email address"
+                false
+            }
+            else -> {
+                emailError = null
+                true
+            }
+        }
+    }
+
+    fun validatePassword(): Boolean {
+        return when {
+            password.isBlank() -> {
+                passwordError = "Password is required"
+                false
+            }
+            password.length < 6 -> {
+                passwordError = "Password must be at least 6 characters"
+                false
+            }
+            else -> {
+                passwordError = null
+                true
+            }
+        }
+    }
+
+    fun validateInputs(): Boolean {
+        errorMessage = null
+        val isEmailValid = validateEmail()
+        val isPasswordValid = validatePassword()
+        return isEmailValid && isPasswordValid
+    }
 
     Column(
         modifier = Modifier.fillMaxSize()
@@ -91,10 +139,30 @@ fun LoginScreen(
             
             Spacer(modifier = Modifier.height(32.dp))
 
+            // Error message display
+            errorMessage?.let { message ->
+                Spacer(modifier = Modifier.height(16.dp))
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = ErrorRed.copy(alpha = 0.1f)),
+                    shape = RoundedCornerShape(8.dp)
+                ) {
+                    Text(
+                        text = message,
+                        color = ErrorRed,
+                        fontSize = 14.sp,
+                        modifier = Modifier.padding(12.dp)
+                    )
+                }
+            }
+
             // Email field
             OutlinedTextField(
                 value = email,
-                onValueChange = { email = it },
+                onValueChange = { 
+                    email = it
+                    emailError = null // Clear error on typing
+                },
                 label = { 
                     Text(
                         "Email",
@@ -119,10 +187,22 @@ fun LoginScreen(
                 modifier = Modifier.fillMaxWidth(),
                 keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
                 singleLine = true,
+                isError = emailError != null,
+                supportingText = emailError?.let { error ->
+                    {
+                        Text(
+                            text = error,
+                            color = ErrorRed,
+                            fontSize = 12.sp
+                        )
+                    }
+                },
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = DarkGreen,
-                    unfocusedBorderColor = PlaceholderText,
-                    focusedLabelColor = DarkGreen
+                    focusedBorderColor = if (emailError != null) ErrorRed else DarkGreen,
+                    unfocusedBorderColor = if (emailError != null) ErrorRed else PlaceholderText,
+                    focusedLabelColor = if (emailError != null) ErrorRed else DarkGreen,
+                    errorBorderColor = ErrorRed,
+                    errorLabelColor = ErrorRed
                 )
             )
 
@@ -131,7 +211,10 @@ fun LoginScreen(
             // Password field
             OutlinedTextField(
                 value = password,
-                onValueChange = { password = it },
+                onValueChange = { 
+                    password = it
+                    passwordError = null // Clear error on typing
+                },
                 label = { 
                     Text(
                         "Password",
@@ -156,7 +239,7 @@ fun LoginScreen(
                 trailingIcon = {
                     IconButton(onClick = { passwordVisible = !passwordVisible }) {
                         Icon(
-                            if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
+                            imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                             contentDescription = if (passwordVisible) "Hide password" else "Show password",
                             tint = PlaceholderText
                         )
@@ -164,36 +247,88 @@ fun LoginScreen(
                 },
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 singleLine = true,
+                isError = passwordError != null,
+                supportingText = passwordError?.let { error ->
+                    {
+                        Text(
+                            text = error,
+                            color = ErrorRed,
+                            fontSize = 12.sp
+                        )
+                    }
+                },
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = DarkGreen,
-                    unfocusedBorderColor = PlaceholderText,
-                    focusedLabelColor = DarkGreen
+                    focusedBorderColor = if (passwordError != null) ErrorRed else DarkGreen,
+                    unfocusedBorderColor = if (passwordError != null) ErrorRed else PlaceholderText,
+                    focusedLabelColor = if (passwordError != null) ErrorRed else DarkGreen,
+                    errorBorderColor = ErrorRed,
+                    errorLabelColor = ErrorRed
                 )
             )
 
             Spacer(modifier = Modifier.height(32.dp))
 
             // Login button
+            var triggerLogin by remember { mutableStateOf(false) }
+            
+            // Handle login side effect
+            LaunchedEffect(triggerLogin) {
+                if (triggerLogin) {
+                    isLoading = true
+                    try {
+                        // Simulate API call
+                        delay(2000)
+                        onLoginSuccess()
+                    } finally {
+                        isLoading = false
+                    }
+                }
+            }
+            
             Button(
                 onClick = { 
-                    // TODO: Implement actual login logic
-                    onLoginSuccess()
+                    if (validateInputs()) {
+                        triggerLogin = !triggerLogin
+                    }
                 },
+                enabled = !isLoading,
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp),
                 colors = ButtonDefaults.buttonColors(
                     containerColor = PureBlack,
-                    contentColor = PureWhite
+                    contentColor = PureWhite,
+                    disabledContainerColor = PlaceholderText,
+                    disabledContentColor = PureWhite
                 ),
                 shape = RoundedCornerShape(12.dp)
             ) {
-                Text(
-                    text = "Login",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium
-                )
+                if (isLoading) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.Center
+                    ) {
+                        CircularProgressIndicator(
+                            color = PureWhite,
+                            strokeWidth = 2.dp,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = "Logging in...",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                } else {
+                    Text(
+                        text = "Login",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
             }
 
             Spacer(modifier = Modifier.height(24.dp))

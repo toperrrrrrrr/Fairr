@@ -32,7 +32,7 @@ import com.example.fairr.ui.theme.*
 @Composable
 fun HomeScreen(
     onNavigateToCreateGroup: () -> Unit = {},
-    onNavigateToProfile: () -> Unit = {},
+    onNavigateToSettings: () -> Unit = {},
     onNavigateToGroupDetail: (String) -> Unit = {}
 ) {
     // Sample data for groups
@@ -58,10 +58,10 @@ fun HomeScreen(
                     ) 
                 },
                 actions = {
-                    IconButton(onClick = onNavigateToProfile) {
+                    IconButton(onClick = onNavigateToSettings) {
                         Icon(
-                            Icons.Default.Person, 
-                            contentDescription = "Profile",
+                            Icons.Default.Settings, 
+                            contentDescription = "Settings",
                             tint = TextSecondary
                         )
                     }
@@ -96,26 +96,6 @@ fun HomeScreen(
                     label = { Text("Home") },
                     selected = selectedTab == 0,
                     onClick = { selectedTab = 0 },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = DarkGreen,
-                        selectedTextColor = DarkGreen,
-                        unselectedIconColor = PlaceholderText,
-                        unselectedTextColor = PlaceholderText
-                    )
-                )
-                NavigationBarItem(
-                    icon = { 
-                        Icon(
-                            if (selectedTab == 1) Icons.Filled.Person else Icons.Outlined.Person,
-                            contentDescription = "Profile"
-                        ) 
-                    },
-                    label = { Text("Profile") },
-                    selected = selectedTab == 1,
-                    onClick = { 
-                        selectedTab = 1
-                        onNavigateToProfile()
-                    },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = DarkGreen,
                         selectedTextColor = DarkGreen,
