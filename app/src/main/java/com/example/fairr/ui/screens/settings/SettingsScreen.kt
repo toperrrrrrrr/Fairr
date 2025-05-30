@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -30,7 +31,7 @@ fun SettingsScreen(
     navController: NavController,
     onSignOut: () -> Unit = {}
 ) {
-    var darkModeEnabled by remember { mutableStateOf(false) }
+    val themeManager = LocalThemeManager.current
     var notificationsEnabled by remember { mutableStateOf(true) }
     var soundEnabled by remember { mutableStateOf(true) }
 
@@ -57,7 +58,7 @@ fun SettingsScreen(
                 navigationIcon = {
                     IconButton(onClick = { navController.navigateUp() }) {
                         Icon(
-                            Icons.Default.ArrowBack, 
+                            Icons.AutoMirrored.Filled.ArrowBack, 
                             contentDescription = "Back",
                             tint = TextSecondary
                         )
@@ -78,7 +79,7 @@ fun SettingsScreen(
         ) {
             // Profile Section
             item {
-                ProfileCard(user = user)
+                ProfileCard(user = user, navController = navController)
             }
             
             item {
@@ -99,21 +100,21 @@ fun SettingsScreen(
                             subtitle = "Update your account password",
                             onClick = { /* Navigate to change password */ }
                         )
-                        Divider(modifier = Modifier.padding(start = 56.dp))
+                        HorizontalDivider(modifier = Modifier.padding(start = 56.dp))
                         SettingsItem(
                             icon = Icons.Default.Security,
                             title = "Two-Factor Authentication",
                             subtitle = "Add extra security to your account",
                             onClick = { /* Navigate to 2FA settings */ }
                         )
-                        Divider(modifier = Modifier.padding(start = 56.dp))
+                        HorizontalDivider(modifier = Modifier.padding(start = 56.dp))
                         SettingsItem(
                             icon = Icons.Default.Download,
                             title = "Download My Data",
                             subtitle = "Export your account data",
                             onClick = { /* Navigate to data export */ }
                         )
-                        Divider(modifier = Modifier.padding(start = 56.dp))
+                        HorizontalDivider(modifier = Modifier.padding(start = 56.dp))
                         SettingsItem(
                             icon = Icons.Default.Delete,
                             title = "Delete Account",
@@ -138,10 +139,10 @@ fun SettingsScreen(
                             icon = Icons.Default.DarkMode,
                             title = "Dark Mode",
                             subtitle = "Use dark theme",
-                            checked = darkModeEnabled,
-                            onCheckedChange = { darkModeEnabled = it }
+                            checked = themeManager.isDarkTheme(),
+                            onCheckedChange = { themeManager.toggleDarkMode() }
                         )
-                        Divider(modifier = Modifier.padding(start = 56.dp))
+                        HorizontalDivider(modifier = Modifier.padding(start = 56.dp))
                         SettingsSwitchItem(
                             icon = Icons.Default.Notifications,
                             title = "Notifications",
@@ -149,13 +150,40 @@ fun SettingsScreen(
                             checked = notificationsEnabled,
                             onCheckedChange = { notificationsEnabled = it }
                         )
-                        Divider(modifier = Modifier.padding(start = 56.dp))
+                        HorizontalDivider(modifier = Modifier.padding(start = 56.dp))
                         SettingsSwitchItem(
-                            icon = Icons.Default.VolumeUp,
+                            icon = Icons.AutoMirrored.Filled.VolumeUp,
                             title = "Sound",
                             subtitle = "Enable notification sounds",
                             checked = soundEnabled,
                             onCheckedChange = { soundEnabled = it }
+                        )
+                    }
+                }
+            }
+
+            // App Management Section
+            item {
+                SectionHeader("App Management")
+            }
+            
+            item {
+                SettingsCard {
+                    Column {
+                        SettingsItem(
+                            icon = Icons.Default.Category,
+                            title = "Manage Categories",
+                            subtitle = "Customize expense categories",
+                            onClick = { 
+                                navController.navigate("categories")
+                            }
+                        )
+                        HorizontalDivider(modifier = Modifier.padding(start = 56.dp))
+                        SettingsItem(
+                            icon = Icons.Default.Archive,
+                            title = "Backup & Restore",
+                            subtitle = "Backup your data to cloud",
+                            onClick = { /* Navigate to backup settings */ }
                         )
                     }
                 }
@@ -170,26 +198,28 @@ fun SettingsScreen(
                 SettingsCard {
                     Column {
                         SettingsItem(
-                            icon = Icons.Default.Help,
+                            icon = Icons.AutoMirrored.Filled.Help,
                             title = "Help Center",
                             subtitle = "Get help and find answers",
-                            onClick = { /* Navigate to help center */ }
+                            onClick = { 
+                                navController.navigate("help_support")
+                            }
                         )
-                        Divider(modifier = Modifier.padding(start = 56.dp))
+                        HorizontalDivider(modifier = Modifier.padding(start = 56.dp))
                         SettingsItem(
                             icon = Icons.Default.Email,
                             title = "Contact Support",
                             subtitle = "Send us a message",
                             onClick = { /* Open contact support */ }
                         )
-                        Divider(modifier = Modifier.padding(start = 56.dp))
+                        HorizontalDivider(modifier = Modifier.padding(start = 56.dp))
                         SettingsItem(
                             icon = Icons.Default.Info,
                             title = "About FairShare",
                             subtitle = "Version 1.0.0 • Learn more",
                             onClick = { /* Show about dialog */ }
                         )
-                        Divider(modifier = Modifier.padding(start = 56.dp))
+                        HorizontalDivider(modifier = Modifier.padding(start = 56.dp))
                         SettingsItem(
                             icon = Icons.Default.Gavel,
                             title = "Terms & Privacy Policy",
@@ -212,7 +242,7 @@ fun SettingsScreen(
                     colors = CardDefaults.cardColors(containerColor = PureWhite)
                 ) {
                     SettingsItem(
-                        icon = Icons.Default.Logout,
+                        icon = Icons.AutoMirrored.Filled.Logout,
                         title = "Sign Out",
                         subtitle = "Sign out of your account",
                         titleColor = ErrorRed,
@@ -350,7 +380,10 @@ private fun SettingsSwitchItem(
 }
 
 @Composable
-private fun ProfileCard(user: UserProfile) {
+private fun ProfileCard(
+    user: UserProfile,
+    navController: NavController
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -402,7 +435,9 @@ private fun ProfileCard(user: UserProfile) {
                 
                 // Edit Button
                 OutlinedButton(
-                    onClick = { /* TODO: Navigate to edit profile */ },
+                    onClick = { 
+                        navController.navigate("edit_profile")
+                    },
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = DarkGreen
                     ),

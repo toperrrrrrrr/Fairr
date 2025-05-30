@@ -10,7 +10,9 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Home
+import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
@@ -32,6 +34,9 @@ import com.example.fairr.ui.theme.*
 @Composable
 fun HomeScreen(
     onNavigateToCreateGroup: () -> Unit = {},
+    onNavigateToJoinGroup: () -> Unit = {},
+    onNavigateToSearch: () -> Unit = {},
+    onNavigateToNotifications: () -> Unit = {},
     onNavigateToSettings: () -> Unit = {},
     onNavigateToGroupDetail: (String) -> Unit = {}
 ) {
@@ -58,6 +63,30 @@ fun HomeScreen(
                     ) 
                 },
                 actions = {
+                    // Search Action
+                    IconButton(onClick = onNavigateToSearch) {
+                        Icon(
+                            Icons.Default.Search, 
+                            contentDescription = "Search",
+                            tint = TextSecondary
+                        )
+                    }
+                    // Notifications Action
+                    IconButton(onClick = onNavigateToNotifications) {
+                        Icon(
+                            Icons.Default.Notifications, 
+                            contentDescription = "Notifications",
+                            tint = TextSecondary
+                        )
+                    }
+                    // Join Group Action
+                    IconButton(onClick = onNavigateToJoinGroup) {
+                        Icon(
+                            Icons.Default.Group, 
+                            contentDescription = "Join Group",
+                            tint = TextSecondary
+                        )
+                    }
                     IconButton(onClick = onNavigateToSettings) {
                         Icon(
                             Icons.Default.Settings, 

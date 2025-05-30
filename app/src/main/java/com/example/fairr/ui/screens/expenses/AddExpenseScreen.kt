@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
@@ -18,6 +19,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -25,6 +27,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.fairr.ui.screens.categories.ExpenseCategory
+import com.example.fairr.ui.screens.categories.getDefaultCategories
 import com.example.fairr.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -37,14 +41,14 @@ fun AddExpenseScreen(
 ) {
     var description by remember { mutableStateOf("") }
     var amount by remember { mutableStateOf("") }
-    var selectedCategory by remember { mutableStateOf("General") }
+    val categories = remember { getDefaultCategories() }
+    var selectedCategory by remember { mutableStateOf(categories.first()) }
     var selectedSplitType by remember { mutableStateOf("Equal Split") }
     var isLoading by remember { mutableStateOf(false) }
     var showCategoryDropdown by remember { mutableStateOf(false) }
     // Uncomment and use this when implementing split functionality
     // var showSplitDropdown by remember { mutableStateOf(false) }
     
-    val categories = listOf("General", "Food & Dining", "Transportation", "Accommodation", "Entertainment", "Shopping", "Other")
     val splitTypes = listOf("Equal Split", "Percentage", "Custom Amount")
 
     Scaffold(
@@ -177,7 +181,7 @@ fun AddExpenseScreen(
                         onExpandedChange = { showCategoryDropdown = !showCategoryDropdown }
                     ) {
                         OutlinedTextField(
-                            value = selectedCategory,
+                            value = selectedCategory.name,
                             onValueChange = {},
                             readOnly = true,
                             label = { 
@@ -188,11 +192,23 @@ fun AddExpenseScreen(
                                 ) 
                             },
                             leadingIcon = {
-                                Icon(
-                                    Icons.Default.Category,
-                                    contentDescription = "Category",
-                                    tint = PlaceholderText
-                                )
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically
+                                ) {
+                                    Box(
+                                        modifier = Modifier
+                                            .size(24.dp)
+                                            .background(selectedCategory.color.copy(alpha = 0.1f), CircleShape),
+                                        contentAlignment = Alignment.Center
+                                    ) {
+                                        Icon(
+                                            selectedCategory.icon,
+                                            contentDescription = "Category",
+                                            tint = selectedCategory.color,
+                                            modifier = Modifier.size(14.dp)
+                                        )
+                                    }
+                                }
                             },
                             trailingIcon = {
                                 Icon(
@@ -217,7 +233,32 @@ fun AddExpenseScreen(
                         ) {
                             categories.forEach { category ->
                                 DropdownMenuItem(
-                                    text = { Text(category) },
+                                    text = { 
+                                        Row(
+                                            verticalAlignment = Alignment.CenterVertically,
+                                            modifier = Modifier.fillMaxWidth()
+                                        ) {
+                                            Box(
+                                                modifier = Modifier
+                                                    .size(32.dp)
+                                                    .background(category.color.copy(alpha = 0.1f), CircleShape),
+                                                contentAlignment = Alignment.Center
+                                            ) {
+                                                Icon(
+                                                    category.icon,
+                                                    contentDescription = category.name,
+                                                    tint = category.color,
+                                                    modifier = Modifier.size(18.dp)
+                                                )
+                                            }
+                                            Spacer(modifier = Modifier.width(12.dp))
+                                            Text(
+                                                text = category.name,
+                                                fontSize = 14.sp,
+                                                color = TextPrimary
+                                            )
+                                        }
+                                    },
                                     onClick = {
                                         selectedCategory = category
                                         showCategoryDropdown = false

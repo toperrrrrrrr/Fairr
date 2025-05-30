@@ -76,6 +76,7 @@ fun GroupDetailScreen(
         )
     }
 
+
     val expenses = remember {
         listOf(
             ExpenseItem("1", "Lunch at Mountain Cafe", 80.0, "John Doe", "12/28"),
@@ -236,10 +237,11 @@ fun GroupDetailScreen(
                     currency = group.currency,
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
+                Spacer(modifier = Modifier.height(8.dp))
             }
             
             item {
-                Spacer(modifier = Modifier.height(80.dp)) // Space for FAB
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }
@@ -253,84 +255,53 @@ fun GroupSummaryCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .shadow(2.dp, RoundedCornerShape(16.dp)),
+            .shadow(1.dp, RoundedCornerShape(16.dp)),
         shape = RoundedCornerShape(16.dp),
         colors = CardDefaults.cardColors(containerColor = PureWhite)
     ) {
         Column(
-            modifier = Modifier.padding(20.dp)
+            modifier = Modifier.padding(16.dp)
         ) {
+            Text(
+                text = group.description,
+                fontSize = 14.sp,
+                color = TextSecondary,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Column {
-                    Text(
-                        text = "Total Expenses",
-                        fontSize = 14.sp,
-                        color = TextSecondary,
-                        fontWeight = FontWeight.Medium
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Icon(
+                        Icons.Default.Group,
+                        contentDescription = "Members",
+                        tint = TextSecondary,
+                        modifier = Modifier.size(16.dp)
                     )
+                    Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "${group.currency}${String.format("%.2f", group.totalExpenses)}",
-                        fontSize = 28.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = TextPrimary
+                        text = "${group.memberCount} members",
+                        fontSize = 12.sp,
+                        color = TextSecondary
                     )
                 }
                 
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .background(
-                            DarkGreen.copy(alpha = 0.1f),
-                            CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
                     Icon(
                         Icons.Default.Receipt,
-                        contentDescription = "Expenses",
-                        tint = DarkGreen,
-                        modifier = Modifier.size(24.dp)
+                        contentDescription = "Total Expenses",
+                        tint = TextSecondary,
+                        modifier = Modifier.size(16.dp)
                     )
-                }
-            }
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column {
+                    Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "Members",
+                        text = "${group.currency}${String.format("%.2f", group.totalExpenses)}",
                         fontSize = 12.sp,
                         color = TextSecondary,
                         fontWeight = FontWeight.Medium
-                    )
-                    Text(
-                        text = "${group.memberCount}",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = TextPrimary
-                    )
-                }
-                
-                Column {
-                    Text(
-                        text = "Currency",
-                        fontSize = 12.sp,
-                        color = TextSecondary,
-                        fontWeight = FontWeight.Medium
-                    )
-                    Text(
-                        text = group.currency,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = TextPrimary
                     )
                 }
             }
@@ -346,29 +317,26 @@ fun BalanceCard(
     groupId: String,
     modifier: Modifier = Modifier
 ) {
-    val isOwed = balance > 0
-    val balanceColor = if (isOwed) SuccessGreen else ErrorRed
-    val balanceText = if (isOwed) "You are owed" else "You owe"
+    val isOwed = balance < 0
+    val balanceColor = if (isOwed) ErrorRed else SuccessGreen
     
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .shadow(2.dp, RoundedCornerShape(16.dp)),
+            .shadow(1.dp, RoundedCornerShape(16.dp)),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isOwed) SuccessGreen.copy(alpha = 0.05f) else ErrorRed.copy(alpha = 0.05f)
-        )
+        colors = CardDefaults.cardColors(containerColor = PureWhite)
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(20.dp),
+                .padding(16.dp),
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column {
                 Text(
-                    text = balanceText,
+                    text = if (isOwed) "You owe" else "You are owed",
                     fontSize = 14.sp,
                     color = TextSecondary,
                     fontWeight = FontWeight.Medium
@@ -381,7 +349,7 @@ fun BalanceCard(
                 )
             }
             
-            if (!isOwed) {
+            if (isOwed) {
                 Button(
                     onClick = { 
                         navController.navigate("settlement/$groupId")
@@ -427,8 +395,8 @@ fun MemberCard(
                 modifier = Modifier
                     .size(40.dp)
                     .background(
-                        DarkGreen.copy(alpha = 0.1f),
-                        CircleShape
+                        color = DarkGreen.copy(alpha = 0.1f),
+                        shape = CircleShape
                     ),
                 contentAlignment = Alignment.Center
             ) {
@@ -530,6 +498,22 @@ fun ExpenseCard(
 @Preview(showBackground = true)
 @Composable
 fun GroupDetailScreenPreview() {
+    val sampleGroup = GroupDetail(
+        id = "1",
+        name = "Roommates",
+        description = "Apartment expenses",
+        memberCount = 4,
+        totalExpenses = 1250.0,
+        yourBalance = -125.50,
+        currency = "$",
+        members = listOf(
+            Member("1", "You", -125.50),
+            Member("2", "Alex", 75.25),
+            Member("3", "Jamie", 50.25),
+            Member("4", "Taylor", 0.0)
+        )
+    )
+    
     FairrTheme {
         GroupDetailScreen(
             navController = rememberNavController(),

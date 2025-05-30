@@ -480,8 +480,6 @@ fun MemberCard(
                     color = balanceColor
                 )
             }
-        }
-    }
 }
 
 @Composable
@@ -527,13 +525,28 @@ fun ExpenseCard(
     }
 }
 
-@Preview(showBackground = true)
-@Composable
-fun GroupDetailScreenPreview() {
-    FairrTheme {
-        GroupDetailScreen(
-            navController = rememberNavController(),
-            groupId = "1"
-        )
-    }
-}
+// Data classes
+data class GroupDetail(
+    val id: String,
+    val name: String,
+    val description: String,
+    val memberCount: Int,
+    val totalExpenses: Double,
+    val yourBalance: Double,
+    val currency: String,
+    val members: List<Member>
+)
+
+data class Member(
+    val id: String,
+    val name: String,
+    val balance: Double
+)
+
+data class ExpenseItem(
+    val id: String,
+    val description: String,
+    val amount: Double,
+    val paidBy: String,
+    val date: String
+)

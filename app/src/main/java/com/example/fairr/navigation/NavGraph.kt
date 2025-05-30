@@ -7,10 +7,14 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.fairr.ui.screens.SplashScreen
+import com.example.fairr.ui.screens.analytics.AnalyticsScreen
 import com.example.fairr.ui.screens.auth.LoginScreen
 import com.example.fairr.ui.screens.auth.RegisterScreen
+import com.example.fairr.ui.screens.categories.CategoryManagementScreen
 import com.example.fairr.ui.screens.expenses.AddExpenseScreen
+import com.example.fairr.ui.screens.expenses.EditExpenseScreen
 import com.example.fairr.ui.screens.expenses.ExpenseDetailScreen
+import com.example.fairr.ui.screens.export.ExportDataScreen
 import com.example.fairr.ui.screens.groups.CreateGroupScreen
 import com.example.fairr.ui.screens.groups.GroupDetailScreen
 import com.example.fairr.ui.screens.groups.GroupSettingsScreen
@@ -18,7 +22,11 @@ import com.example.fairr.ui.screens.groups.JoinGroupScreen
 import com.example.fairr.ui.screens.home.HomeScreen
 import com.example.fairr.ui.screens.notifications.NotificationsScreen
 import com.example.fairr.ui.screens.onboarding.OnboardingScreen
+import com.example.fairr.ui.screens.profile.EditProfileScreen
+import com.example.fairr.ui.screens.search.SearchScreen
 import com.example.fairr.ui.screens.settings.SettingsScreen
+import com.example.fairr.ui.screens.settlements.SettlementScreen
+import com.example.fairr.ui.screens.support.HelpSupportScreen
 
 sealed class Screen(val route: String) {
     object Splash : Screen("splash")
@@ -27,6 +35,17 @@ sealed class Screen(val route: String) {
     object Register : Screen("register")
     object Home : Screen("home")
     object Settings : Screen("settings")
+    object EditProfile : Screen("edit_profile")
+    object Categories : Screen("categories")
+    object Search : Screen("search")
+    object Analytics : Screen("analytics")
+    object Settlement : Screen("settlement/{groupId}") {
+        fun createRoute(groupId: String) = "settlement/$groupId"
+    }
+    object ExportData : Screen("export_data/{groupId?}") {
+        fun createRoute(groupId: String? = null) = if (groupId != null) "export_data/$groupId" else "export_data/null"
+    }
+    object HelpSupport : Screen("help_support")
     object CreateGroup : Screen("create_group")
     object JoinGroup : Screen("join_group")
     object GroupDetail : Screen("group_detail/{groupId}") {
@@ -37,6 +56,9 @@ sealed class Screen(val route: String) {
     }
     object AddExpense : Screen("add_expense/{groupId}") {
         fun createRoute(groupId: String) = "add_expense/$groupId"
+    }
+    object EditExpense : Screen("edit_expense/{expenseId}") {
+        fun createRoute(expenseId: String) = "edit_expense/$expenseId"
     }
     object ExpenseDetail : Screen("expense_detail/{expenseId}") {
         fun createRoute(expenseId: String) = "expense_detail/$expenseId"
@@ -107,6 +129,15 @@ fun FairrNavGraph(
                 onNavigateToCreateGroup = {
                     navController.navigate(Screen.CreateGroup.route)
                 },
+                onNavigateToJoinGroup = {
+                    navController.navigate(Screen.JoinGroup.route)
+                },
+                onNavigateToSearch = {
+                    navController.navigate(Screen.Search.route)
+                },
+                onNavigateToNotifications = {
+                    navController.navigate(Screen.Notifications.route)
+                },
                 onNavigateToSettings = {
                     navController.navigate(Screen.Settings.route)
                 },
@@ -125,6 +156,71 @@ fun FairrNavGraph(
                         popUpTo(0) { inclusive = true }
                     }
                 }
+            )
+        }
+        
+        composable(Screen.EditProfile.route) {
+            EditProfileScreen(
+                navController = navController,
+                onSaveProfile = {
+                    // Navigate back after saving
+                    navController.popBackStack()
+                }
+            )
+        }
+        
+        composable(Screen.Categories.route) {
+            CategoryManagementScreen(
+                navController = navController,
+                onSaveCategories = { _ ->
+                    // Save categories to your data store/repository
+                    // Navigate back after saving
+                    navController.popBackStack()
+                }
+            )
+        }
+        
+        composable(Screen.Search.route) {
+            SearchScreen(
+                navController = navController,
+                onNavigateToExpense = { expenseId ->
+                    navController.navigate(Screen.ExpenseDetail.createRoute(expenseId))
+                },
+                onNavigateToGroup = { groupId ->
+                    navController.navigate(Screen.GroupDetail.createRoute(groupId))
+                }
+            )
+        }
+        
+        composable(Screen.Analytics.route) {
+            AnalyticsScreen(
+                navController = navController
+            )
+        }
+        
+        composable(Screen.Settlement.route) { backStackEntry ->
+            val groupId = backStackEntry.arguments?.getString("groupId") ?: ""
+            SettlementScreen(
+                navController = navController,
+                groupId = groupId,
+                onSettlementComplete = {
+                    // Navigate back to group detail after settlement
+                    navController.popBackStack()
+                }
+            )
+        }
+        
+        composable(Screen.ExportData.route) { backStackEntry ->
+            val groupId = backStackEntry.arguments?.getString("groupId")?.takeIf { it != "null" }
+            ExportDataScreen(
+                navController = navController,
+                groupId = groupId
+            )
+        }
+        
+        composable(Screen.HelpSupport.route) {
+            HelpSupportScreen(
+                navController = navController
             )
         }
         
@@ -187,13 +283,25 @@ fun FairrNavGraph(
             )
         }
         
+        composable(Screen.EditExpense.route) { backStackEntry ->
+            val expenseId = backStackEntry.arguments?.getString("expenseId") ?: ""
+            EditExpenseScreen(
+                navController = navController,
+                expenseId = expenseId,
+                onExpenseUpdated = {
+                    // Navigate back after updating expense
+                    navController.popBackStack()
+                }
+            )
+        }
+        
         composable(Screen.ExpenseDetail.route) { backStackEntry ->
             val expenseId = backStackEntry.arguments?.getString("expenseId") ?: ""
             ExpenseDetailScreen(
                 navController = navController,
                 expenseId = expenseId,
                 onEditExpense = {
-                    // TODO: Navigate to edit expense screen
+                    navController.navigate(Screen.EditExpense.createRoute(expenseId))
                 },
                 onDeleteExpense = {
                     // Navigate back after deleting expense
@@ -205,9 +313,11 @@ fun FairrNavGraph(
         composable(Screen.Notifications.route) {
             NotificationsScreen(
                 navController = navController,
-                onNotificationClick = { notificationId ->
-                    // TODO: Handle notification click based on type
-                    // For now, just navigate to specific screens based on notification
+                onNotificationClick = { _ ->
+                    // Handle notification click based on type
+                    // For demo purposes, navigate to group detail for expense notifications
+                    // In real app, this would check notification type and navigate accordingly
+                    navController.navigate(Screen.GroupDetail.createRoute("1"))
                 }
             )
         }
