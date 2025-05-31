@@ -10,6 +10,9 @@ import com.example.fairr.ui.screens.SplashScreen
 import com.example.fairr.ui.screens.analytics.AnalyticsScreen
 import com.example.fairr.ui.screens.auth.LoginScreen
 import com.example.fairr.ui.screens.auth.RegisterScreen
+import com.example.fairr.ui.screens.auth.WelcomeScreen
+import com.example.fairr.ui.screens.auth.MobileLoginScreen
+import com.example.fairr.ui.screens.auth.MobileSignUpScreen
 import com.example.fairr.ui.screens.budget.BudgetManagementScreen
 import com.example.fairr.ui.screens.categories.CategoryManagementScreen
 import com.example.fairr.ui.screens.expenses.AddExpenseScreen
@@ -33,8 +36,11 @@ import com.example.fairr.ui.screens.camera.PhotoCaptureScreen
 sealed class Screen(val route: String) {
     object Splash : Screen("splash")
     object Onboarding : Screen("onboarding")
+    object Welcome : Screen("welcome")
     object Login : Screen("login")
+    object MobileLogin : Screen("mobile_login")
     object Register : Screen("register")
+    object MobileSignUp : Screen("mobile_signup")
     object Home : Screen("home")
     object Settings : Screen("settings")
     object EditProfile : Screen("edit_profile")
@@ -94,8 +100,58 @@ fun FairrNavGraph(
         composable(Screen.Onboarding.route) {
             OnboardingScreen(
                 onGetStarted = {
-                    navController.navigate(Screen.Login.route) {
+                    navController.navigate(Screen.Welcome.route) {
                         popUpTo(Screen.Onboarding.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+        
+        composable(Screen.Welcome.route) {
+            WelcomeScreen(
+                navController = navController,
+                onNavigateToLogin = {
+                    navController.navigate(Screen.MobileLogin.route)
+                },
+                onNavigateToSignUp = {
+                    navController.navigate(Screen.MobileSignUp.route)
+                }
+            )
+        }
+        
+        composable(Screen.MobileLogin.route) {
+            MobileLoginScreen(
+                navController = navController,
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onLoginSuccess = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Welcome.route) { inclusive = true }
+                    }
+                },
+                onNavigateToSignUp = {
+                    navController.navigate(Screen.MobileSignUp.route) {
+                        popUpTo(Screen.MobileLogin.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+        
+        composable(Screen.MobileSignUp.route) {
+            MobileSignUpScreen(
+                navController = navController,
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onSignUpSuccess = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Welcome.route) { inclusive = true }
+                    }
+                },
+                onNavigateToLogin = {
+                    navController.navigate(Screen.MobileLogin.route) {
+                        popUpTo(Screen.MobileSignUp.route) { inclusive = true }
                     }
                 }
             )
