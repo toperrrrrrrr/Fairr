@@ -3,8 +3,10 @@ package com.example.fairr.ui.screens.auth
 import android.util.Patterns
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
@@ -16,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
@@ -26,6 +29,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.fairr.R
 import com.example.fairr.ui.theme.*
 import kotlinx.coroutines.delay
 
@@ -89,11 +93,11 @@ fun LoginScreen(
     Column(
         modifier = Modifier.fillMaxSize()
     ) {
-        // Dark header section
+        // Dark header section - reduced height
         Box(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(0.4f)
+                .height(240.dp)
                 .background(
                     color = DarkBackground,
                     shape = RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp)
@@ -109,8 +113,8 @@ fun LoginScreen(
                         shape = RoundedCornerShape(16.dp)
                     ),
                 contentAlignment = Alignment.Center
-            ) {
-                Text(
+    ) {
+        Text(
                     text = "F",
                     fontSize = 36.sp,
                     fontWeight = FontWeight.Bold,
@@ -119,16 +123,17 @@ fun LoginScreen(
             }
         }
 
-        // White form section
+        // White form section - takes remaining space
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .weight(0.6f)
+                .fillMaxHeight()
                 .background(MaterialTheme.colorScheme.background)
-                .padding(24.dp),
+                .padding(24.dp)
+                .verticalScroll(rememberScrollState()),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
             
             Text(
                 text = "Login",
@@ -137,7 +142,7 @@ fun LoginScreen(
                 color = TextPrimary
             )
             
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.height(24.dp))
 
             // Error message display
             errorMessage?.let { message ->
@@ -198,9 +203,9 @@ fun LoginScreen(
                     }
                 },
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = if (emailError != null) ErrorRed else DarkGreen,
+                    focusedBorderColor = if (emailError != null) ErrorRed else Primary,
                     unfocusedBorderColor = if (emailError != null) ErrorRed else PlaceholderText,
-                    focusedLabelColor = if (emailError != null) ErrorRed else DarkGreen,
+                    focusedLabelColor = if (emailError != null) ErrorRed else Primary,
                     errorBorderColor = ErrorRed,
                     errorLabelColor = ErrorRed
                 )
@@ -209,8 +214,8 @@ fun LoginScreen(
             Spacer(modifier = Modifier.height(16.dp))
 
             // Password field
-            OutlinedTextField(
-                value = password,
+        OutlinedTextField(
+            value = password,
                 onValueChange = { 
                     password = it
                     passwordError = null // Clear error on typing
@@ -229,15 +234,15 @@ fun LoginScreen(
                         fontSize = 14.sp
                     )
                 },
-                leadingIcon = {
+            leadingIcon = {
                     Icon(
                         Icons.Default.Lock,
                         contentDescription = "Password",
                         tint = PlaceholderText
                     )
-                },
-                trailingIcon = {
-                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
+            },
+            trailingIcon = {
+                IconButton(onClick = { passwordVisible = !passwordVisible }) {
                         Icon(
                             imageVector = if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
                             contentDescription = if (passwordVisible) "Hide password" else "Show password",
@@ -247,7 +252,7 @@ fun LoginScreen(
                 },
                 visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
                 modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
                 singleLine = true,
                 isError = passwordError != null,
                 supportingText = passwordError?.let { error ->
@@ -260,9 +265,9 @@ fun LoginScreen(
                     }
                 },
                 colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = if (passwordError != null) ErrorRed else DarkGreen,
+                    focusedBorderColor = if (passwordError != null) ErrorRed else Primary,
                     unfocusedBorderColor = if (passwordError != null) ErrorRed else PlaceholderText,
-                    focusedLabelColor = if (passwordError != null) ErrorRed else DarkGreen,
+                    focusedLabelColor = if (passwordError != null) ErrorRed else Primary,
                     errorBorderColor = ErrorRed,
                     errorLabelColor = ErrorRed
                 )
@@ -286,9 +291,9 @@ fun LoginScreen(
                     }
                 }
             }
-            
-            Button(
-                onClick = { 
+
+        Button(
+            onClick = {
                     if (validateInputs()) {
                         triggerLogin = !triggerLogin
                     }
@@ -333,9 +338,79 @@ fun LoginScreen(
 
             Spacer(modifier = Modifier.height(24.dp))
 
-            // Sign up link
-            TextButton(
+            // Or divider
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Divider(
+                    modifier = Modifier.weight(1f),
+                    color = PlaceholderText.copy(alpha = 0.3f)
+                )
+                Text(
+                    text = "  or  ",
+                    color = TextSecondary,
+                    fontSize = 14.sp,
+                    modifier = Modifier.padding(horizontal = 8.dp)
+                )
+                Divider(
+                    modifier = Modifier.weight(1f),
+                    color = PlaceholderText.copy(alpha = 0.3f)
+                )
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Google Sign In button
+            OutlinedButton(
                 onClick = { 
+                    // Handle Google sign in
+            },
+            modifier = Modifier
+                .fillMaxWidth()
+                    .height(56.dp),
+                shape = RoundedCornerShape(12.dp),
+                border = androidx.compose.foundation.BorderStroke(1.dp, PlaceholderText.copy(alpha = 0.3f)),
+                colors = ButtonDefaults.outlinedButtonColors(
+                    containerColor = Color.Transparent,
+                    contentColor = TextPrimary
+                )
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.Center
+                ) {
+                    // Google icon placeholder - you can replace with actual Google icon
+                    Box(
+                        modifier = Modifier
+                            .size(20.dp)
+                            .background(
+                                color = Color.Transparent,
+                                shape = RoundedCornerShape(4.dp)
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "G",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = AccentBlue
+                        )
+                    }
+                    Spacer(modifier = Modifier.width(12.dp))
+                    Text(
+                        text = "Continue with Google",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Sign up link
+        TextButton(
+            onClick = {
                     onNavigateToRegister()
                 }
             ) {

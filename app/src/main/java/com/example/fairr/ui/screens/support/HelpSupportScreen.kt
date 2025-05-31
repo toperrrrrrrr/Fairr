@@ -1,8 +1,10 @@
 package com.example.fairr.ui.screens.support
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -14,6 +16,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -21,44 +24,53 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.fairr.ui.components.FairrEmptyState
+import com.example.fairr.ui.components.FairrFilterChip
 import com.example.fairr.ui.theme.*
+
+data class HelpCategory(
+    val id: String,
+    val title: String,
+    val icon: ImageVector,
+    val description: String,
+    val articles: List<HelpArticle>
+)
+
+data class HelpArticle(
+    val id: String,
+    val title: String,
+    val content: String,
+    val isPopular: Boolean = false
+)
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HelpSupportScreen(
     navController: NavController
 ) {
-    // FAQ Data
-    val faqItems = remember {
-        listOf(
-            FAQItem(
-                question = "How do I create a new group?",
-                answer = "Tap the '+' button on the home screen and select 'Create Group'. Enter the group name, description, and currency, then invite members by sharing the group code."
-            ),
-            FAQItem(
-                question = "How do I join an existing group?",
-                answer = "Get the invite code from a group member, then tap 'Join Group' from the home screen and enter the code."
-            ),
-            FAQItem(
-                question = "How are expenses split?",
-                answer = "You can choose from equal split, percentage-based, or custom amounts. The app automatically calculates who owes what to whom."
-            ),
-            FAQItem(
-                question = "How do I settle up with someone?",
-                answer = "Go to your group, tap on the member you want to settle with, and select 'Settle Up'. Choose your payment method and mark as paid."
-            ),
-            FAQItem(
-                question = "Can I edit or delete expenses?",
-                answer = "Yes, tap on any expense to view details, then use the menu button to edit or delete. Only the person who added the expense can modify it."
-            ),
-            FAQItem(
-                question = "Is my data secure?",
-                answer = "Yes, all your data is encrypted and secure. We never share your personal information with third parties."
-            )
-        )
+    var selectedCategory by remember { mutableStateOf("All") }
+    var searchQuery by remember { mutableStateOf("") }
+    var expandedArticle by remember { mutableStateOf<String?>(null) }
+    
+    val categories = remember { getHelpCategories() }
+    val categoryFilters = listOf("All") + categories.map { it.title }
+    
+    val filteredArticles = remember(selectedCategory, searchQuery, categories) {
+        val allArticles = if (selectedCategory == "All") {
+            categories.flatMap { it.articles }
+        } else {
+            categories.find { it.title == selectedCategory }?.articles ?: emptyList()
+        }
+        
+        if (searchQuery.isBlank()) {
+            allArticles
+        } else {
+            allArticles.filter { 
+                it.title.contains(searchQuery, ignoreCase = true) ||
+                it.content.contains(searchQuery, ignoreCase = true)
+            }
+        }
     }
-
-    var selectedFAQ by remember { mutableStateOf<String?>(null) }
 
     Scaffold(
         topBar = {
@@ -90,78 +102,134 @@ fun HelpSupportScreen(
                 .fillMaxSize()
                 .background(LightBackground)
                 .padding(padding),
+            contentPadding = PaddingValues(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            item {
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-            
             // Header Card
             item {
-                HelpHeaderCard(
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .shadow(2.dp, RoundedCornerShape(16.dp)),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = PureWhite)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(20.dp),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Icon(
+                            Icons.Default.Help,
+                            contentDescription = "Help",
+                            tint = DarkGreen,
+                            modifier = Modifier.size(48.dp)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "How can we help you?",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary,
+                            textAlign = TextAlign.Center
+                        )
+                        Text(
+                            text = "Find answers to common questions and get support",
+                            fontSize = 14.sp,
+                            color = TextSecondary,
+                            textAlign = TextAlign.Center,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    }
+                }
             }
             
             // Quick Actions
             item {
-                Text(
-                    text = "Quick Actions",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = TextPrimary,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
+                QuickActionsSection()
             }
             
+            // Search Bar
             item {
-                QuickActionsCard(
-                    onContactSupport = { /* TODO */ },
-                    onViewGuides = { /* TODO */ },
-                    onReportBug = { /* TODO */ },
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = PureWhite)
+                ) {
+                    OutlinedTextField(
+                        value = searchQuery,
+                        onValueChange = { searchQuery = it },
+                        label = { Text("Search help articles") },
+                        leadingIcon = { 
+                            Icon(Icons.Default.Search, contentDescription = "Search") 
+                        },
+                        trailingIcon = {
+                            if (searchQuery.isNotEmpty()) {
+                                IconButton(onClick = { searchQuery = "" }) {
+                                    Icon(Icons.Default.Clear, contentDescription = "Clear")
+                                }
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = DarkGreen,
+                            focusedLabelColor = DarkGreen
+                        )
+                    )
+                }
             }
             
-            // FAQ Section
+            // Category Filters
             item {
-                Text(
-                    text = "Frequently Asked Questions",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = TextPrimary,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(categoryFilters) { category ->
+                        FairrFilterChip(
+                            selected = selectedCategory == category,
+                            onClick = { selectedCategory = category },
+                            label = category,
+                            leadingIcon = when (category) {
+                                "All" -> Icons.Default.List
+                                "Getting Started" -> Icons.Default.Start
+                                "Expenses" -> Icons.Default.Receipt
+                                "Groups" -> Icons.Default.Group
+                                "Payments" -> Icons.Default.Payment
+                                "Account" -> Icons.Default.Person
+                                else -> null
+                            }
+                        )
+                    }
+                }
             }
             
-            items(faqItems) { faq ->
-                FAQCard(
-                    faq = faq,
-                    isExpanded = selectedFAQ == faq.question,
-                    onToggle = { 
-                        selectedFAQ = if (selectedFAQ == faq.question) null else faq.question
-                    },
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
+            // Help Articles
+            if (filteredArticles.isEmpty()) {
+                item {
+                    FairrEmptyState(
+                        title = "No Articles Found",
+                        message = "Try adjusting your search or browse other categories",
+                        icon = Icons.Default.SearchOff
+                    )
+                }
+            } else {
+                items(filteredArticles) { article ->
+                    HelpArticleCard(
+                        article = article,
+                        isExpanded = expandedArticle == article.id,
+                        onToggleExpanded = { 
+                            expandedArticle = if (expandedArticle == article.id) null else article.id
+                        }
+                    )
+                }
             }
             
-            // Contact Section
+            // Contact Support Section
             item {
-                Text(
-                    text = "Still Need Help?",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = TextPrimary,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
+                ContactSupportSection()
             }
             
-            item {
-                ContactCard(
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-            }
-            
+            // Additional spacing at bottom
             item {
                 Spacer(modifier = Modifier.height(16.dp))
             }
@@ -170,176 +238,96 @@ fun HelpSupportScreen(
 }
 
 @Composable
-fun HelpHeaderCard(
-    modifier: Modifier = Modifier
+fun QuickActionsSection() {
+    Column {
+        Text(
+            text = "Quick Actions",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = TextPrimary,
+            modifier = Modifier.padding(vertical = 8.dp)
+        )
+        
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
+        ) {
+            QuickActionCard(
+                icon = Icons.Default.VideoLibrary,
+                title = "Video Tutorials",
+                description = "Watch step-by-step guides",
+                modifier = Modifier.weight(1f),
+                onClick = { /* Navigate to tutorials */ }
+            )
+            
+            QuickActionCard(
+                icon = Icons.Default.Chat,
+                title = "Live Chat",
+                description = "Chat with our support team",
+                modifier = Modifier.weight(1f),
+                onClick = { /* Open live chat */ }
+            )
+        }
+    }
+}
+
+@Composable
+fun QuickActionCard(
+    icon: ImageVector,
+    title: String,
+    description: String,
+    modifier: Modifier = Modifier,
+    onClick: () -> Unit = {}
 ) {
     Card(
         modifier = modifier
-            .fillMaxWidth()
-            .shadow(2.dp, RoundedCornerShape(16.dp)),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = DarkGreen.copy(alpha = 0.05f)
-        )
+            .clickable { onClick() }
+            .shadow(1.dp, RoundedCornerShape(12.dp)),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = PureWhite)
     ) {
         Column(
-            modifier = Modifier.padding(24.dp),
+            modifier = Modifier.padding(16.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Box(
-                modifier = Modifier
-                    .size(80.dp)
-                    .background(DarkGreen.copy(alpha = 0.1f), CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    Icons.Default.Help,
-                    contentDescription = "Help",
-                    tint = DarkGreen,
-                    modifier = Modifier.size(40.dp)
-                )
-            }
+            Icon(
+                icon,
+                contentDescription = title,
+                tint = DarkGreen,
+                modifier = Modifier.size(32.dp)
+            )
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(8.dp))
             
             Text(
-                text = "How can we help you?",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
+                text = title,
+                fontSize = 14.sp,
+                fontWeight = FontWeight.Medium,
                 color = TextPrimary,
                 textAlign = TextAlign.Center
             )
             
             Text(
-                text = "Find answers to common questions or get in touch with our support team",
-                fontSize = 14.sp,
+                text = description,
+                fontSize = 12.sp,
                 color = TextSecondary,
                 textAlign = TextAlign.Center,
-                modifier = Modifier.padding(top = 8.dp)
+                modifier = Modifier.padding(top = 2.dp)
             )
         }
     }
 }
 
 @Composable
-fun QuickActionsCard(
-    onContactSupport: () -> Unit,
-    onViewGuides: () -> Unit,
-    onReportBug: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .shadow(1.dp, RoundedCornerShape(16.dp)),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = PureWhite)
-    ) {
-        Column {
-            QuickActionItem(
-                icon = Icons.Default.ContactSupport,
-                title = "Contact Support",
-                subtitle = "Get help from our team",
-                onClick = onContactSupport
-            )
-            
-            HorizontalDivider(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                color = PlaceholderText.copy(alpha = 0.2f)
-            )
-            
-            QuickActionItem(
-                icon = Icons.Default.MenuBook,
-                title = "User Guides",
-                subtitle = "Step-by-step tutorials",
-                onClick = onViewGuides
-            )
-            
-            HorizontalDivider(
-                modifier = Modifier.padding(horizontal = 16.dp),
-                color = PlaceholderText.copy(alpha = 0.2f)
-            )
-            
-            QuickActionItem(
-                icon = Icons.Default.BugReport,
-                title = "Report a Bug",
-                subtitle = "Help us improve the app",
-                onClick = onReportBug
-            )
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun QuickActionItem(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    title: String,
-    subtitle: String,
-    onClick: () -> Unit
-) {
-    Surface(
-        onClick = onClick,
-        color = androidx.compose.ui.graphics.Color.Transparent
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .background(DarkBlue.copy(alpha = 0.1f), CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    icon,
-                    contentDescription = title,
-                    tint = DarkBlue,
-                    modifier = Modifier.size(20.dp)
-                )
-            }
-            
-            Spacer(modifier = Modifier.width(16.dp))
-            
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = title,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = TextPrimary
-                )
-                Text(
-                    text = subtitle,
-                    fontSize = 12.sp,
-                    color = TextSecondary
-                )
-            }
-            
-            Icon(
-                Icons.Default.ChevronRight,
-                contentDescription = "Navigate",
-                tint = PlaceholderText,
-                modifier = Modifier.size(20.dp)
-            )
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun FAQCard(
-    faq: FAQItem,
+fun HelpArticleCard(
+    article: HelpArticle,
     isExpanded: Boolean,
-    onToggle: () -> Unit,
-    modifier: Modifier = Modifier
+    onToggleExpanded: () -> Unit
 ) {
     Card(
-        onClick = onToggle,
-        modifier = modifier
+        modifier = Modifier
             .fillMaxWidth()
+            .clickable { onToggleExpanded() }
             .shadow(1.dp, RoundedCornerShape(12.dp)),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(containerColor = PureWhite)
@@ -349,28 +337,55 @@ fun FAQCard(
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = faq.question,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = TextPrimary,
-                    modifier = Modifier.weight(1f)
-                )
+                Row(
+                    modifier = Modifier.weight(1f),
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = article.title,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = TextPrimary,
+                        modifier = Modifier.weight(1f)
+                    )
+                    
+                    if (article.isPopular) {
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Card(
+                            colors = CardDefaults.cardColors(
+                                containerColor = DarkGreen.copy(alpha = 0.1f)
+                            ),
+                            shape = RoundedCornerShape(4.dp)
+                        ) {
+                            Text(
+                                text = "Popular",
+                                fontSize = 10.sp,
+                                fontWeight = FontWeight.Medium,
+                                color = DarkGreen,
+                                modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp)
+                            )
+                        }
+                    }
+                }
                 
                 Icon(
                     if (isExpanded) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
                     contentDescription = if (isExpanded) "Collapse" else "Expand",
-                    tint = PlaceholderText,
-                    modifier = Modifier.size(24.dp)
+                    tint = TextSecondary
                 )
             }
             
             if (isExpanded) {
-                Spacer(modifier = Modifier.height(12.dp))
+                HorizontalDivider(
+                    color = PlaceholderText.copy(alpha = 0.2f),
+                    modifier = Modifier.padding(vertical = 12.dp)
+                )
+                
                 Text(
-                    text = faq.answer,
+                    text = article.content,
                     fontSize = 14.sp,
                     color = TextSecondary,
                     lineHeight = 20.sp
@@ -381,120 +396,188 @@ fun FAQCard(
 }
 
 @Composable
-fun ContactCard(
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .shadow(1.dp, RoundedCornerShape(16.dp)),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = PureWhite)
-    ) {
-        Column(
-            modifier = Modifier.padding(20.dp)
+fun ContactSupportSection() {
+    Column {
+        Text(
+            text = "Still Need Help?",
+            fontSize = 16.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = TextPrimary,
+            modifier = Modifier.padding(vertical = 8.dp)
+        )
+        
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = PureWhite)
         ) {
-            Text(
-                text = "Get in Touch",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = TextPrimary,
-                modifier = Modifier.padding(bottom = 16.dp)
-            )
-            
-            ContactItem(
-                icon = Icons.Default.Email,
-                title = "Email Support",
-                subtitle = "support@fairshare.com",
-                onClick = { /* TODO: Open email */ }
-            )
-            
-            Spacer(modifier = Modifier.height(12.dp))
-            
-            ContactItem(
-                icon = Icons.Default.Chat,
-                title = "Live Chat",
-                subtitle = "Available 9 AM - 6 PM EST",
-                onClick = { /* TODO: Open chat */ }
-            )
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            Text(
-                text = "We typically respond within 24 hours",
-                fontSize = 12.sp,
-                color = TextSecondary,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.fillMaxWidth()
-            )
-        }
-    }
-}
-
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-fun ContactItem(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
-    title: String,
-    subtitle: String,
-    onClick: () -> Unit
-) {
-    Surface(
-        onClick = onClick,
-        color = androidx.compose.ui.graphics.Color.Transparent,
-        shape = RoundedCornerShape(8.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Box(
-                modifier = Modifier
-                    .size(36.dp)
-                    .background(DarkGreen.copy(alpha = 0.1f), CircleShape),
-                contentAlignment = Alignment.Center
+            Column(
+                modifier = Modifier.padding(20.dp)
             ) {
-                Icon(
-                    icon,
-                    contentDescription = title,
-                    tint = DarkGreen,
-                    modifier = Modifier.size(18.dp)
-                )
-            }
-            
-            Spacer(modifier = Modifier.width(12.dp))
-            
-            Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = title,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium,
+                    text = "Contact Our Support Team",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold,
                     color = TextPrimary
                 )
+                
                 Text(
-                    text = subtitle,
-                    fontSize = 12.sp,
-                    color = TextSecondary
+                    text = "We're here to help you with any questions or issues you might have.",
+                    fontSize = 14.sp,
+                    color = TextSecondary,
+                    modifier = Modifier.padding(top = 4.dp, bottom = 16.dp)
                 )
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = { /* Open email */ },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = DarkGreen
+                        ),
+                        border = androidx.compose.foundation.BorderStroke(1.dp, DarkGreen)
+                    ) {
+                        Icon(
+                            Icons.Default.Email,
+                            contentDescription = "Email",
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Email Us")
+                    }
+                    
+                    Button(
+                        onClick = { /* Open live chat */ },
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = DarkGreen
+                        )
+                    ) {
+                        Icon(
+                            Icons.Default.Chat,
+                            contentDescription = "Chat",
+                            modifier = Modifier.size(16.dp),
+                            tint = PureWhite
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Live Chat", color = PureWhite)
+                    }
+                }
             }
         }
     }
 }
 
-// Data classes
-data class FAQItem(
-    val question: String,
-    val answer: String
-)
+private fun getHelpCategories(): List<HelpCategory> {
+    return listOf(
+        HelpCategory(
+            id = "getting_started",
+            title = "Getting Started",
+            icon = Icons.Default.Start,
+            description = "Learn the basics of FairShare",
+            articles = listOf(
+                HelpArticle(
+                    id = "create_account",
+                    title = "How to create an account",
+                    content = "To create a FairShare account:\n\n1. Download the FairShare app from the App Store or Google Play\n2. Open the app and tap 'Sign Up'\n3. Enter your email address and create a secure password\n4. Verify your email address\n5. Complete your profile information\n\nOnce your account is created, you can start creating groups and adding expenses right away!",
+                    isPopular = true
+                ),
+                HelpArticle(
+                    id = "first_group",
+                    title = "Creating your first group",
+                    content = "Creating a group is easy:\n\n1. Tap the '+' button on the Groups screen\n2. Enter a group name (like 'Weekend Trip' or 'Roommates')\n3. Add a description (optional)\n4. Invite members by email or sharing an invite code\n5. Start adding expenses!\n\nYour group members will receive notifications to join and can start adding expenses immediately.",
+                    isPopular = true
+                )
+            )
+        ),
+        HelpCategory(
+            id = "expenses",
+            title = "Expenses",
+            icon = Icons.Default.Receipt,
+            description = "Managing expenses and receipts",
+            articles = listOf(
+                HelpArticle(
+                    id = "add_expense",
+                    title = "How to add an expense",
+                    content = "Adding an expense is simple:\n\n1. Open your group\n2. Tap the '+' button\n3. Enter the expense amount\n4. Add a description\n5. Choose who paid\n6. Select how to split the expense\n7. Add receipt photos (optional)\n8. Tap 'Save'\n\nThe expense will be automatically added to the group and all members will be notified."
+                ),
+                HelpArticle(
+                    id = "split_methods",
+                    title = "Different ways to split expenses",
+                    content = "FairShare offers several splitting methods:\n\n• Equal Split: Divides the expense equally among selected members\n• Percentage Split: Each member pays a specific percentage\n• Exact Amounts: Specify exact amounts for each member\n• Pay for Yourself: Each member selects what they consumed\n\nChoose the method that works best for your expense type and group preferences."
+                ),
+                HelpArticle(
+                    id = "receipt_scanning",
+                    title = "Using receipt scanning",
+                    content = "Our smart receipt scanning feature helps you add expenses quickly:\n\n1. When adding an expense, tap the camera icon\n2. Take a photo of your receipt or select from gallery\n3. Our AI will automatically extract:\n   - Total amount\n   - Merchant name\n   - Date\n   - Individual items (when possible)\n4. Review and edit the extracted information\n5. Save the expense\n\nThis feature works best with clear, well-lit photos of receipts.",
+                    isPopular = true
+                )
+            )
+        ),
+        HelpCategory(
+            id = "groups",
+            title = "Groups",
+            icon = Icons.Default.Group,
+            description = "Group management and settings",
+            articles = listOf(
+                HelpArticle(
+                    id = "invite_members",
+                    title = "Inviting members to a group",
+                    content = "There are several ways to invite members:\n\n1. Email Invitation:\n   - Go to group settings\n   - Tap 'Invite Members'\n   - Enter email addresses\n   - Send invitations\n\n2. Share Invite Code:\n   - Generate an invite code in group settings\n   - Share the code via text, email, or social media\n   - Members can join by entering the code\n\n3. QR Code:\n   - Show the QR code from group settings\n   - Members can scan it to join instantly"
+                ),
+                HelpArticle(
+                    id = "group_settings",
+                    title = "Managing group settings",
+                    content = "Group administrators can manage various settings:\n\n• Group Name & Description: Edit basic group information\n• Member Permissions: Control who can add expenses\n• Currency: Set the group's default currency\n• Notifications: Configure group notification settings\n• Privacy: Set group visibility and join permissions\n• Archive/Delete: Archive completed groups or delete permanently\n\nAccess these settings through the group menu or settings icon."
+                )
+            )
+        ),
+        HelpCategory(
+            id = "payments",
+            title = "Payments",
+            icon = Icons.Default.Payment,
+            description = "Settling up and payments",
+            articles = listOf(
+                HelpArticle(
+                    id = "settle_up",
+                    title = "How to settle up with group members",
+                    content = "FairShare calculates who owes what and provides optimal payment suggestions:\n\n1. View your group's 'Balances' tab\n2. See who owes money and who should receive payments\n3. Tap 'Settle Up' to see payment recommendations\n4. Choose a payment method:\n   - Record cash payment\n   - Use integrated payment apps\n   - Bank transfer\n5. Mark payments as completed\n\nOur algorithm minimizes the number of transactions needed to settle all debts.",
+                    isPopular = true
+                ),
+                HelpArticle(
+                    id = "payment_methods",
+                    title = "Available payment methods",
+                    content = "FairShare integrates with popular payment services:\n\n• Venmo: Send money directly through the app\n• PayPal: Transfer funds securely\n• Cash App: Quick peer-to-peer payments\n• Zelle: Bank-to-bank transfers\n• Cash: Record cash payments\n• Bank Transfer: Traditional bank transfers\n\nYou can also record manual payments and add payment confirmation details."
+                )
+            )
+        ),
+        HelpCategory(
+            id = "account",
+            title = "Account",
+            icon = Icons.Default.Person,
+            description = "Account settings and security",
+            articles = listOf(
+                HelpArticle(
+                    id = "change_password",
+                    title = "Changing your password",
+                    content = "To change your password:\n\n1. Go to Settings > Account\n2. Tap 'Change Password'\n3. Enter your current password\n4. Enter your new password\n5. Confirm your new password\n6. Tap 'Save Changes'\n\nMake sure your new password is strong and unique. We recommend using a mix of letters, numbers, and symbols."
+                ),
+                HelpArticle(
+                    id = "delete_account",
+                    title = "Deleting your account",
+                    content = "If you need to delete your account:\n\n1. Settle all outstanding balances in your groups\n2. Leave all groups you're a member of\n3. Go to Settings > Account > Delete Account\n4. Confirm the deletion\n\nPlease note: This action is permanent and cannot be undone. All your data will be deleted and cannot be recovered."
+                )
+            )
+        )
+    )
+}
 
 @Preview(showBackground = true)
 @Composable
 fun HelpSupportScreenPreview() {
     FairrTheme {
-        HelpSupportScreen(
-            navController = rememberNavController()
-        )
+        HelpSupportScreen(navController = rememberNavController())
     }
 } 

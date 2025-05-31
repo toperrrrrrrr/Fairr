@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.fairr.ui.components.*
 import com.example.fairr.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -60,12 +61,12 @@ fun SettingsScreen(
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack, 
                             contentDescription = "Back",
-                            tint = TextSecondary
+                            tint = IconTint
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = PureWhite
+                    containerColor = BackgroundPrimary
                 )
             )
         }
@@ -73,54 +74,57 @@ fun SettingsScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(paddingValues)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
+                .background(BackgroundSecondary)
+                .padding(paddingValues),
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             // Profile Section
             item {
-                ProfileCard(user = user, navController = navController)
-            }
-            
-            item {
-                Spacer(modifier = Modifier.height(8.dp))
+                ModernProfileCard(user = user, navController = navController)
             }
 
             // Account Section
             item {
-                SectionHeader("Account & Security")
-            }
-            
-            item {
-                SettingsCard {
-                    Column {
-                        SettingsItem(
-                            icon = Icons.Default.Lock,
+                Text(
+                    text = "Account & Security",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary,
+                    modifier = Modifier.padding(horizontal = 4.dp)
+                )
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                ModernCard {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(0.dp)
+                    ) {
+                        ModernListItem(
                             title = "Change Password",
                             subtitle = "Update your account password",
+                            leadingIcon = Icons.Default.Lock,
                             onClick = { /* Navigate to change password */ }
                         )
-                        HorizontalDivider(modifier = Modifier.padding(start = 56.dp))
-                        SettingsItem(
-                            icon = Icons.Default.Security,
+                        HorizontalDivider(color = DividerColor)
+                        ModernListItem(
                             title = "Two-Factor Authentication",
                             subtitle = "Add extra security to your account",
+                            leadingIcon = Icons.Default.Security,
                             onClick = { /* Navigate to 2FA settings */ }
                         )
-                        HorizontalDivider(modifier = Modifier.padding(start = 56.dp))
-                        SettingsItem(
-                            icon = Icons.Default.Download,
+                        HorizontalDivider(color = DividerColor)
+                        ModernListItem(
                             title = "Download My Data",
                             subtitle = "Export your account data",
+                            leadingIcon = Icons.Default.Download,
                             onClick = { /* Navigate to data export */ }
                         )
-                        HorizontalDivider(modifier = Modifier.padding(start = 56.dp))
-                        SettingsItem(
-                            icon = Icons.Default.Delete,
+                        HorizontalDivider(color = DividerColor)
+                        ModernListItem(
                             title = "Delete Account",
                             subtitle = "Permanently delete your account",
-                            titleColor = ErrorRed,
-                            iconTint = ErrorRed,
+                            leadingIcon = Icons.Default.Delete,
                             onClick = { /* Show delete account dialog */ }
                         )
                     }
@@ -129,32 +133,40 @@ fun SettingsScreen(
 
             // Preferences Section
             item {
-                SectionHeader("Preferences")
-            }
-            
-            item {
-                SettingsCard {
-                    Column {
-                        SettingsSwitchItem(
-                            icon = Icons.Default.DarkMode,
+                Text(
+                    text = "Preferences",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary,
+                    modifier = Modifier.padding(horizontal = 4.dp)
+                )
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                ModernCard {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(0.dp)
+                    ) {
+                        ModernSwitchItem(
                             title = "Dark Mode",
                             subtitle = "Use dark theme",
+                            icon = Icons.Default.DarkMode,
                             checked = themeManager.isDarkTheme(),
                             onCheckedChange = { themeManager.toggleDarkMode() }
                         )
-                        HorizontalDivider(modifier = Modifier.padding(start = 56.dp))
-                        SettingsSwitchItem(
-                            icon = Icons.Default.Notifications,
+                        HorizontalDivider(color = DividerColor)
+                        ModernSwitchItem(
                             title = "Notifications",
                             subtitle = "Enable push notifications",
+                            icon = Icons.Default.Notifications,
                             checked = notificationsEnabled,
                             onCheckedChange = { notificationsEnabled = it }
                         )
-                        HorizontalDivider(modifier = Modifier.padding(start = 56.dp))
-                        SettingsSwitchItem(
-                            icon = Icons.AutoMirrored.Filled.VolumeUp,
+                        HorizontalDivider(color = DividerColor)
+                        ModernSwitchItem(
                             title = "Sound",
                             subtitle = "Enable notification sounds",
+                            icon = Icons.AutoMirrored.Filled.VolumeUp,
                             checked = soundEnabled,
                             onCheckedChange = { soundEnabled = it }
                         )
@@ -164,189 +176,214 @@ fun SettingsScreen(
 
             // App Management Section
             item {
-                SectionHeader("App Management")
-            }
-            
-            item {
-                SettingsCard {
-                    Column {
-                        SettingsItem(
-                            icon = Icons.Default.Category,
+                Text(
+                    text = "App Management",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary,
+                    modifier = Modifier.padding(horizontal = 4.dp)
+                )
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                ModernCard {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(0.dp)
+                    ) {
+                        ModernListItem(
                             title = "Manage Categories",
                             subtitle = "Customize expense categories",
+                            leadingIcon = Icons.Default.Category,
                             onClick = { 
                                 navController.navigate("categories")
                             }
                         )
-                        HorizontalDivider(modifier = Modifier.padding(start = 56.dp))
-                        SettingsItem(
-                            icon = Icons.Default.Archive,
+                        HorizontalDivider(color = DividerColor)
+                        ModernListItem(
+                            title = "Budget Management",
+                            subtitle = "Set and track spending budgets",
+                            leadingIcon = Icons.Default.AccountBalance,
+                            onClick = { 
+                                navController.navigate("budgets")
+                            }
+                        )
+                        HorizontalDivider(color = DividerColor)
+                        ModernListItem(
                             title = "Backup & Restore",
                             subtitle = "Backup your data to cloud",
+                            leadingIcon = Icons.Default.Archive,
                             onClick = { /* Navigate to backup settings */ }
                         )
                     }
                 }
             }
 
-            // About Section
+            // Support Section
             item {
-                SectionHeader("Support & Legal")
-            }
-            
-            item {
-                SettingsCard {
-                    Column {
-                        SettingsItem(
-                            icon = Icons.AutoMirrored.Filled.Help,
-                            title = "Help Center",
-                            subtitle = "Get help and find answers",
+                Text(
+                    text = "Support & About",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary,
+                    modifier = Modifier.padding(horizontal = 4.dp)
+                )
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                ModernCard {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(0.dp)
+                    ) {
+                        ModernListItem(
+                            title = "Help & Support",
+                            subtitle = "Get help and contact support",
+                            leadingIcon = Icons.Default.Help,
                             onClick = { 
-                                navController.navigate("help_support")
+                                navController.navigate("support")
                             }
                         )
-                        HorizontalDivider(modifier = Modifier.padding(start = 56.dp))
-                        SettingsItem(
-                            icon = Icons.Default.Email,
-                            title = "Contact Support",
-                            subtitle = "Send us a message",
-                            onClick = { /* Open contact support */ }
+                        HorizontalDivider(color = DividerColor)
+                        ModernListItem(
+                            title = "Privacy Policy",
+                            subtitle = "Read our privacy policy",
+                            leadingIcon = Icons.Default.Policy,
+                            onClick = { /* Navigate to privacy policy */ }
                         )
-                        HorizontalDivider(modifier = Modifier.padding(start = 56.dp))
-                        SettingsItem(
-                            icon = Icons.Default.Info,
-                            title = "About FairShare",
-                            subtitle = "Version 1.0.0 • Learn more",
-                            onClick = { /* Show about dialog */ }
-                        )
-                        HorizontalDivider(modifier = Modifier.padding(start = 56.dp))
-                        SettingsItem(
-                            icon = Icons.Default.Gavel,
-                            title = "Terms & Privacy Policy",
-                            subtitle = "Read our terms and privacy policy",
+                        HorizontalDivider(color = DividerColor)
+                        ModernListItem(
+                            title = "Terms of Service",
+                            subtitle = "Read our terms of service",
+                            leadingIcon = Icons.Default.Description,
                             onClick = { /* Navigate to terms */ }
+                        )
+                        HorizontalDivider(color = DividerColor)
+                        ModernListItem(
+                            title = "About",
+                            subtitle = "Version 1.0.0",
+                            leadingIcon = Icons.Default.Info,
+                            onClick = { /* Show about dialog */ }
                         )
                     }
                 }
             }
 
-            // Sign Out
+            // Sign Out Section
             item {
-                Spacer(modifier = Modifier.height(16.dp))
+                ModernButton(
+                    text = "Sign Out",
+                    onClick = onSignOut,
+                    backgroundColor = ErrorRed,
+                    textColor = TextOnDark,
+                    icon = Icons.AutoMirrored.Filled.ExitToApp,
+                    modifier = Modifier.fillMaxWidth()
+                )
                 
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .shadow(2.dp, RoundedCornerShape(12.dp)),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(containerColor = PureWhite)
-                ) {
-                    SettingsItem(
-                        icon = Icons.AutoMirrored.Filled.Logout,
-                        title = "Sign Out",
-                        subtitle = "Sign out of your account",
-                        titleColor = ErrorRed,
-                        iconTint = ErrorRed,
-                        onClick = onSignOut
-                    )
-                }
+                Spacer(modifier = Modifier.height(20.dp))
             }
         }
     }
 }
 
 @Composable
-private fun SectionHeader(title: String) {
-    Text(
-        text = title,
-        style = MaterialTheme.typography.titleMedium,
-        fontWeight = FontWeight.SemiBold,
-        color = TextSecondary,
-        modifier = Modifier.padding(horizontal = 4.dp, vertical = 8.dp)
-    )
-}
-
-@Composable
-private fun SettingsCard(
-    content: @Composable () -> Unit
+fun ModernProfileCard(
+    user: UserProfile,
+    navController: NavController,
+    modifier: Modifier = Modifier
 ) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .shadow(2.dp, RoundedCornerShape(12.dp)),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = PureWhite)
+    ModernCard(
+        modifier = modifier.clickable { 
+            navController.navigate("profile_edit")
+        }
     ) {
-        content()
-    }
-}
-
-@Composable
-private fun SettingsItem(
-    icon: ImageVector,
-    title: String,
-    subtitle: String,
-    titleColor: Color = TextPrimary,
-    iconTint: Color = TextSecondary,
-    onClick: () -> Unit
-) {
-    Row(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clickable { onClick() }
-            .padding(16.dp),
-        verticalAlignment = Alignment.CenterVertically
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = null,
-            tint = iconTint,
-            modifier = Modifier.size(24.dp)
-        )
-        
-        Spacer(modifier = Modifier.width(16.dp))
-        
-        Column(modifier = Modifier.weight(1f)) {
-            Text(
-                text = title,
-                style = MaterialTheme.typography.bodyLarge,
-                fontWeight = FontWeight.Medium,
-                color = titleColor
-            )
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodyMedium,
-                color = TextSecondary
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Profile Avatar
+            Box(
+                modifier = Modifier
+                    .size(64.dp)
+                    .background(
+                        color = Primary.copy(alpha = 0.1f),
+                        shape = CircleShape
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = user.name.split(" ").map { it.first() }.joinToString(""),
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Primary
+                )
+            }
+            
+            Spacer(modifier = Modifier.width(16.dp))
+            
+            // User Info
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = user.name,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary
+                )
+                
+                Text(
+                    text = user.email,
+                    fontSize = 14.sp,
+                    color = TextSecondary,
+                    modifier = Modifier.padding(top = 2.dp)
+                )
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Text(
+                        text = "${user.totalGroups} groups",
+                        fontSize = 12.sp,
+                        color = TextSecondary
+                    )
+                    Text(
+                        text = "$${String.format("%.0f", user.totalExpenses)} spent",
+                        fontSize = 12.sp,
+                        color = TextSecondary
+                    )
+                }
+            }
+            
+            // Edit Icon
+            Icon(
+                Icons.Default.Edit,
+                contentDescription = "Edit Profile",
+                tint = IconTint,
+                modifier = Modifier.size(20.dp)
             )
         }
-        
-        Icon(
-            imageVector = Icons.Default.ChevronRight,
-            contentDescription = null,
-            tint = TextSecondary,
-            modifier = Modifier.size(20.dp)
-        )
     }
 }
 
 @Composable
-private fun SettingsSwitchItem(
-    icon: ImageVector,
+fun ModernSwitchItem(
     title: String,
     subtitle: String,
+    icon: ImageVector,
     checked: Boolean,
-    onCheckedChange: (Boolean) -> Unit
+    onCheckedChange: (Boolean) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Row(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
-            .padding(16.dp),
+            .clickable { onCheckedChange(!checked) }
+            .padding(vertical = 12.dp, horizontal = 20.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         Icon(
             imageVector = icon,
             contentDescription = null,
-            tint = TextSecondary,
+            tint = IconTint,
             modifier = Modifier.size(24.dp)
         )
         
@@ -355,14 +392,16 @@ private fun SettingsSwitchItem(
         Column(modifier = Modifier.weight(1f)) {
             Text(
                 text = title,
-                style = MaterialTheme.typography.bodyLarge,
+                fontSize = 16.sp,
                 fontWeight = FontWeight.Medium,
                 color = TextPrimary
             )
+            
             Text(
                 text = subtitle,
-                style = MaterialTheme.typography.bodyMedium,
-                color = TextSecondary
+                fontSize = 14.sp,
+                color = TextSecondary,
+                modifier = Modifier.padding(top = 2.dp)
             )
         }
         
@@ -370,142 +409,11 @@ private fun SettingsSwitchItem(
             checked = checked,
             onCheckedChange = onCheckedChange,
             colors = SwitchDefaults.colors(
-                checkedThumbColor = PureWhite,
-                checkedTrackColor = DarkGreen,
-                uncheckedThumbColor = PureWhite,
-                uncheckedTrackColor = TextSecondary
+                checkedThumbColor = Primary,
+                checkedTrackColor = Primary.copy(alpha = 0.5f),
+                uncheckedThumbColor = MediumGray,
+                uncheckedTrackColor = LightGray
             )
-        )
-    }
-}
-
-@Composable
-private fun ProfileCard(
-    user: UserProfile,
-    navController: NavController
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .shadow(2.dp, RoundedCornerShape(16.dp)),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = PureWhite)
-    ) {
-        Column(
-            modifier = Modifier.padding(20.dp)
-        ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                // Profile Avatar
-                Box(
-                    modifier = Modifier
-                        .size(60.dp)
-                        .background(
-                            color = DarkGreen.copy(alpha = 0.1f),
-                            shape = CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Text(
-                        text = user.name.split(" ").map { it.first() }.joinToString(""),
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = DarkGreen
-                    )
-                }
-                
-                Spacer(modifier = Modifier.width(16.dp))
-                
-                // User Info
-                Column(modifier = Modifier.weight(1f)) {
-                    Text(
-                        text = user.name,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = TextPrimary
-                    )
-                    Text(
-                        text = user.email,
-                        fontSize = 14.sp,
-                        color = TextSecondary
-                    )
-                }
-                
-                // Edit Button
-                OutlinedButton(
-                    onClick = { 
-                        navController.navigate("edit_profile")
-                    },
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = DarkGreen
-                    ),
-                    border = BorderStroke(1.dp, DarkGreen),
-                    shape = RoundedCornerShape(8.dp),
-                    contentPadding = PaddingValues(horizontal = 12.dp, vertical = 6.dp)
-                ) {
-                    Icon(
-                        Icons.Default.Edit,
-                        contentDescription = "Edit",
-                        modifier = Modifier.size(16.dp)
-                    )
-                    Spacer(modifier = Modifier.width(6.dp))
-                    Text("Edit", fontSize = 14.sp)
-                }
-            }
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            // Stats Row
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceEvenly
-            ) {
-                StatCard(
-                    icon = Icons.Default.Group,
-                    value = user.totalGroups.toString(),
-                    label = "Groups",
-                    iconColor = DarkGreen
-                )
-                StatCard(
-                    icon = Icons.Default.Receipt,
-                    value = "$${String.format("%.0f", user.totalExpenses)}",
-                    label = "Total Expenses",
-                    iconColor = DarkBlue
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun StatCard(
-    icon: ImageVector,
-    value: String,
-    label: String,
-    iconColor: Color
-) {
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Icon(
-            imageVector = icon,
-            contentDescription = label,
-            tint = iconColor,
-            modifier = Modifier.size(20.dp)
-        )
-        Spacer(modifier = Modifier.height(4.dp))
-        Text(
-            text = value,
-            fontSize = 16.sp,
-            fontWeight = FontWeight.Bold,
-            color = TextPrimary
-        )
-        Text(
-            text = label,
-            fontSize = 12.sp,
-            color = TextSecondary
         )
     }
 }

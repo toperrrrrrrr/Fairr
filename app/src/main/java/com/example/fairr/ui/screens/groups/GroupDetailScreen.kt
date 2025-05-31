@@ -1,6 +1,7 @@
 package com.example.fairr.ui.screens.groups
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -22,6 +23,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.fairr.ui.components.*
 import com.example.fairr.ui.theme.*
 
 // Data classes
@@ -91,18 +93,26 @@ fun GroupDetailScreen(
         topBar = {
             TopAppBar(
                 title = { 
-                    Text(
-                        group.name,
-                        fontWeight = FontWeight.SemiBold,
-                        color = TextPrimary
-                    ) 
+                    Column {
+                        Text(
+                            group.name,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary,
+                            fontSize = 18.sp
+                        )
+                        Text(
+                            "${group.memberCount} members",
+                            fontSize = 12.sp,
+                            color = TextSecondary
+                        )
+                    }
                 },
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = TextPrimary
+                            tint = IconTint
                         )
                     }
                 },
@@ -112,7 +122,7 @@ fun GroupDetailScreen(
                             Icon(
                                 Icons.Default.MoreVert,
                                 contentDescription = "Options",
-                                tint = TextSecondary
+                                tint = IconTint
                             )
                         }
                         
@@ -124,7 +134,6 @@ fun GroupDetailScreen(
                                 text = { Text("Group Settings") },
                                 onClick = {
                                     showGroupMenu = false
-                                    // Navigate to group settings
                                     navController.navigate("group_settings/$groupId")
                                 },
                                 leadingIcon = {
@@ -155,15 +164,15 @@ fun GroupDetailScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = PureWhite
+                    containerColor = BackgroundPrimary
                 )
             )
         },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { onNavigateToAddExpense() },
-                containerColor = DarkGreen,
-                contentColor = PureWhite,
+                containerColor = Primary,
+                contentColor = TextOnDark,
                 shape = CircleShape
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add Expense")
@@ -173,355 +182,246 @@ fun GroupDetailScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .background(LightBackground)
+                .background(BackgroundSecondary)
                 .padding(padding),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+            contentPadding = PaddingValues(16.dp),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
+            // Group Stats Overview
             item {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    ModernStatsCard(
+                        title = "Total Spent",
+                        value = "${group.currency}${String.format("%.2f", group.totalExpenses)}",
+                        icon = Icons.Default.Receipt,
+                        change = "This month",
+                        modifier = Modifier.weight(1f)
+                    )
+                    
+                    ModernStatsCard(
+                        title = "Your Balance",
+                        value = "${group.currency}${String.format("%.2f", kotlin.math.abs(group.yourBalance))}",
+                        icon = Icons.Default.AccountBalance,
+                        change = if (group.yourBalance >= 0) "You're owed" else "You owe",
+                        isPositive = group.yourBalance >= 0,
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+            }
+            
+            // Quick Actions
+            item {
+                Text(
+                    text = "Quick Actions",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary,
+                    modifier = Modifier.padding(horizontal = 4.dp)
+                )
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    QuickActionCard(
+                        title = "Add Expense",
+                        icon = Icons.Default.Add,
+                        onClick = { onNavigateToAddExpense() },
+                        modifier = Modifier.weight(1f)
+                    )
+                    
+                    QuickActionCard(
+                        title = "Settle Up",
+                        icon = Icons.Default.Payment,
+                        onClick = { navController.navigate("settlements") },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
+                
                 Spacer(modifier = Modifier.height(8.dp))
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    QuickActionCard(
+                        title = "Scan Receipt",
+                        icon = Icons.Default.CameraAlt,
+                        onClick = { navController.navigate("photo_capture") },
+                        modifier = Modifier.weight(1f)
+                    )
+                    
+                    QuickActionCard(
+                        title = "Analytics",
+                        icon = Icons.Default.Analytics,
+                        onClick = { navController.navigate("analytics") },
+                        modifier = Modifier.weight(1f)
+                    )
+                }
             }
             
-            // Group Summary Card
-            item {
-                GroupSummaryCard(
-                    group = group,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-            }
-            
-            // Your Balance Card
-            item {
-                BalanceCard(
-                    balance = group.yourBalance,
-                    currency = group.currency,
-                    navController = navController,
-                    groupId = groupId,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-            }
-            
-            // Members Section
+            // Group Members
             item {
                 Text(
                     text = "Members",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
                     color = TextPrimary,
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                    modifier = Modifier.padding(horizontal = 4.dp)
                 )
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                ModernCard {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(0.dp)
+                    ) {
+                        group.members.forEachIndexed { index, member ->
+                            ModernListItem(
+                                title = member.name,
+                                subtitle = when {
+                                    member.balance > 0 -> "Gets back ${group.currency}${String.format("%.2f", member.balance)}"
+                                    member.balance < 0 -> "Owes ${group.currency}${String.format("%.2f", kotlin.math.abs(member.balance))}"
+                                    else -> "All settled up"
+                                },
+                                leadingIcon = Icons.Default.Person,
+                                trailingContent = {
+                                    Text(
+                                        text = if (member.balance >= 0) "+${group.currency}${String.format("%.2f", member.balance)}" 
+                                               else "${group.currency}${String.format("%.2f", member.balance)}",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = if (member.balance >= 0) SuccessGreen else ErrorRed
+                                    )
+                                }
+                            )
+                            
+                            if (index < group.members.size - 1) {
+                                HorizontalDivider(
+                                    color = DividerColor,
+                                    modifier = Modifier.padding(horizontal = 0.dp)
+                                )
+                            }
+                        }
+                    }
+                }
             }
             
-            items(group.members) { member ->
-                MemberCard(
-                    member = member,
-                    currency = group.currency,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-            }
-            
-            // Recent Expenses Section
+            // Recent Expenses
             item {
-                Text(
-                    text = "Recent Expenses",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = TextPrimary,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Recent Expenses",
+                        fontSize = 20.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextPrimary,
+                        modifier = Modifier.padding(horizontal = 4.dp)
+                    )
+                    
+                    TextButton(
+                        onClick = { /* Navigate to all expenses */ }
+                    ) {
+                        Text(
+                            text = "View All",
+                            color = Primary,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                ModernCard {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(0.dp)
+                    ) {
+                        expenses.take(5).forEachIndexed { index, expense ->
+                            ModernListItem(
+                                title = expense.description,
+                                subtitle = "Paid by ${expense.paidBy} • ${expense.date}",
+                                leadingIcon = Icons.Default.Receipt,
+                                trailingContent = {
+                                    Text(
+                                        text = "${group.currency}${String.format("%.2f", expense.amount)}",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = TextPrimary
+                                    )
+                                },
+                                onClick = { /* Navigate to expense detail */ }
+                            )
+                            
+                            if (index < expenses.size - 1) {
+                                HorizontalDivider(
+                                    color = DividerColor,
+                                    modifier = Modifier.padding(horizontal = 0.dp)
+                                )
+                            }
+                        }
+                    }
+                }
             }
             
-            items(expenses) { expense ->
-                ExpenseCard(
-                    expense = expense,
-                    currency = group.currency,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-            }
-            
+            // Bottom spacing for FAB
             item {
-                Spacer(modifier = Modifier.height(80.dp)) // Space for FAB
+                Spacer(modifier = Modifier.height(80.dp))
             }
         }
     }
 }
 
 @Composable
-fun GroupSummaryCard(
-    group: GroupDetail,
+fun QuickActionCard(
+    title: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    Card(
+    ModernCard(
         modifier = modifier
-            .fillMaxWidth()
-            .shadow(2.dp, RoundedCornerShape(16.dp)),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = PureWhite)
+            .aspectRatio(1f)
+            .clickable { onClick() }
     ) {
         Column(
-            modifier = Modifier.padding(20.dp)
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center,
+            modifier = Modifier.fillMaxSize()
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Top
-            ) {
-                Column {
-                    Text(
-                        text = "Total Expenses",
-                        fontSize = 14.sp,
-                        color = TextSecondary,
-                        fontWeight = FontWeight.Medium
-                    )
-                    Text(
-                        text = "${group.currency}${String.format("%.2f", group.totalExpenses)}",
-                        fontSize = 28.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = TextPrimary
-                    )
-                }
-                
-                Box(
-                    modifier = Modifier
-                        .size(48.dp)
-                        .background(
-                            DarkGreen.copy(alpha = 0.1f),
-                            CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        Icons.Default.Receipt,
-                        contentDescription = "Expenses",
-                        tint = DarkGreen,
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-            }
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
-            ) {
-                Column {
-                    Text(
-                        text = "Members",
-                        fontSize = 12.sp,
-                        color = TextSecondary,
-                        fontWeight = FontWeight.Medium
-                    )
-                    Text(
-                        text = "${group.memberCount}",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = TextPrimary
-                    )
-                }
-                
-                Column {
-                    Text(
-                        text = "Currency",
-                        fontSize = 12.sp,
-                        color = TextSecondary,
-                        fontWeight = FontWeight.Medium
-                    )
-                    Text(
-                        text = group.currency,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = TextPrimary
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun BalanceCard(
-    balance: Double,
-    currency: String,
-    navController: NavController,
-    groupId: String,
-    modifier: Modifier = Modifier
-) {
-    val isOwed = balance > 0
-    val balanceColor = if (isOwed) SuccessGreen else ErrorRed
-    val balanceText = if (isOwed) "You are owed" else "You owe"
-    
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .shadow(2.dp, RoundedCornerShape(16.dp)),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = if (isOwed) SuccessGreen.copy(alpha = 0.05f) else ErrorRed.copy(alpha = 0.05f)
-        )
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(20.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column {
-                Text(
-                    text = balanceText,
-                    fontSize = 14.sp,
-                    color = TextSecondary,
-                    fontWeight = FontWeight.Medium
-                )
-                Text(
-                    text = "$currency${String.format("%.2f", kotlin.math.abs(balance))}",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = balanceColor
-                )
-            }
-            
-            if (!isOwed) {
-                Button(
-                    onClick = { 
-                        navController.navigate("settlement/$groupId")
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = ErrorRed,
-                        contentColor = PureWhite
-                    ),
-                    shape = RoundedCornerShape(8.dp)
-                ) {
-                    Text(
-                        "Settle Up",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-            }
-        }
-    }
-}
-
-@Composable
-fun MemberCard(
-    member: Member,
-    currency: String,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .shadow(1.dp, RoundedCornerShape(12.dp)),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = PureWhite)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Avatar
             Box(
                 modifier = Modifier
                     .size(40.dp)
                     .background(
-                        DarkGreen.copy(alpha = 0.1f),
-                        CircleShape
+                        color = Primary.copy(alpha = 0.1f),
+                        shape = RoundedCornerShape(10.dp)
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = member.name.split(" ").map { it.first() }.joinToString(""),
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = DarkGreen
+                Icon(
+                    imageVector = icon,
+                    contentDescription = title,
+                    tint = Primary,
+                    modifier = Modifier.size(20.dp)
                 )
             }
             
-            Spacer(modifier = Modifier.width(12.dp))
-            
-            // Name and status
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = member.name,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = TextPrimary
-                )
-                Text(
-                    text = when {
-                        member.balance > 0 -> "gets back"
-                        member.balance < 0 -> "owes"
-                        else -> "settled up"
-                    },
-                    fontSize = 12.sp,
-                    color = TextSecondary
-                )
-            }
-            
-            // Balance
-            Column(horizontalAlignment = Alignment.End) {
-                val balanceColor = when {
-                    member.balance > 0 -> SuccessGreen
-                    member.balance < 0 -> ErrorRed
-                    else -> TextSecondary
-                }
-                
-                Text(
-                    text = when {
-                        member.balance > 0 -> "+$currency${String.format("%.2f", member.balance)}"
-                        member.balance < 0 -> "-$currency${String.format("%.2f", kotlin.math.abs(member.balance))}"
-                        else -> "$currency${String.format("%.2f", 0.0)}"
-                    },
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = balanceColor
-                )
-            }
-        }
-    }
-}
-
-@Composable
-fun ExpenseCard(
-    expense: ExpenseItem,
-    currency: String,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .shadow(1.dp, RoundedCornerShape(12.dp)),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = PureWhite)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = expense.description,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = TextPrimary
-                )
-                Text(
-                    text = "Paid by ${expense.paidBy} • ${expense.date}",
-                    fontSize = 12.sp,
-                    color = TextSecondary
-                )
-            }
+            Spacer(modifier = Modifier.height(8.dp))
             
             Text(
-                text = "$currency${String.format("%.2f", expense.amount)}",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = TextPrimary
+                text = title,
+                fontSize = 12.sp,
+                fontWeight = FontWeight.Medium,
+                color = TextPrimary,
+                modifier = Modifier.fillMaxWidth(),
+                textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
         }
     }

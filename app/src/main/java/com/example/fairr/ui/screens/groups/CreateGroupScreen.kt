@@ -35,7 +35,7 @@ fun CreateGroupScreen(
     var selectedCurrency by remember { mutableStateOf("USD") }
     var isLoading by remember { mutableStateOf(false) }
 
-    Column(
+        Column(
         modifier = Modifier.fillMaxSize()
     ) {
         // Dark header section with back button

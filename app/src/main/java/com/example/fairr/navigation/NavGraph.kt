@@ -10,6 +10,7 @@ import com.example.fairr.ui.screens.SplashScreen
 import com.example.fairr.ui.screens.analytics.AnalyticsScreen
 import com.example.fairr.ui.screens.auth.LoginScreen
 import com.example.fairr.ui.screens.auth.RegisterScreen
+import com.example.fairr.ui.screens.budget.BudgetManagementScreen
 import com.example.fairr.ui.screens.categories.CategoryManagementScreen
 import com.example.fairr.ui.screens.expenses.AddExpenseScreen
 import com.example.fairr.ui.screens.expenses.EditExpenseScreen
@@ -27,6 +28,7 @@ import com.example.fairr.ui.screens.search.SearchScreen
 import com.example.fairr.ui.screens.settings.SettingsScreen
 import com.example.fairr.ui.screens.settlements.SettlementScreen
 import com.example.fairr.ui.screens.support.HelpSupportScreen
+import com.example.fairr.ui.screens.camera.PhotoCaptureScreen
 
 sealed class Screen(val route: String) {
     object Splash : Screen("splash")
@@ -37,8 +39,10 @@ sealed class Screen(val route: String) {
     object Settings : Screen("settings")
     object EditProfile : Screen("edit_profile")
     object Categories : Screen("categories")
+    object Budgets : Screen("budgets")
     object Search : Screen("search")
     object Analytics : Screen("analytics")
+    object PhotoCapture : Screen("photo_capture")
     object Settlement : Screen("settlement/{groupId}") {
         fun createRoute(groupId: String) = "settlement/$groupId"
     }
@@ -143,6 +147,12 @@ fun FairrNavGraph(
                 },
                 onNavigateToGroupDetail = { groupId ->
                     navController.navigate(Screen.GroupDetail.createRoute(groupId))
+                },
+                onNavigateToAnalytics = {
+                    navController.navigate(Screen.Analytics.route)
+                },
+                onNavigateToBudgets = {
+                    navController.navigate(Screen.Budgets.route)
                 }
             )
         }
@@ -180,6 +190,17 @@ fun FairrNavGraph(
             )
         }
         
+        composable(Screen.Budgets.route) {
+            BudgetManagementScreen(
+                navController = navController,
+                onSaveBudgets = { _ ->
+                    // Save budgets to your data store/repository
+                    // Navigate back after saving
+                    navController.popBackStack()
+                }
+            )
+        }
+        
         composable(Screen.Search.route) {
             SearchScreen(
                 navController = navController,
@@ -195,6 +216,16 @@ fun FairrNavGraph(
         composable(Screen.Analytics.route) {
             AnalyticsScreen(
                 navController = navController
+            )
+        }
+        
+        composable(Screen.PhotoCapture.route) {
+            PhotoCaptureScreen(
+                navController = navController,
+                onPhotosSelected = { photos ->
+                    // Handle selected photos - in real implementation would pass back to expense screen
+                    navController.popBackStack()
+                }
             )
         }
         

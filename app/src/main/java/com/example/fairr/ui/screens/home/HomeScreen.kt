@@ -1,6 +1,7 @@
 package com.example.fairr.ui.screens.home
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -8,18 +9,23 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.AccountBalance
+import androidx.compose.material.icons.filled.Analytics
 import androidx.compose.material.icons.filled.Group
 import androidx.compose.material.icons.filled.Home
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
+import androidx.compose.material.icons.outlined.Analytics
+import androidx.compose.material.icons.outlined.Group
 import androidx.compose.material.icons.outlined.Home
 import androidx.compose.material.icons.outlined.Person
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -28,6 +34,7 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+import com.example.fairr.ui.components.*
 import com.example.fairr.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -38,7 +45,9 @@ fun HomeScreen(
     onNavigateToSearch: () -> Unit = {},
     onNavigateToNotifications: () -> Unit = {},
     onNavigateToSettings: () -> Unit = {},
-    onNavigateToGroupDetail: (String) -> Unit = {}
+    onNavigateToGroupDetail: (String) -> Unit = {},
+    onNavigateToAnalytics: () -> Unit = {},
+    onNavigateToBudgets: () -> Unit = {}
 ) {
     // Sample data for groups
     val groups = remember { 
@@ -68,7 +77,7 @@ fun HomeScreen(
                         Icon(
                             Icons.Default.Search, 
                             contentDescription = "Search",
-                            tint = TextSecondary
+                            tint = IconTint
                         )
                     }
                     // Notifications Action
@@ -76,7 +85,7 @@ fun HomeScreen(
                         Icon(
                             Icons.Default.Notifications, 
                             contentDescription = "Notifications",
-                            tint = TextSecondary
+                            tint = IconTint
                         )
                     }
                     // Join Group Action
@@ -84,27 +93,27 @@ fun HomeScreen(
                         Icon(
                             Icons.Default.Group, 
                             contentDescription = "Join Group",
-                            tint = TextSecondary
+                            tint = IconTint
                         )
                     }
                     IconButton(onClick = onNavigateToSettings) {
                         Icon(
                             Icons.Default.Settings, 
                             contentDescription = "Settings",
-                            tint = TextSecondary
+                            tint = IconTint
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = PureWhite
+                    containerColor = BackgroundPrimary
                 )
             )
         },
         floatingActionButton = {
             FloatingActionButton(
                 onClick = { onNavigateToCreateGroup() },
-                containerColor = DarkGreen,
-                contentColor = PureWhite,
+                containerColor = Primary,
+                contentColor = TextOnDark,
                 shape = CircleShape
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Create Group")
@@ -112,9 +121,10 @@ fun HomeScreen(
         },
         bottomBar = {
             NavigationBar(
-                containerColor = PureWhite,
+                containerColor = BackgroundPrimary,
                 tonalElevation = 8.dp
             ) {
+                // Home Tab
                 NavigationBarItem(
                     icon = { 
                         Icon(
@@ -126,295 +136,384 @@ fun HomeScreen(
                     selected = selectedTab == 0,
                     onClick = { selectedTab = 0 },
                     colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = DarkGreen,
-                        selectedTextColor = DarkGreen,
-                        unselectedIconColor = PlaceholderText,
-                        unselectedTextColor = PlaceholderText
+                        selectedIconColor = Primary,
+                        selectedTextColor = Primary,
+                        unselectedIconColor = IconTint,
+                        unselectedTextColor = IconTint
+                    )
+                )
+                
+                // Groups Tab  
+                NavigationBarItem(
+                    icon = { 
+                        Icon(
+                            if (selectedTab == 1) Icons.Filled.Group else Icons.Outlined.Group,
+                            contentDescription = "Groups"
+                        ) 
+                    },
+                    label = { Text("Groups") },
+                    selected = selectedTab == 1,
+                    onClick = { selectedTab = 1 },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = Primary,
+                        selectedTextColor = Primary,
+                        unselectedIconColor = IconTint,
+                        unselectedTextColor = IconTint
+                    )
+                )
+                
+                // Analytics Tab
+                NavigationBarItem(
+                    icon = { 
+                        Icon(
+                            if (selectedTab == 2) Icons.Filled.Analytics else Icons.Outlined.Analytics,
+                            contentDescription = "Analytics"
+                        ) 
+                    },
+                    label = { Text("Analytics") },
+                    selected = selectedTab == 2,
+                    onClick = { 
+                        selectedTab = 2
+                        onNavigateToAnalytics()
+                    },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = Primary,
+                        selectedTextColor = Primary,
+                        unselectedIconColor = IconTint,
+                        unselectedTextColor = IconTint
+                    )
+                )
+                
+                // Profile Tab
+                NavigationBarItem(
+                    icon = { 
+                        Icon(
+                            if (selectedTab == 3) Icons.Filled.Person else Icons.Outlined.Person,
+                            contentDescription = "Profile"
+                        ) 
+                    },
+                    label = { Text("Profile") },
+                    selected = selectedTab == 3,
+                    onClick = { 
+                        selectedTab = 3
+                        onNavigateToSettings() // Navigate to settings/profile
+                    },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = Primary,
+                        selectedTextColor = Primary,
+                        unselectedIconColor = IconTint,
+                        unselectedTextColor = IconTint
                     )
                 )
             }
         }
     ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(LightBackground)
-                .padding(padding)
-        ) {
-            if (groups.isEmpty()) {
-                // Empty state
-                EmptyGroupsState(
-                    onCreateGroup = { onNavigateToCreateGroup() }
-                )
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    verticalArrangement = Arrangement.spacedBy(12.dp),
-                    contentPadding = PaddingValues(16.dp)
-                ) {
-                    item {
-                        // Summary Card
-                        SummaryCard(groups = groups)
-                    }
-                    
-                    item {
-                        Text(
-                            text = "Your Groups",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = TextPrimary,
-                            modifier = Modifier.padding(vertical = 8.dp)
-                        )
-                    }
-                    
-                    items(groups) { group ->
-                        GroupCard(
-                            group = group,
-                            onClick = { onNavigateToGroupDetail(group.id) }
-                        )
-                    }
-                    
-                    item {
-                        Spacer(modifier = Modifier.height(80.dp)) // Space for FAB
-                    }
-                }
-            }
+        when (selectedTab) {
+            0 -> HomeTabContent(
+                groups = groups,
+                onNavigateToGroupDetail = onNavigateToGroupDetail,
+                onNavigateToBudgets = onNavigateToBudgets,
+                modifier = Modifier.padding(padding)
+            )
+            1 -> GroupsTabContent(
+                groups = groups,
+                onNavigateToGroupDetail = onNavigateToGroupDetail,
+                modifier = Modifier.padding(padding)
+            )
+            2 -> AnalyticsTabContent(
+                modifier = Modifier.padding(padding)
+            )
+            3 -> ProfileTabContent(
+                modifier = Modifier.padding(padding)
+            )
         }
     }
 }
 
 @Composable
-fun SummaryCard(
-    groups: List<GroupItem>
+fun HomeTabContent(
+    groups: List<GroupItem>,
+    onNavigateToGroupDetail: (String) -> Unit,
+    onNavigateToBudgets: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
-    val totalBalance = groups.sumOf { it.balance }
-    val totalGroups = groups.size
-    
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .shadow(2.dp, RoundedCornerShape(16.dp)),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = PureWhite)
+    LazyColumn(
+        modifier = modifier
+            .fillMaxSize()
+            .background(BackgroundSecondary),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(20.dp)
     ) {
-        Column(
-            modifier = Modifier.padding(20.dp)
-        ) {
+        // Welcome Header
+        item {
+            ModernHeader(
+                title = "Welcome back!",
+                subtitle = "Manage your shared expenses"
+            )
+        }
+        
+        // Quick Stats
+        item {
             Text(
                 text = "Overview",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
                 color = TextPrimary,
-                modifier = Modifier.padding(bottom = 16.dp)
+                modifier = Modifier.padding(horizontal = 4.dp)
             )
+            
+            Spacer(modifier = Modifier.height(12.dp))
             
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                Column {
-                    Text(
-                        text = "Total Groups",
-                        fontSize = 12.sp,
-                        color = TextSecondary,
-                        fontWeight = FontWeight.Medium
-                    )
-                    Text(
-                        text = totalGroups.toString(),
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = TextPrimary
-                    )
-                }
+                ModernStatsCard(
+                    title = "Total Balance",
+                    value = "$${String.format("%.2f", groups.sumOf { kotlin.math.abs(it.balance) })}",
+                    icon = Icons.Default.AccountBalance,
+                    change = "Active",
+                    modifier = Modifier.weight(1f)
+                )
                 
-                Column {
+                ModernStatsCard(
+                    title = "Groups",
+                    value = "${groups.size}",
+                    icon = Icons.Default.Group,
+                    change = "Joined",
+                    modifier = Modifier.weight(1f)
+                )
+            }
+        }
+        
+        // Recent Groups Section
+        item {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Recent Groups",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary,
+                    modifier = Modifier.padding(horizontal = 4.dp)
+                )
+                
+                TextButton(
+                    onClick = { /* Navigate to all groups */ }
+                ) {
                     Text(
-                        text = "Your Balance",
-                        fontSize = 12.sp,
-                        color = TextSecondary,
+                        text = "View All",
+                        color = Primary,
                         fontWeight = FontWeight.Medium
                     )
-                    Text(
-                        text = when {
-                            totalBalance > 0 -> "+$${String.format("%.2f", totalBalance)}"
-                            totalBalance < 0 -> "-$${String.format("%.2f", kotlin.math.abs(totalBalance))}"
-                            else -> "$0.00"
-                        },
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = when {
-                            totalBalance > 0 -> SuccessGreen
-                            totalBalance < 0 -> ErrorRed
-                            else -> TextPrimary
-                        }
-                    )
                 }
+            }
+        }
+        
+        // Groups List
+        items(groups.take(3)) { group ->
+            ModernGroupCard(
+                group = group,
+                onClick = { onNavigateToGroupDetail(group.id) }
+            )
+        }
+        
+        // Bottom spacing for FAB
+        item {
+            Spacer(modifier = Modifier.height(80.dp))
+        }
+    }
+}
+
+@Composable
+fun GroupsTabContent(
+    groups: List<GroupItem>,
+    onNavigateToGroupDetail: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    LazyColumn(
+        modifier = modifier
+            .fillMaxSize()
+            .background(BackgroundSecondary),
+        contentPadding = PaddingValues(16.dp),
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        item {
+            ModernHeader(
+                title = "Your Groups",
+                subtitle = "${groups.size} active groups"
+            )
+        }
+        
+        items(groups) { group ->
+            ModernGroupCard(
+                group = group,
+                onClick = { onNavigateToGroupDetail(group.id) }
+            )
+        }
+        
+        item {
+            Spacer(modifier = Modifier.height(80.dp))
+        }
+    }
+}
+
+@Composable
+fun AnalyticsTabContent(
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(BackgroundSecondary)
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        ModernCard {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    Icons.Default.Analytics,
+                    contentDescription = "Analytics",
+                    tint = Primary,
+                    modifier = Modifier.size(48.dp)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "Analytics",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary
+                )
+                Text(
+                    text = "Coming soon",
+                    fontSize = 14.sp,
+                    color = TextSecondary
+                )
             }
         }
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun GroupCard(
-    group: GroupItem,
-    onClick: () -> Unit
+fun ProfileTabContent(
+    modifier: Modifier = Modifier
 ) {
-    Card(
-        onClick = onClick,
-        modifier = Modifier
-            .fillMaxWidth()
-            .shadow(1.dp, RoundedCornerShape(12.dp)),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = PureWhite)
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(BackgroundSecondary)
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        ModernCard {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                Icon(
+                    Icons.Default.Person,
+                    contentDescription = "Profile",
+                    tint = Primary,
+                    modifier = Modifier.size(48.dp)
+                )
+                Spacer(modifier = Modifier.height(16.dp))
+                Text(
+                    text = "Profile",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary
+                )
+                Text(
+                    text = "Manage your account",
+                    fontSize = 14.sp,
+                    color = TextSecondary
+                )
+            }
+        }
+    }
+}
+
+@Composable
+fun ModernGroupCard(
+    group: GroupItem,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    ModernCard(
+        modifier = modifier.clickable { onClick() }
     ) {
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
+            modifier = Modifier.fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
-            // Group icon
+            // Group Icon
             Box(
                 modifier = Modifier
                     .size(48.dp)
                     .background(
-                        DarkGreen.copy(alpha = 0.1f),
-                        CircleShape
+                        color = Primary.copy(alpha = 0.1f),
+                        shape = RoundedCornerShape(12.dp)
                     ),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
-                    Icons.Default.Group,
-                    contentDescription = "Group",
-                    tint = DarkGreen,
+                    imageVector = Icons.Default.Group,
+                    contentDescription = group.name,
+                    tint = Primary,
                     modifier = Modifier.size(24.dp)
                 )
             }
             
             Spacer(modifier = Modifier.width(16.dp))
             
-            // Group info
+            // Group Info
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = group.name,
                     fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium,
+                    fontWeight = FontWeight.SemiBold,
                     color = TextPrimary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
+                
                 Text(
                     text = "${group.memberCount} members",
-                    fontSize = 12.sp,
-                    color = TextSecondary
+                    fontSize = 14.sp,
+                    color = TextSecondary,
+                    modifier = Modifier.padding(top = 2.dp)
                 )
             }
             
             // Balance
-            Column(horizontalAlignment = Alignment.End) {
-                val balanceColor = when {
-                    group.balance > 0 -> SuccessGreen
-                    group.balance < 0 -> ErrorRed
-                    else -> TextSecondary
-                }
+            Column(
+                horizontalAlignment = Alignment.End
+            ) {
+                val balanceColor = if (group.balance >= 0) SuccessGreen else ErrorRed
+                val balanceText = if (group.balance >= 0) 
+                    "+${group.currency}${String.format("%.2f", group.balance)}" 
+                else 
+                    "${group.currency}${String.format("%.2f", group.balance)}"
                 
                 Text(
-                    text = when {
-                        group.balance > 0 -> "you get"
-                        group.balance < 0 -> "you owe"
-                        else -> "settled up"
-                    },
-                    fontSize = 10.sp,
-                    color = TextSecondary
-                )
-                
-                Text(
-                    text = when {
-                        group.balance > 0 -> "+${group.currency}${String.format("%.2f", group.balance)}"
-                        group.balance < 0 -> "-${group.currency}${String.format("%.2f", kotlin.math.abs(group.balance))}"
-                        else -> "${group.currency}0.00"
-                    },
+                    text = balanceText,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = balanceColor
                 )
+                
+                Text(
+                    text = if (group.balance >= 0) "You're owed" else "You owe",
+                    fontSize = 12.sp,
+                    color = TextSecondary
+                )
             }
-        }
-    }
-}
-
-@Composable
-fun EmptyGroupsState(
-    onCreateGroup: () -> Unit
-) {
-    Column(
-        modifier = Modifier
-            .fillMaxSize()
-            .padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        // Empty state icon
-        Box(
-            modifier = Modifier
-                .size(100.dp)
-                .background(
-                    PlaceholderText.copy(alpha = 0.1f),
-                    shape = RoundedCornerShape(20.dp)
-                ),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                Icons.Default.Group,
-                contentDescription = "No groups",
-                modifier = Modifier.size(48.dp),
-                tint = PlaceholderText
-            )
-        }
-        
-        Spacer(modifier = Modifier.height(24.dp))
-        
-        Text(
-            text = "No Groups Yet",
-            fontSize = 24.sp,
-            fontWeight = FontWeight.Bold,
-            color = TextPrimary,
-            textAlign = TextAlign.Center
-        )
-        
-        Text(
-            text = "Create your first group to start splitting expenses with friends and family",
-            fontSize = 16.sp,
-            color = TextSecondary,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 8.dp, start = 16.dp, end = 16.dp)
-        )
-        
-        Spacer(modifier = Modifier.height(32.dp))
-        
-        Button(
-            onClick = onCreateGroup,
-            colors = ButtonDefaults.buttonColors(
-                containerColor = DarkGreen,
-                contentColor = PureWhite
-            ),
-            shape = RoundedCornerShape(12.dp),
-            modifier = Modifier
-                .fillMaxWidth(0.7f)
-                .height(48.dp)
-        ) {
-            Icon(
-                Icons.Default.Add,
-                contentDescription = null,
-                modifier = Modifier.size(20.dp)
-            )
-            Spacer(modifier = Modifier.width(8.dp))
-            Text(
-                "Create Group",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Medium
-            )
         }
     }
 }
@@ -433,13 +532,5 @@ data class GroupItem(
 fun HomeScreenPreview() {
     FairrTheme {
         HomeScreen()
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun EmptyGroupsStatePreview() {
-    FairrTheme {
-        EmptyGroupsState(onCreateGroup = {})
     }
 }
