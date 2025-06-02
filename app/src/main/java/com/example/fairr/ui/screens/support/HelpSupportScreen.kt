@@ -10,6 +10,9 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Help
+import androidx.compose.material.icons.automirrored.filled.List
+import androidx.compose.material.icons.automirrored.filled.Chat
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -92,7 +95,7 @@ fun HelpSupportScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = PureWhite
+                    containerColor = NeutralWhite
                 )
             )
         }
@@ -112,14 +115,14 @@ fun HelpSupportScreen(
                         .fillMaxWidth()
                         .shadow(2.dp, RoundedCornerShape(16.dp)),
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = PureWhite)
+                    colors = CardDefaults.cardColors(containerColor = NeutralWhite)
                 ) {
                     Column(
                         modifier = Modifier.padding(20.dp),
                         horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Icon(
-                            Icons.Default.Help,
+                            Icons.AutoMirrored.Filled.Help,
                             contentDescription = "Help",
                             tint = DarkGreen,
                             modifier = Modifier.size(48.dp)
@@ -152,7 +155,7 @@ fun HelpSupportScreen(
             item {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
-                    colors = CardDefaults.cardColors(containerColor = PureWhite)
+                    colors = CardDefaults.cardColors(containerColor = NeutralWhite)
                 ) {
                     OutlinedTextField(
                         value = searchQuery,
@@ -191,7 +194,7 @@ fun HelpSupportScreen(
                             label = category,
                             leadingIcon = when (category) {
                                 "All" -> Icons.Default.List
-                                "Getting Started" -> Icons.Default.Start
+                                "Getting Started" -> Icons.Default.Help
                                 "Expenses" -> Icons.Default.Receipt
                                 "Groups" -> Icons.Default.Group
                                 "Payments" -> Icons.Default.Payment
@@ -284,7 +287,7 @@ fun QuickActionCard(
             .clickable { onClick() }
             .shadow(1.dp, RoundedCornerShape(12.dp)),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = PureWhite)
+        colors = CardDefaults.cardColors(containerColor = NeutralWhite)
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -330,7 +333,7 @@ fun HelpArticleCard(
             .clickable { onToggleExpanded() }
             .shadow(1.dp, RoundedCornerShape(12.dp)),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = PureWhite)
+        colors = CardDefaults.cardColors(containerColor = NeutralWhite)
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
@@ -408,7 +411,7 @@ fun ContactSupportSection() {
         
         Card(
             modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = PureWhite)
+            colors = CardDefaults.cardColors(containerColor = NeutralWhite)
         ) {
             Column(
                 modifier = Modifier.padding(20.dp)
@@ -459,10 +462,10 @@ fun ContactSupportSection() {
                             Icons.Default.Chat,
                             contentDescription = "Chat",
                             modifier = Modifier.size(16.dp),
-                            tint = PureWhite
+                            tint = NeutralWhite
                         )
                         Spacer(modifier = Modifier.width(8.dp))
-                        Text("Live Chat", color = PureWhite)
+                        Text("Live Chat", color = NeutralWhite)
                     }
                 }
             }
@@ -475,13 +478,13 @@ private fun getHelpCategories(): List<HelpCategory> {
         HelpCategory(
             id = "getting_started",
             title = "Getting Started",
-            icon = Icons.Default.Start,
-            description = "Learn the basics of FairShare",
+            icon = Icons.AutoMirrored.Filled.Help,
+            description = "Learn the basics of Fairr",
             articles = listOf(
                 HelpArticle(
                     id = "create_account",
                     title = "How to create an account",
-                    content = "To create a FairShare account:\n\n1. Download the FairShare app from the App Store or Google Play\n2. Open the app and tap 'Sign Up'\n3. Enter your email address and create a secure password\n4. Verify your email address\n5. Complete your profile information\n\nOnce your account is created, you can start creating groups and adding expenses right away!",
+                    content = "To create a Fairr account:\n\n1. Download the Fairr app from the App Store or Google Play\n2. Open the app and tap 'Sign Up'\n3. Enter your email address and create a secure password\n4. Verify your email address\n5. Complete your profile information\n\nOnce your account is created, you can start creating groups and adding expenses right away!",
                     isPopular = true
                 ),
                 HelpArticle(
@@ -506,7 +509,7 @@ private fun getHelpCategories(): List<HelpCategory> {
                 HelpArticle(
                     id = "split_methods",
                     title = "Different ways to split expenses",
-                    content = "FairShare offers several splitting methods:\n\n• Equal Split: Divides the expense equally among selected members\n• Percentage Split: Each member pays a specific percentage\n• Exact Amounts: Specify exact amounts for each member\n• Pay for Yourself: Each member selects what they consumed\n\nChoose the method that works best for your expense type and group preferences."
+                    content = "Fairr offers several splitting methods:\n\n• Equal Split: Divides the expense equally among selected members\n• Percentage Split: Each member pays a specific percentage\n• Exact Amounts: Specify exact amounts for each member\n• Pay for Yourself: Each member selects what they consumed\n\nChoose the method that works best for your expense type and group preferences."
                 ),
                 HelpArticle(
                     id = "receipt_scanning",
@@ -543,13 +546,13 @@ private fun getHelpCategories(): List<HelpCategory> {
                 HelpArticle(
                     id = "settle_up",
                     title = "How to settle up with group members",
-                    content = "FairShare calculates who owes what and provides optimal payment suggestions:\n\n1. View your group's 'Balances' tab\n2. See who owes money and who should receive payments\n3. Tap 'Settle Up' to see payment recommendations\n4. Choose a payment method:\n   - Record cash payment\n   - Use integrated payment apps\n   - Bank transfer\n5. Mark payments as completed\n\nOur algorithm minimizes the number of transactions needed to settle all debts.",
+                    content = "Fairr calculates who owes what and provides optimal payment suggestions:\n\n1. View your group's 'Balances' tab\n2. See who owes money and who should receive payments\n3. Tap 'Settle Up' to see payment recommendations\n4. Choose a payment method:\n   - Record cash payment\n   - Use integrated payment apps\n   - Bank transfer\n5. Mark payments as completed\n\nOur algorithm minimizes the number of transactions needed to settle all debts.",
                     isPopular = true
                 ),
                 HelpArticle(
                     id = "payment_methods",
                     title = "Available payment methods",
-                    content = "FairShare integrates with popular payment services:\n\n• Venmo: Send money directly through the app\n• PayPal: Transfer funds securely\n• Cash App: Quick peer-to-peer payments\n• Zelle: Bank-to-bank transfers\n• Cash: Record cash payments\n• Bank Transfer: Traditional bank transfers\n\nYou can also record manual payments and add payment confirmation details."
+                    content = "Fairr integrates with popular payment services:\n\n• Venmo: Send money directly through the app\n• PayPal: Transfer funds securely\n• Cash App: Quick peer-to-peer payments\n• Zelle: Bank-to-bank transfers\n• Cash: Record cash payments\n• Bank Transfer: Traditional bank transfers\n\nYou can also record manual payments and add payment confirmation details."
                 )
             )
         ),

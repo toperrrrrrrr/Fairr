@@ -1,6 +1,6 @@
-# FairShare - Android App
+# Fairr - Android App
 
-FairShare is a group expense management application that helps users track shared expenses and automatically calculate balances between group members. This Android application is built using modern Android development practices and Jetpack Compose.
+Fairr is a group expense management application that helps users track shared expenses and automatically calculate balances between group members. This Android application is built using modern Android development practices and Jetpack Compose.
 
 ## Features
 
@@ -60,7 +60,7 @@ FairShare is a group expense management application that helps users track share
 
 1. Clone the repository:
 ```bash
-git clone https://github.com/yourusername/fairshare-android.git
+git clone https://github.com/yourusername/Fairr-android.git
 ```
 
 2. Open the project in Android Studio

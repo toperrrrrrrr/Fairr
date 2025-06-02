@@ -69,7 +69,7 @@ fun SettlementScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = PureWhite
+                    containerColor = NeutralWhite
                 )
             )
         }
@@ -88,7 +88,7 @@ fun SettlementScreen(
                         .fillMaxWidth()
                         .shadow(2.dp, RoundedCornerShape(16.dp)),
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = PureWhite)
+                    colors = CardDefaults.cardColors(containerColor = NeutralWhite)
                 ) {
                     Column(
                         modifier = Modifier.padding(20.dp),
@@ -135,7 +135,7 @@ fun SettlementScreen(
                             .fillMaxWidth()
                             .shadow(1.dp, RoundedCornerShape(16.dp)),
                         shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = PureWhite)
+                        colors = CardDefaults.cardColors(containerColor = NeutralWhite)
                     ) {
                         Column(
                             modifier = Modifier
@@ -253,7 +253,7 @@ fun SettlementCard(
             .fillMaxWidth()
             .shadow(1.dp, RoundedCornerShape(12.dp)),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = PureWhite)
+        colors = CardDefaults.cardColors(containerColor = NeutralWhite)
     ) {
         Row(
             modifier = Modifier
@@ -306,7 +306,7 @@ fun SettlementCard(
                 onClick = onSettleUp,
                 colors = ButtonDefaults.buttonColors(
                     containerColor = if (settlement.type == SettlementType.YOU_OWE) ErrorRed else DarkGreen,
-                    contentColor = PureWhite
+                    contentColor = NeutralWhite
                 ),
                 shape = RoundedCornerShape(8.dp),
                 contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)

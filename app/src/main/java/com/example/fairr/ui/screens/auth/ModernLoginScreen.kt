@@ -69,7 +69,7 @@ fun ModernLoginScreen(
                 ) {
                     Icon(
                         imageVector = Icons.Default.AccountBalance,
-                        contentDescription = "FairShare Logo",
+                        contentDescription = "Fairr Logo",
                         tint = TextOnDark,
                         modifier = Modifier.size(32.dp)
                     )
@@ -111,7 +111,6 @@ fun ModernLoginScreen(
                 },
                 label = "Email Address",
                 leadingIcon = Icons.Default.Email,
-                isError = emailError != null,
                 errorMessage = emailError
             )
             
@@ -126,7 +125,6 @@ fun ModernLoginScreen(
                 leadingIcon = Icons.Default.Lock,
                 trailingIcon = if (isPasswordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
                 onTrailingIconClick = { isPasswordVisible = !isPasswordVisible },
-                isError = passwordError != null,
                 errorMessage = passwordError
             )
             
@@ -209,7 +207,7 @@ fun ModernLoginScreen(
                     text = "Continue with Google",
                     icon = Icons.Default.Android, // Using Android icon as placeholder
                     onClick = { /* Google Sign In */ },
-                    backgroundColor = PureWhite,
+                    backgroundColor = NeutralWhite,
                     textColor = TextPrimary,
                     borderColor = CardBorder
                 )
@@ -218,7 +216,7 @@ fun ModernLoginScreen(
                     text = "Continue with Apple",
                     icon = Icons.Default.Phone, // Changed from Apple to Phone as placeholder
                     onClick = { /* Apple Sign In */ },
-                    backgroundColor = PureBlack,
+                    backgroundColor = NeutralBlack,
                     textColor = TextOnDark
                 )
             }
@@ -256,7 +254,7 @@ fun SocialLoginButton(
     text: String,
     icon: androidx.compose.ui.graphics.vector.ImageVector,
     onClick: () -> Unit,
-    backgroundColor: Color = PureWhite,
+    backgroundColor: Color = NeutralWhite,
     textColor: Color = TextPrimary,
     borderColor: Color? = null,
     modifier: Modifier = Modifier
@@ -337,7 +335,7 @@ fun ModernRegisterScreen(
                 )
                 
                 Text(
-                    text = "Join FairShare today",
+                    text = "Join Fairr today",
                     fontSize = 14.sp,
                     color = TextOnDark.copy(alpha = 0.8f),
                     modifier = Modifier.padding(top = 4.dp)
@@ -464,3 +462,5 @@ fun ModernRegisterScreenPreview() {
         ModernRegisterScreen(navController = rememberNavController())
     }
 } 
+
+

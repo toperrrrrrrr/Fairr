@@ -104,7 +104,7 @@ fun NotificationsScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = PureWhite
+                    containerColor = NeutralWhite
                 )
             )
         }
@@ -184,7 +184,7 @@ fun NotificationCard(
             .shadow(1.dp, RoundedCornerShape(12.dp)),
         shape = RoundedCornerShape(12.dp),
         colors = CardDefaults.cardColors(
-            containerColor = if (notification.isRead) PureWhite else DarkBlue.copy(alpha = 0.03f)
+            containerColor = if (notification.isRead) NeutralWhite else DarkBlue.copy(alpha = 0.03f)
         )
     ) {
         Row(

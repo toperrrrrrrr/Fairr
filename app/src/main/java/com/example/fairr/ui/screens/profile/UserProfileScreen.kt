@@ -10,6 +10,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.Help
+import androidx.compose.material.icons.automirrored.filled.ContactSupport
+import androidx.compose.material.icons.automirrored.filled.Logout
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -124,7 +127,7 @@ fun UserProfileScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = PureWhite
+                    containerColor = NeutralWhite
                 )
             )
         }
@@ -185,7 +188,7 @@ fun UserProfileScreen(
                             .fillMaxWidth()
                             .padding(horizontal = 16.dp)
                             .clickable { /* Handle logout */ },
-                        colors = CardDefaults.cardColors(containerColor = PureWhite)
+                        colors = CardDefaults.cardColors(containerColor = NeutralWhite)
                     ) {
                         Row(
                             modifier = Modifier
@@ -194,7 +197,7 @@ fun UserProfileScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Icon(
-                                Icons.Default.Logout,
+                                Icons.AutoMirrored.Filled.Logout,
                                 contentDescription = "Logout",
                                 tint = ErrorRed,
                                 modifier = Modifier.size(24.dp)
@@ -269,7 +272,7 @@ fun ProfileHeaderCard(
             .padding(16.dp)
             .shadow(2.dp, RoundedCornerShape(16.dp)),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = PureWhite)
+        colors = CardDefaults.cardColors(containerColor = NeutralWhite)
     ) {
         Column(
             modifier = Modifier
@@ -304,7 +307,7 @@ fun ProfileHeaderCard(
                             text = userProfile.fullName.split(" ").map { it.first() }.joinToString(""),
                             fontSize = 36.sp,
                             fontWeight = FontWeight.Bold,
-                            color = PureWhite
+                            color = NeutralWhite
                         )
                     }
                 }
@@ -321,7 +324,7 @@ fun ProfileHeaderCard(
                         Icon(
                             Icons.Default.CameraAlt,
                             contentDescription = "Change Photo",
-                            tint = PureWhite,
+                            tint = NeutralWhite,
                             modifier = Modifier.size(16.dp)
                         )
                     }
@@ -505,10 +508,10 @@ fun AboutSection(
     SettingsSection(
         title = "About & Support",
         items = listOf(
-            SettingsItem("Help & Support", Icons.Default.Help, onHelpSupport),
-            SettingsItem("About FairShare", Icons.Default.Info, onAboutApp),
+            SettingsItem("Help & Support", Icons.AutoMirrored.Filled.Help, onHelpSupport),
+            SettingsItem("About Fairr", Icons.Default.Info, onAboutApp),
             SettingsItem("Terms & Privacy", Icons.Default.Policy, onTermsPrivacy),
-            SettingsItem("Contact Us", Icons.Default.ContactSupport, onContactUs)
+            SettingsItem("Contact Us", Icons.AutoMirrored.Filled.ContactSupport, onContactUs)
         )
     )
 }
@@ -538,7 +541,7 @@ fun SettingsSection(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(horizontal = 16.dp),
-            colors = CardDefaults.cardColors(containerColor = PureWhite)
+            colors = CardDefaults.cardColors(containerColor = NeutralWhite)
         ) {
             Column {
                 items.forEachIndexed { index, item ->
@@ -671,7 +674,7 @@ fun ChangePasswordDialog(
                 colors = ButtonDefaults.buttonColors(containerColor = DarkGreen),
                 enabled = newPassword == confirmPassword && newPassword.length >= 6 && currentPassword.isNotEmpty()
             ) {
-                Text("Change Password", color = PureWhite)
+                Text("Change Password", color = NeutralWhite)
             }
         },
         dismissButton = {
@@ -679,7 +682,7 @@ fun ChangePasswordDialog(
                 Text("Cancel", color = TextSecondary)
             }
         },
-        containerColor = PureWhite
+        containerColor = NeutralWhite
     )
 }
 

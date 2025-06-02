@@ -14,149 +14,203 @@ import com.example.fairr.ui.theme.*
 @Composable
 fun SocialChatterSvg(
     modifier: Modifier = Modifier,
-    primaryColor: Color = TextOnDark.copy(alpha = 0.8f),
-    secondaryColor: Color = TextOnDark.copy(alpha = 0.6f),
-    accentColor: Color = TextOnDark.copy(alpha = 0.4f)
+    primaryColor: Color = Primary,
+    secondaryColor: Color = LightGray,
+    accentColor: Color = LightGray
 ) {
     Canvas(
-        modifier = modifier.size(200.dp)
+        modifier = modifier.size(240.dp)
     ) {
         val canvasWidth = size.width
         val canvasHeight = size.height
         
-        // Scale factor to fit the original SVG (609x495) into our canvas
-        val scaleX = canvasWidth / 609f
-        val scaleY = canvasHeight / 495f
+        // Scale factor to fit the original SVG (584x659) into our canvas
+        val scaleX = canvasWidth / 584f
+        val scaleY = canvasHeight / 659f
         val scaleValue = minOf(scaleX, scaleY)
         
         // Center the drawing
-        val offsetX = (canvasWidth - 609f * scaleValue) / 2f
-        val offsetY = (canvasHeight - 495f * scaleValue) / 2f
+        val offsetX = (canvasWidth - 584f * scaleValue) / 2f
+        val offsetY = (canvasHeight - 659f * scaleValue) / 2f
         
         translate(offsetX, offsetY) {
             scale(scaleValue, scaleValue, pivot = center) {
-                drawSocialChatterIllustration(primaryColor, secondaryColor, accentColor)
+                drawAnalyticsIllustration(primaryColor, secondaryColor, accentColor)
             }
         }
     }
 }
 
-private fun DrawScope.drawSocialChatterIllustration(
+private fun DrawScope.drawAnalyticsIllustration(
     primaryColor: Color,
     secondaryColor: Color, 
     accentColor: Color
 ) {
-    // Main laptop/tablet screen
+    // Main phone/tablet frame
     drawRoundRect(
-        color = primaryColor,
-        topLeft = androidx.compose.ui.geometry.Offset(147.659f, 6f),
-        size = androidx.compose.ui.geometry.Size(325.128f, 310.809f),
+        color = secondaryColor,
+        topLeft = androidx.compose.ui.geometry.Offset(156f, 0f),
+        size = androidx.compose.ui.geometry.Size(272f, 571.419f),
+        cornerRadius = androidx.compose.ui.geometry.CornerRadius(43.871f, 43.871f)
+    )
+    
+    // Phone screen area
+    drawRoundRect(
+        color = Color.White,
+        topLeft = androidx.compose.ui.geometry.Offset(166.968f, 10.9677f),
+        size = androidx.compose.ui.geometry.Size(250.064f, 549.484f),
+        cornerRadius = androidx.compose.ui.geometry.CornerRadius(32.9f, 32.9f)
+    )
+    
+    // Top notch/speaker
+    drawRoundRect(
+        color = primaryColor.copy(alpha = 0.2f),
+        topLeft = androidx.compose.ui.geometry.Offset(258f, 21.9355f),
+        size = androidx.compose.ui.geometry.Size(69.419f, 15.355f),
+        cornerRadius = androidx.compose.ui.geometry.CornerRadius(7.677f, 7.677f)
+    )
+    
+    // Chart area background
+    drawRoundRect(
+        color = Color.White,
+        topLeft = androidx.compose.ui.geometry.Offset(188f, 167f),
+        size = androidx.compose.ui.geometry.Size(209f, 235f),
+        cornerRadius = androidx.compose.ui.geometry.CornerRadius(10f, 10f)
+    )
+    
+    // Analytics bars (chart visualization)
+    val barData = listOf(
+        Pair(369f, 150f), Pair(355f, 129f), Pair(313f, 111f), Pair(299f, 97f),
+        Pair(285f, 85f), Pair(257f, 78f), Pair(243f, 63f), Pair(229f, 50f),
+        Pair(215f, 37f), Pair(271f, 59f), Pair(327f, 92f), Pair(341f, 108f)
+    )
+    
+    barData.forEachIndexed { index, (x, height) ->
+        val barHeight = height - 230f + (index * 2) // Vary heights
+        drawRect(
+            color = primaryColor,
+            topLeft = androidx.compose.ui.geometry.Offset(x, 380f - barHeight),
+            size = androidx.compose.ui.geometry.Size(3f, barHeight)
+        )
+    }
+    
+    // Bottom platform/base
+    drawRoundRect(
+        color = accentColor,
+        topLeft = androidx.compose.ui.geometry.Offset(121f, 571f),
+        size = androidx.compose.ui.geometry.Size(360f, 88f),
         cornerRadius = androidx.compose.ui.geometry.CornerRadius(6f, 6f)
     )
     
-    // Screen content bars
-    drawRoundRect(
-        color = secondaryColor,
-        topLeft = androidx.compose.ui.geometry.Offset(220.103f, 150.086f),
-        size = androidx.compose.ui.geometry.Size(180.588f, 28.422f),
-        cornerRadius = androidx.compose.ui.geometry.CornerRadius(3f, 3f)
+    // Data visualization elements (scattered rectangles representing data points)
+    val dataPoints = listOf(
+        Triple(106f, 637f, 94f), Triple(6f, 637f, 94f), Triple(206f, 637f, 94f),
+        Triple(56f, 615f, 94f), Triple(106f, 593f, 94f), Triple(156f, 615f, 94f)
     )
     
-    drawRoundRect(
-        color = secondaryColor,
-        topLeft = androidx.compose.ui.geometry.Offset(220.103f, 194.799f),
-        size = androidx.compose.ui.geometry.Size(180.588f, 28.423f),
-        cornerRadius = androidx.compose.ui.geometry.CornerRadius(3f, 3f)
-    )
-    
-    // User avatar circle
-    drawCircle(
-        color = primaryColor,
-        radius = 45.1f,
-        center = androidx.compose.ui.geometry.Offset(310.397f, 78.162f)
-    )
-    
-    // User icon elements
-    drawCircle(
-        color = accentColor,
-        radius = 6.82f,
-        center = androidx.compose.ui.geometry.Offset(310.137f, 69.5617f)
-    )
-    
-    // Left floating elements (representing social interaction)
-    drawPath(
-        path = Path().apply {
-            // Left floating shape
-            moveTo(24.2629f, 275.388f)
-            quadraticBezierTo(24.2629f, 255f, 43.1536f, 256.498f)
-            quadraticBezierTo(62.0443f, 255f, 62.0443f, 275.388f)
-            close()
-        },
-        color = accentColor
-    )
-    
-    // Right floating elements
-    drawPath(
-        path = Path().apply {
-            // Right floating shape
-            moveTo(584.052f, 275.388f)
-            quadraticBezierTo(584.052f, 255f, 565.161f, 256.498f)
-            quadraticBezierTo(546.27f, 255f, 546.27f, 275.388f)
-            close()
-        },
-        color = accentColor
-    )
-    
-    // People silhouettes (simplified)
-    for (i in 0..4) {
-        val x = 230f + i * 20f
-        val y = 420f + (i % 2) * 10f
-        
-        // Head
-        drawCircle(
-            color = secondaryColor,
-            radius = 8f,
-            center = androidx.compose.ui.geometry.Offset(x, y)
-        )
-        
-        // Body (simplified rectangle)
+    dataPoints.forEach { (x, y, width) ->
         drawRoundRect(
             color = secondaryColor,
-            topLeft = androidx.compose.ui.geometry.Offset(x - 6f, y + 8f),
-            size = androidx.compose.ui.geometry.Size(12f, 20f),
-            cornerRadius = androidx.compose.ui.geometry.CornerRadius(6f, 6f)
+            topLeft = androidx.compose.ui.geometry.Offset(x, y),
+            size = androidx.compose.ui.geometry.Size(width, 22f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(2f, 2f)
         )
     }
     
-    // Chat bubbles or connection lines (simplified)
-    for (i in 0..2) {
-        val startX = 100f + i * 80f
-        val startY = 300f
-        val endX = startX + 40f
-        val endY = startY + 30f
-        
-        drawLine(
-            color = accentColor.copy(alpha = 0.5f),
-            start = androidx.compose.ui.geometry.Offset(startX, startY),
-            end = androidx.compose.ui.geometry.Offset(endX, endY),
-            strokeWidth = 2f
+    // Left circular element (user/profile indicator)
+    drawCircle(
+        color = primaryColor,
+        radius = 61.5f,
+        center = androidx.compose.ui.geometry.Offset(61.5f, 362.5f)
+    )
+    
+    // Right circular element (settings/profile indicator)
+    drawCircle(
+        color = primaryColor,
+        radius = 61.5f,
+        center = androidx.compose.ui.geometry.Offset(509.5f, 208.5f)
+    )
+    
+    // "S" letter in left circle (for Split/Share)
+    drawTextIndicator(61.5f, 362.5f, primaryColor)
+    
+    // "S" letter in right circle (for Settings/Stats)
+    drawTextIndicator(509.5f, 208.5f, primaryColor)
+    
+    // Laptop/computer screen (secondary device)
+    drawRoundRect(
+        color = primaryColor,
+        topLeft = androidx.compose.ui.geometry.Offset(237f, 457f),
+        size = androidx.compose.ui.geometry.Size(342f, 201.536f),
+        cornerRadius = androidx.compose.ui.geometry.CornerRadius(20.357f, 20.357f)
+    )
+    
+    // Screen separator line
+    drawLine(
+        color = secondaryColor,
+        start = androidx.compose.ui.geometry.Offset(237f, 483.464f),
+        end = androidx.compose.ui.geometry.Offset(579f, 483.464f),
+        strokeWidth = 2f
+    )
+    
+    // Keyboard keys simulation (data representation)
+    val keyPositions = listOf(
+        Pair(279.75f, 562.857f), Pair(346.929f, 562.857f),
+        Pair(414.107f, 562.857f), Pair(481.286f, 562.857f)
+    )
+    
+    keyPositions.forEach { (x, y) ->
+        drawRoundRect(
+            color = accentColor,
+            topLeft = androidx.compose.ui.geometry.Offset(x, y),
+            size = androidx.compose.ui.geometry.Size(49.875f, 14.25f),
+            cornerRadius = androidx.compose.ui.geometry.CornerRadius(7.125f, 7.125f)
         )
     }
     
-    // Additional decorative elements
-    repeat(6) { i ->
-        val angle = i * 60f * (kotlin.math.PI / 180f).toFloat()
-        val radius = 150f
-        val centerX = 300f
-        val centerY = 200f
-        
-        val x = centerX + kotlin.math.cos(angle) * radius
-        val y = centerY + kotlin.math.sin(angle) * radius
-        
-        drawCircle(
-            color = accentColor.copy(alpha = 0.3f),
-            radius = 4f,
-            center = androidx.compose.ui.geometry.Offset(x, y)
-        )
+    // Connected circles (representing data flow/sharing)
+    drawConnectedCircles(477.214f, 601.536f, primaryColor, accentColor)
+}
+
+private fun DrawScope.drawTextIndicator(centerX: Float, centerY: Float, color: Color) {
+    // Simple "S" shape indicator (simplified for performance)
+    val path = Path().apply {
+        moveTo(centerX - 15f, centerY - 20f)
+        lineTo(centerX + 15f, centerY - 20f)
+        lineTo(centerX + 15f, centerY - 5f)
+        lineTo(centerX - 15f, centerY - 5f)
+        lineTo(centerX - 15f, centerY + 5f)
+        lineTo(centerX + 15f, centerY + 5f)
+        lineTo(centerX + 15f, centerY + 20f)
+        lineTo(centerX - 15f, centerY + 20f)
+        close()
     }
+    
+    drawPath(
+        path = path,
+        color = Color.White
+    )
+}
+
+private fun DrawScope.drawConnectedCircles(centerX: Float, centerY: Float, primary: Color, accent: Color) {
+    // Left circle
+    drawCircle(
+        color = accent,
+        radius = 20.832f,
+        center = androidx.compose.ui.geometry.Offset(centerX - 11.583f, centerY + 18.321f)
+    )
+    
+    // Right circle
+    drawCircle(
+        color = accent,
+        radius = 20.832f,
+        center = androidx.compose.ui.geometry.Offset(centerX + 31.082f, centerY + 18.321f)
+    )
+    
+    // Intersection area
+    drawRect(
+        color = accent.copy(alpha = 0.5f),
+        topLeft = androidx.compose.ui.geometry.Offset(centerX, centerY),
+        size = androidx.compose.ui.geometry.Size(40.714f, 50.892f)
+    )
 } 

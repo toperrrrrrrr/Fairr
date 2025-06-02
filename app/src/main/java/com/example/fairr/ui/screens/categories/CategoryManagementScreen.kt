@@ -75,7 +75,7 @@ fun CategoryManagementScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = PureWhite
+                    containerColor = NeutralWhite
                 )
             )
         },
@@ -83,7 +83,7 @@ fun CategoryManagementScreen(
             FloatingActionButton(
                 onClick = { showAddDialog = true },
                 containerColor = DarkGreen,
-                contentColor = PureWhite,
+                contentColor = NeutralWhite,
                 shape = CircleShape
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add Category")
@@ -104,7 +104,7 @@ fun CategoryManagementScreen(
                         .fillMaxWidth()
                         .shadow(2.dp, RoundedCornerShape(16.dp)),
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = PureWhite)
+                    colors = CardDefaults.cardColors(containerColor = NeutralWhite)
                 ) {
                     Column(
                         modifier = Modifier.padding(20.dp),
@@ -221,7 +221,7 @@ fun CategoryCard(
             .fillMaxWidth()
             .shadow(1.dp, RoundedCornerShape(12.dp)),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = PureWhite)
+        colors = CardDefaults.cardColors(containerColor = NeutralWhite)
     ) {
         Row(
             modifier = Modifier
@@ -437,7 +437,7 @@ fun ColorOption(
         color = color,
         border = BorderStroke(
             width = if (isSelected) 3.dp else 1.dp,
-            color = if (isSelected) PureWhite else PlaceholderText.copy(alpha = 0.3f)
+            color = if (isSelected) NeutralWhite else PlaceholderText.copy(alpha = 0.3f)
         )
     ) {
         if (isSelected) {
@@ -447,7 +447,7 @@ fun ColorOption(
                 Icon(
                     Icons.Default.Check,
                     contentDescription = "Selected",
-                    tint = PureWhite,
+                    tint = NeutralWhite,
                     modifier = Modifier.size(16.dp)
                 )
             }
@@ -472,8 +472,8 @@ fun getDefaultCategories(): List<ExpenseCategory> {
         ExpenseCategory("4", "Shopping", Icons.Default.ShoppingBag, WarningOrange, true),
         ExpenseCategory("5", "Bills", Icons.Default.Receipt, TextSecondary, true),
         ExpenseCategory("6", "Groceries", Icons.Default.ShoppingCart, SuccessGreen, true),
-        ExpenseCategory("7", "Health", Icons.Default.LocalHospital, Color(0xFFE91E63), true),
-        ExpenseCategory("8", "Travel", Icons.Default.Flight, Color(0xFF9C27B0), true),
+        ExpenseCategory("7", "Health", Icons.Default.LocalHospital, FairrColors.CategoryColors[3], true),
+        ExpenseCategory("8", "Travel", Icons.Default.Flight, FairrColors.CategoryColors[4], true),
         ExpenseCategory("9", "Other", Icons.Default.Category, PlaceholderText, true)
     )
 }
@@ -500,20 +500,7 @@ fun getCategoryIcons(): List<ImageVector> {
 }
 
 fun getCategoryColors(): List<Color> {
-    return listOf(
-        DarkGreen,
-        DarkBlue,
-        ErrorRed,
-        WarningOrange,
-        SuccessGreen,
-        Color(0xFFE91E63), // Pink
-        Color(0xFF9C27B0), // Purple
-        Color(0xFF673AB7), // Deep Purple
-        Color(0xFF3F51B5), // Indigo
-        Color(0xFF009688), // Teal
-        Color(0xFF795548), // Brown
-        Color(0xFF607D8B)  // Blue Grey
-    )
+    return FairrColors.CategoryColors
 }
 
 fun generateCategoryId(): String {

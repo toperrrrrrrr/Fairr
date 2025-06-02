@@ -87,7 +87,7 @@ fun EditProfileScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = PureWhite
+                    containerColor = NeutralWhite
                 )
             )
         }
@@ -108,7 +108,7 @@ fun EditProfileScreen(
                     .padding(horizontal = 16.dp)
                     .shadow(2.dp, RoundedCornerShape(16.dp)),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = PureWhite)
+                colors = CardDefaults.cardColors(containerColor = NeutralWhite)
             ) {
                 Column(
                     modifier = Modifier.padding(24.dp),
@@ -146,7 +146,7 @@ fun EditProfileScreen(
                             Icon(
                                 Icons.Default.CameraAlt,
                                 contentDescription = "Change photo",
-                                tint = PureWhite,
+                                tint = NeutralWhite,
                                 modifier = Modifier
                                     .padding(8.dp)
                                     .size(16.dp)
@@ -173,7 +173,7 @@ fun EditProfileScreen(
                     .padding(horizontal = 16.dp)
                     .shadow(2.dp, RoundedCornerShape(16.dp)),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = PureWhite)
+                colors = CardDefaults.cardColors(containerColor = NeutralWhite)
             ) {
                 Column(
                     modifier = Modifier.padding(20.dp)

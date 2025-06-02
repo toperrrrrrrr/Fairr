@@ -32,7 +32,8 @@ fun MobileLoginScreen(
     navController: NavController,
     onNavigateBack: () -> Unit,
     onLoginSuccess: () -> Unit,
-    onNavigateToSignUp: () -> Unit
+    onNavigateToSignUp: () -> Unit,
+    onNavigateToForgotPassword: () -> Unit = { navController.navigate("forgot_password") }
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -55,7 +56,7 @@ fun MobileLoginScreen(
                     .fillMaxWidth()
                     .padding(24.dp)
             ) {
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 
                 // Back button
                 IconButton(
@@ -70,39 +71,26 @@ fun MobileLoginScreen(
                     )
                 }
                 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(16.dp))
                 
-                // Welcome text
+                // Welcome text - more compact
                 Text(
-                    text = "Hey,",
-                    fontSize = 32.sp,
+                    text = "Hey, Welcome Back",
+                    fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
-                    color = TextOnDark
-                )
-                
-                Text(
-                    text = "Welcome",
-                    fontSize = 32.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextOnDark
-                )
-                
-                Text(
-                    text = "Back",
-                    fontSize = 32.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextOnDark
+                    color = TextOnDark,
+                    lineHeight = 32.sp
                 )
             }
             
-            Spacer(modifier = Modifier.height(40.dp))
+            Spacer(modifier = Modifier.height(24.dp))
             
             // Form Section
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(20.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 // Email Field
                 MobileTextField(
@@ -124,8 +112,6 @@ fun MobileLoginScreen(
                     visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation()
                 )
                 
-                Spacer(modifier = Modifier.height(8.dp))
-                
                 // Forgot Password
                 Row(
                     modifier = Modifier.fillMaxWidth(),
@@ -136,12 +122,12 @@ fun MobileLoginScreen(
                         color = TextOnDark.copy(alpha = 0.7f),
                         fontSize = 14.sp,
                         modifier = Modifier.clickable {
-                            // Navigate to forgot password
+                            onNavigateToForgotPassword()
                         }
                     )
                 }
                 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(8.dp))
                 
                 // Login Button
                 Button(
@@ -169,7 +155,7 @@ fun MobileLoginScreen(
                     )
                 }
                 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(16.dp))
                 
                 // Continue with section
                 Row(
@@ -192,7 +178,7 @@ fun MobileLoginScreen(
                     )
                 }
                 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(16.dp))
                 
                 // Google Sign In Button
                 OutlinedButton(
@@ -251,7 +237,7 @@ fun MobileLoginScreen(
                     )
                 }
                 
-                Spacer(modifier = Modifier.height(32.dp))
+                Spacer(modifier = Modifier.height(24.dp))
             }
         }
     }

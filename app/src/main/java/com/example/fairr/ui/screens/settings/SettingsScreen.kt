@@ -272,8 +272,6 @@ fun SettingsScreen(
                 ModernButton(
                     text = "Sign Out",
                     onClick = onSignOut,
-                    backgroundColor = ErrorRed,
-                    textColor = TextOnDark,
                     icon = Icons.AutoMirrored.Filled.ExitToApp,
                     modifier = Modifier.fillMaxWidth()
                 )
@@ -411,7 +409,7 @@ fun ModernSwitchItem(
             colors = SwitchDefaults.colors(
                 checkedThumbColor = Primary,
                 checkedTrackColor = Primary.copy(alpha = 0.5f),
-                uncheckedThumbColor = MediumGray,
+                uncheckedThumbColor = NeutralGray,
                 uncheckedTrackColor = LightGray
             )
         )
@@ -434,3 +432,5 @@ fun SettingsScreenPreview() {
         )
     }
 } 
+
+

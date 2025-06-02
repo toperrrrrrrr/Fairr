@@ -58,7 +58,7 @@ fun ExportDataScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = PureWhite
+                    containerColor = NeutralWhite
                 )
             )
         }
@@ -77,7 +77,7 @@ fun ExportDataScreen(
                         .fillMaxWidth()
                         .shadow(2.dp, RoundedCornerShape(16.dp)),
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = PureWhite)
+                    colors = CardDefaults.cardColors(containerColor = NeutralWhite)
                 ) {
                     Column(
                         modifier = Modifier.padding(20.dp),
@@ -118,7 +118,7 @@ fun ExportDataScreen(
                         .fillMaxWidth()
                         .shadow(2.dp, RoundedCornerShape(16.dp)),
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = PureWhite)
+                    colors = CardDefaults.cardColors(containerColor = NeutralWhite)
                 ) {
                     Column(
                         modifier = Modifier.padding(20.dp)
@@ -176,7 +176,7 @@ fun ExportDataScreen(
                         .fillMaxWidth()
                         .shadow(2.dp, RoundedCornerShape(16.dp)),
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = PureWhite)
+                    colors = CardDefaults.cardColors(containerColor = NeutralWhite)
                 ) {
                     Column(
                         modifier = Modifier.padding(20.dp)
@@ -222,7 +222,7 @@ fun ExportDataScreen(
                         .fillMaxWidth()
                         .shadow(2.dp, RoundedCornerShape(16.dp)),
                     shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = PureWhite)
+                    colors = CardDefaults.cardColors(containerColor = NeutralWhite)
                 ) {
                     Column(
                         modifier = Modifier.padding(20.dp)
@@ -309,7 +309,7 @@ fun ExportDataScreen(
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = DarkGreen,
-                        contentColor = PureWhite
+                        contentColor = NeutralWhite
                     ),
                     shape = RoundedCornerShape(12.dp),
                     enabled = !isExporting
@@ -317,7 +317,7 @@ fun ExportDataScreen(
                     if (isExporting) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(20.dp),
-                            color = PureWhite,
+                            color = NeutralWhite,
                             strokeWidth = 2.dp
                         )
                         Spacer(modifier = Modifier.width(8.dp))
@@ -365,7 +365,7 @@ fun ExportDataScreen(
                                 color = DarkBlue
                             )
                             Text(
-                                text = "Your data will be downloaded to your device. FairShare does not store or share your exported data.",
+                                text = "Your data will be downloaded to your device. Fairr does not store or share your exported data.",
                                 fontSize = 12.sp,
                                 color = TextSecondary,
                                 modifier = Modifier.padding(top = 4.dp)

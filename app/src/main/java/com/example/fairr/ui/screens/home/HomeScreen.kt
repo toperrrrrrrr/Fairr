@@ -47,186 +47,70 @@ fun HomeScreen(
     onNavigateToSettings: () -> Unit = {},
     onNavigateToGroupDetail: (String) -> Unit = {},
     onNavigateToAnalytics: () -> Unit = {},
-    onNavigateToBudgets: () -> Unit = {}
+    onNavigateToBudgets: () -> Unit = {},
+    modifier: Modifier = Modifier
 ) {
-    // Sample data for groups
-    val groups = remember { 
-        mutableStateListOf(
+    val groups = remember {
+        listOf(
             GroupItem("1", "Weekend Trip", 4, -125.75, "$"),
             GroupItem("2", "Apartment Rent", 3, 150.25, "$"),
             GroupItem("3", "Dinner Party", 6, 0.00, "$"),
             GroupItem("4", "Office Lunch", 8, -45.50, "$")
         )
     }
-    
-    var selectedTab by remember { mutableStateOf(0) }
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { 
-                    Text(
-                        "FairShare",
-                        fontWeight = FontWeight.Bold,
-                        color = TextPrimary
-                    ) 
-                },
-                actions = {
-                    // Search Action
-                    IconButton(onClick = onNavigateToSearch) {
-                        Icon(
-                            Icons.Default.Search, 
-                            contentDescription = "Search",
-                            tint = IconTint
-                        )
-                    }
-                    // Notifications Action
-                    IconButton(onClick = onNavigateToNotifications) {
-                        Icon(
-                            Icons.Default.Notifications, 
-                            contentDescription = "Notifications",
-                            tint = IconTint
-                        )
-                    }
-                    // Join Group Action
-                    IconButton(onClick = onNavigateToJoinGroup) {
-                        Icon(
-                            Icons.Default.Group, 
-                            contentDescription = "Join Group",
-                            tint = IconTint
-                        )
-                    }
-                    IconButton(onClick = onNavigateToSettings) {
-                        Icon(
-                            Icons.Default.Settings, 
-                            contentDescription = "Settings",
-                            tint = IconTint
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = BackgroundPrimary
-                )
-            )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { onNavigateToCreateGroup() },
-                containerColor = Primary,
-                contentColor = TextOnDark,
-                shape = CircleShape
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Create Group")
-            }
-        },
-        bottomBar = {
-            NavigationBar(
-                containerColor = BackgroundPrimary,
-                tonalElevation = 8.dp
-            ) {
-                // Home Tab
-                NavigationBarItem(
-                    icon = { 
-                        Icon(
-                            if (selectedTab == 0) Icons.Filled.Home else Icons.Outlined.Home,
-                            contentDescription = "Home"
-                        ) 
-                    },
-                    label = { Text("Home") },
-                    selected = selectedTab == 0,
-                    onClick = { selectedTab = 0 },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Primary,
-                        selectedTextColor = Primary,
-                        unselectedIconColor = IconTint,
-                        unselectedTextColor = IconTint
+    Column(
+        modifier = modifier
+            .fillMaxSize()
+            .background(BackgroundSecondary)
+    ) {
+        // Top App Bar
+        TopAppBar(
+            title = { 
+                Text(
+                    "Fairr",
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary
+                ) 
+            },
+            actions = {
+                // Search Action
+                IconButton(onClick = onNavigateToSearch) {
+                    Icon(
+                        Icons.Default.Search, 
+                        contentDescription = "Search",
+                        tint = IconTint
                     )
-                )
-                
-                // Groups Tab  
-                NavigationBarItem(
-                    icon = { 
-                        Icon(
-                            if (selectedTab == 1) Icons.Filled.Group else Icons.Outlined.Group,
-                            contentDescription = "Groups"
-                        ) 
-                    },
-                    label = { Text("Groups") },
-                    selected = selectedTab == 1,
-                    onClick = { selectedTab = 1 },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Primary,
-                        selectedTextColor = Primary,
-                        unselectedIconColor = IconTint,
-                        unselectedTextColor = IconTint
+                }
+                // Notifications Action
+                IconButton(onClick = onNavigateToNotifications) {
+                    Icon(
+                        Icons.Default.Notifications, 
+                        contentDescription = "Notifications",
+                        tint = IconTint
                     )
-                )
-                
-                // Analytics Tab
-                NavigationBarItem(
-                    icon = { 
-                        Icon(
-                            if (selectedTab == 2) Icons.Filled.Analytics else Icons.Outlined.Analytics,
-                            contentDescription = "Analytics"
-                        ) 
-                    },
-                    label = { Text("Analytics") },
-                    selected = selectedTab == 2,
-                    onClick = { 
-                        selectedTab = 2
-                        onNavigateToAnalytics()
-                    },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Primary,
-                        selectedTextColor = Primary,
-                        unselectedIconColor = IconTint,
-                        unselectedTextColor = IconTint
+                }
+                // Join Group Action
+                IconButton(onClick = onNavigateToJoinGroup) {
+                    Icon(
+                        Icons.Default.Group, 
+                        contentDescription = "Join Group",
+                        tint = IconTint
                     )
-                )
-                
-                // Profile Tab
-                NavigationBarItem(
-                    icon = { 
-                        Icon(
-                            if (selectedTab == 3) Icons.Filled.Person else Icons.Outlined.Person,
-                            contentDescription = "Profile"
-                        ) 
-                    },
-                    label = { Text("Profile") },
-                    selected = selectedTab == 3,
-                    onClick = { 
-                        selectedTab = 3
-                        onNavigateToSettings() // Navigate to settings/profile
-                    },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Primary,
-                        selectedTextColor = Primary,
-                        unselectedIconColor = IconTint,
-                        unselectedTextColor = IconTint
-                    )
-                )
-            }
-        }
-    ) { padding ->
-        when (selectedTab) {
-            0 -> HomeTabContent(
-                groups = groups,
-                onNavigateToGroupDetail = onNavigateToGroupDetail,
-                onNavigateToBudgets = onNavigateToBudgets,
-                modifier = Modifier.padding(padding)
+                }
+            },
+            colors = TopAppBarDefaults.topAppBarColors(
+                containerColor = BackgroundPrimary
             )
-            1 -> GroupsTabContent(
-                groups = groups,
-                onNavigateToGroupDetail = onNavigateToGroupDetail,
-                modifier = Modifier.padding(padding)
-            )
-            2 -> AnalyticsTabContent(
-                modifier = Modifier.padding(padding)
-            )
-            3 -> ProfileTabContent(
-                modifier = Modifier.padding(padding)
-            )
-        }
+        )
+        
+        // Home Content
+        HomeTabContent(
+            groups = groups,
+            onNavigateToGroupDetail = onNavigateToGroupDetail,
+            onNavigateToBudgets = onNavigateToBudgets,
+            modifier = Modifier.fillMaxSize()
+        )
     }
 }
 
@@ -272,7 +156,7 @@ fun HomeTabContent(
                     title = "Total Balance",
                     value = "$${String.format("%.2f", groups.sumOf { kotlin.math.abs(it.balance) })}",
                     icon = Icons.Default.AccountBalance,
-                    change = "Active",
+                    changeValue = "Active",
                     modifier = Modifier.weight(1f)
                 )
                 
@@ -280,7 +164,7 @@ fun HomeTabContent(
                     title = "Groups",
                     value = "${groups.size}",
                     icon = Icons.Default.Group,
-                    change = "Joined",
+                    changeValue = "Joined",
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -534,3 +418,4 @@ fun HomeScreenPreview() {
         HomeScreen()
     }
 }
+

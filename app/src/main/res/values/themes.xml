@@ -1,19 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
 <resources xmlns:tools="http://schemas.android.com/tools">
     <!-- Base application theme. -->
     <style name="Theme.Fairr" parent="Theme.Material3.DayNight.NoActionBar">
         <!-- Primary brand color. -->
-        <item name="colorPrimary">#2E7D32</item>
-        <item name="colorPrimaryVariant">#1B5E20</item>
+        <item name="colorPrimary">@color/black</item>
+        <item name="colorPrimaryVariant">@color/soft_black</item>
         <item name="colorOnPrimary">@color/white</item>
+        
         <!-- Secondary brand color. -->
-        <item name="colorSecondary">#1976D2</item>
-        <item name="colorSecondaryVariant">#1565C0</item>
+        <item name="colorSecondary">@color/accent_blue</item>
+        <item name="colorSecondaryVariant">@color/info_blue_dark</item>
         <item name="colorOnSecondary">@color/white</item>
         
         <!-- Background colors -->
-        <item name="android:colorBackground">#FAFAFA</item>
+        <item name="android:colorBackground">@color/background_primary</item>
         <item name="colorSurface">@color/white</item>
-        <item name="colorOnSurface">#212121</item>
+        <item name="colorOnSurface">@color/text_primary</item>
         
         <!-- Status bar color. -->
         <item name="android:statusBarColor">@android:color/transparent</item>
@@ -26,8 +28,21 @@
         
         <!-- Material3 specific attributes -->
         <item name="materialButtonStyle">@style/Widget.Material3.Button</item>
-        <!-- Using default CardView style instead of Material3.CardView which is not available -->
-        <item name="cardViewStyle">@style/CardView</item>
+        <item name="cardViewStyle">@style/Widget.Material3.CardView.Elevated</item>
+        
+        <!-- Typography -->
+        <item name="textAppearanceDisplayLarge">@style/TextAppearance.Fairr.DisplayLarge</item>
+        <item name="textAppearanceDisplayMedium">@style/TextAppearance.Fairr.DisplayMedium</item>
+        <item name="textAppearanceDisplaySmall">@style/TextAppearance.Fairr.DisplaySmall</item>
+        <item name="textAppearanceHeadlineLarge">@style/TextAppearance.Fairr.HeadlineLarge</item>
+        <item name="textAppearanceHeadlineMedium">@style/TextAppearance.Fairr.HeadlineMedium</item>
+        <item name="textAppearanceHeadlineSmall">@style/TextAppearance.Fairr.HeadlineSmall</item>
+        <item name="textAppearanceBodyLarge">@style/TextAppearance.Fairr.BodyLarge</item>
+        <item name="textAppearanceBodyMedium">@style/TextAppearance.Fairr.BodyMedium</item>
+        <item name="textAppearanceBodySmall">@style/TextAppearance.Fairr.BodySmall</item>
+        <item name="textAppearanceLabelLarge">@style/TextAppearance.Fairr.LabelLarge</item>
+        <item name="textAppearanceLabelMedium">@style/TextAppearance.Fairr.LabelMedium</item>
+        <item name="textAppearanceLabelSmall">@style/TextAppearance.Fairr.LabelSmall</item>
     </style>
     
     <!-- For API 29 and below -->

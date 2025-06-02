@@ -7,7 +7,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.Email
 import androidx.compose.material.icons.filled.Lock
 import androidx.compose.material.icons.filled.Person
@@ -63,9 +63,9 @@ fun RegisterScreen(
                     .align(Alignment.TopStart)
             ) {
                 Icon(
-                    Icons.Default.ArrowBack,
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
-                    tint = PureWhite
+                    tint = NeutralWhite
                 )
             }
             
@@ -74,7 +74,7 @@ fun RegisterScreen(
                 text = "Sign Up",
                 fontSize = 24.sp,
                 fontWeight = FontWeight.Bold,
-                color = PureWhite,
+                color = NeutralWhite,
                 modifier = Modifier
                     .align(Alignment.Center)
                     .padding(top = 16.dp)
@@ -304,8 +304,8 @@ fun RegisterScreen(
                     .fillMaxWidth()
                     .height(56.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = PureBlack,
-                    contentColor = PureWhite
+                    containerColor = NeutralBlack,
+                    contentColor = NeutralWhite
                 ),
                 shape = RoundedCornerShape(12.dp)
             ) {
@@ -345,3 +345,4 @@ fun RegisterScreenPreview() {
         )
     }
 } 
+

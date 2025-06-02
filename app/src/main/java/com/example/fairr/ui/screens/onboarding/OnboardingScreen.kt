@@ -65,14 +65,14 @@ fun OnboardingScreen(
             subtitle = "Balance Tracking",
             description = "Keep track of who owes what with instant updates and crystal-clear balance calculations",
             icon = Icons.AutoMirrored.Filled.TrendingUp,
-            accentColor = AccentBlue
+            accentColor = Primary
         ),
         OnboardingPage(
             title = "Secure Group",
             subtitle = "Collaboration", 
             description = "Create groups for any occasion and manage shared expenses with friends, family, and colleagues",
             icon = Icons.Default.Group,
-            accentColor = AccentGreen
+            accentColor = SuccessGreen
         )
     )
     
@@ -123,7 +123,7 @@ fun OnboardingScreen(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 Text(
-                    text = "FairShare",
+                    text = "Fairr",
                     fontSize = 20.sp,
                     fontWeight = FontWeight.Bold,
                     color = TextPrimary
@@ -215,7 +215,7 @@ fun GeometricBackground() {
                 .background(
                     brush = Brush.radialGradient(
                         colors = listOf(
-                            AccentBlue.copy(alpha = 0.08f),
+                            Primary.copy(alpha = 0.08f),
                             Color.Transparent
                         )
                     ),
@@ -230,7 +230,7 @@ fun GeometricBackground() {
                 .align(Alignment.CenterEnd)
                 .offset(x = 30.dp)
                 .background(
-                    color = AccentGreen.copy(alpha = 0.06f),
+                    color = SuccessGreen.copy(alpha = 0.06f),
                     shape = RoundedCornerShape(30.dp)
                 )
         )
@@ -459,3 +459,4 @@ fun OnboardingScreenPreview() {
         )
     }
 } 
+

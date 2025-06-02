@@ -90,14 +90,14 @@ fun EditExpenseScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = PureWhite
+                    containerColor = NeutralWhite
                 )
             )
         },
         bottomBar = {
             Surface(
                 modifier = Modifier.fillMaxWidth(),
-                color = PureWhite,
+                color = NeutralWhite,
                 shadowElevation = 8.dp
             ) {
                 Button(
@@ -113,7 +113,7 @@ fun EditExpenseScreen(
                         .padding(16.dp),
                     colors = ButtonDefaults.buttonColors(
                         containerColor = DarkGreen,
-                        contentColor = PureWhite
+                        contentColor = NeutralWhite
                     ),
                     shape = RoundedCornerShape(12.dp),
                     enabled = !isLoading && description.isNotBlank() && amount.isNotBlank()
@@ -121,7 +121,7 @@ fun EditExpenseScreen(
                     if (isLoading) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(20.dp),
-                            color = PureWhite,
+                            color = NeutralWhite,
                             strokeWidth = 2.dp
                         )
                     } else {
@@ -150,7 +150,7 @@ fun EditExpenseScreen(
                     .fillMaxWidth()
                     .shadow(2.dp, RoundedCornerShape(16.dp)),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = PureWhite)
+                colors = CardDefaults.cardColors(containerColor = NeutralWhite)
             ) {
                 Column(
                     modifier = Modifier.padding(20.dp),
@@ -245,7 +245,7 @@ fun EditExpenseScreen(
                     .fillMaxWidth()
                     .shadow(2.dp, RoundedCornerShape(16.dp)),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = PureWhite)
+                colors = CardDefaults.cardColors(containerColor = NeutralWhite)
             ) {
                 Column(
                     modifier = Modifier.padding(20.dp),

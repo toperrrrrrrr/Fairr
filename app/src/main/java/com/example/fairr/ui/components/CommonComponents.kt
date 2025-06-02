@@ -58,9 +58,9 @@ fun FairrFilterChip(
         },
         colors = FilterChipDefaults.filterChipColors(
             selectedContainerColor = DarkGreen,
-            selectedLabelColor = PureWhite,
-            selectedLeadingIconColor = PureWhite,
-            containerColor = PureWhite,
+            selectedLabelColor = NeutralWhite,
+            selectedLeadingIconColor = NeutralWhite,
+            containerColor = NeutralWhite,
             labelColor = TextPrimary,
             iconColor = TextSecondary
         )
@@ -91,7 +91,7 @@ fun FairrActionChip(
             }
         },
         colors = AssistChipDefaults.assistChipColors(
-            containerColor = PureWhite,
+            containerColor = NeutralWhite,
             labelColor = TextPrimary,
             leadingIconContentColor = TextSecondary
         )
@@ -134,7 +134,7 @@ fun FairrConfirmationDialog(
                     containerColor = if (isDestructive) ErrorRed else DarkGreen
                 )
             ) {
-                Text(confirmText, color = PureWhite)
+                Text(confirmText, color = NeutralWhite)
             }
         },
         dismissButton = {
@@ -143,7 +143,7 @@ fun FairrConfirmationDialog(
             }
         },
         modifier = modifier,
-        containerColor = PureWhite,
+        containerColor = NeutralWhite,
         titleContentColor = TextPrimary,
         textContentColor = TextSecondary
     )
@@ -168,7 +168,7 @@ fun FairrLoadingDialog(
                     .wrapContentSize()
                     .padding(16.dp),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = PureWhite)
+                colors = CardDefaults.cardColors(containerColor = NeutralWhite)
             ) {
                 Column(
                     modifier = Modifier.padding(24.dp),
@@ -203,7 +203,7 @@ fun FairrLoadingCard(
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = PureWhite)
+        colors = CardDefaults.cardColors(containerColor = NeutralWhite)
     ) {
         Column(
             modifier = Modifier
@@ -311,7 +311,7 @@ fun FairrErrorState(
                 containerColor = DarkGreen
             )
         ) {
-            Text(actionText, color = PureWhite)
+            Text(actionText, color = NeutralWhite)
         }
     }
 }
@@ -418,7 +418,7 @@ fun FairrSnackbarHost(
         Snackbar(
             snackbarData = data,
             containerColor = DarkBackground,
-            contentColor = PureWhite,
+            contentColor = NeutralWhite,
             actionColor = DarkGreen,
             shape = RoundedCornerShape(8.dp)
         )
@@ -472,13 +472,13 @@ fun FairrSuccessMessage(
                 Icon(
                     Icons.Default.CheckCircle,
                     contentDescription = "Success",
-                    tint = PureWhite,
+                    tint = NeutralWhite,
                     modifier = Modifier.size(24.dp)
                 )
                 Spacer(modifier = Modifier.width(12.dp))
                 Text(
                     text = message,
-                    color = PureWhite,
+                    color = NeutralWhite,
                     fontSize = 14.sp,
                     modifier = Modifier.weight(1f)
                 )
@@ -489,7 +489,7 @@ fun FairrSuccessMessage(
                     Icon(
                         Icons.Default.Close,
                         contentDescription = "Dismiss",
-                        tint = PureWhite,
+                        tint = NeutralWhite,
                         modifier = Modifier.size(16.dp)
                     )
                 }

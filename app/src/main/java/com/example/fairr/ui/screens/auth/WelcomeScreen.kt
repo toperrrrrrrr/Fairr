@@ -8,8 +8,6 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.compose.ui.res.vectorResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -29,7 +27,7 @@ fun WelcomeScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Primary) // Dark background like in the image
+            .background(BackgroundPrimary) // Clean white background
     ) {
         Column(
             modifier = Modifier
@@ -39,87 +37,151 @@ fun WelcomeScreen(
             verticalArrangement = Arrangement.Center
         ) {
             
-            // SVG Illustration
-            SocialChatterSvg(
-                modifier = Modifier.size(200.dp),
-                primaryColor = TextOnDark.copy(alpha = 0.8f),
-                secondaryColor = TextOnDark.copy(alpha = 0.6f),
-                accentColor = TextOnDark.copy(alpha = 0.4f)
-            )
+            // Modern geometric header with black background
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .background(
+                        color = Primary,
+                        shape = RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp)
+                    )
+                    .padding(32.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // App Icon/Logo Container
+                    Box(
+                        modifier = Modifier
+                            .size(80.dp)
+                            .background(
+                                color = TextOnDark.copy(alpha = 0.1f),
+                                shape = RoundedCornerShape(20.dp)
+                            ),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = "F",
+                            fontSize = 40.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextOnDark
+                        )
+                    }
+                    
+                    // App Title
+                    Text(
+                        text = "Fairr",
+                        fontSize = 32.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = TextOnDark,
+                        textAlign = TextAlign.Center
+                    )
+                    
+                    // Tagline
+                    Text(
+                        text = "Smart expense sharing",
+                        fontSize = 16.sp,
+                        color = TextOnDark.copy(alpha = 0.8f),
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
             
             Spacer(modifier = Modifier.height(48.dp))
             
-            // Title
-            Text(
-                text = "Social Chatter",
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold,
-                color = TextOnDark,
-                textAlign = TextAlign.Center
-            )
-            
-            // Subtitle
-            Text(
-                text = "Team.",
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold,
-                color = TextOnDark,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(top = 4.dp)
-            )
+            // Welcome Message
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = "Welcome to",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = TextSecondary,
+                    textAlign = TextAlign.Center
+                )
+                
+                Text(
+                    text = "Modern Finance Management",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary,
+                    textAlign = TextAlign.Center
+                )
+            }
             
             Spacer(modifier = Modifier.height(16.dp))
             
             // Description
             Text(
-                text = "Lorem Ipsum is simply dummy text of\nthe printing and typesetting industry.\nLorem Ipsum",
+                text = "Track expenses, split bills with friends,\nand manage your budget effortlessly\nwith our clean, modern interface.",
                 fontSize = 16.sp,
-                color = TextOnDark.copy(alpha = 0.8f),
+                color = TextSecondary,
                 textAlign = TextAlign.Center,
                 lineHeight = 24.sp
             )
             
             Spacer(modifier = Modifier.height(48.dp))
             
-            // Login Button
-            Button(
-                onClick = onNavigateToLogin,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = TextOnDark,
-                    contentColor = Primary
-                ),
-                shape = RoundedCornerShape(28.dp)
+            // Action Buttons
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Text(
-                    text = "Login",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
+                // Primary Login Button
+                Button(
+                    onClick = onNavigateToLogin,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = ButtonBackground,
+                        contentColor = ButtonText
+                    ),
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
+                ) {
+                    Text(
+                        text = "Sign In",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+                
+                // Secondary Sign Up Button
+                OutlinedButton(
+                    onClick = onNavigateToSignUp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = TextPrimary,
+                        containerColor = Color.Transparent
+                    ),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, BorderColor),
+                    shape = RoundedCornerShape(16.dp)
+                ) {
+                    Text(
+                        text = "Create Account",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
             }
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(32.dp))
             
-            // Sign Up Button
-            OutlinedButton(
-                onClick = onNavigateToSignUp,
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp),
-                colors = ButtonDefaults.outlinedButtonColors(
-                    contentColor = TextOnDark
-                ),
-                border = androidx.compose.foundation.BorderStroke(1.dp, TextOnDark),
-                shape = RoundedCornerShape(28.dp)
-            ) {
-                Text(
-                    text = "Sign up",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
+            // Footer
+            Text(
+                text = "Join thousands who trust Fairr for\ntheir expense management",
+                fontSize = 14.sp,
+                color = TextTertiary,
+                textAlign = TextAlign.Center,
+                lineHeight = 20.sp
+            )
         }
     }
 }
