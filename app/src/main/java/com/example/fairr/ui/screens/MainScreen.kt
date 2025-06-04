@@ -96,11 +96,8 @@ private fun HomeTabContent(
         onNavigateToCreateGroup = onNavigateToCreateGroup,
         onNavigateToJoinGroup = onNavigateToJoinGroup,
         onNavigateToSearch = onNavigateToSearch,
-        onNavigateToNotifications = onNavigateToNotifications,
-        onNavigateToSettings = onNavigateToSettings,
         onNavigateToGroupDetail = onNavigateToGroupDetail,
-        onNavigateToBudgets = onNavigateToBudgets,
-        modifier = Modifier.padding(paddingValues)
+        onNavigateToBudgets = onNavigateToBudgets
     )
 }
 
