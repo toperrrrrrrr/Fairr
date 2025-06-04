@@ -31,7 +31,8 @@ import com.example.fairr.ui.theme.*
 @Composable
 fun SettingsScreen(
     navController: NavController,
-    onSignOut: () -> Unit
+    onSignOut: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     var selectedTab by remember { mutableStateOf(0) }
     val settingsTabs = listOf("Profile", "Preferences", "Support")
@@ -40,6 +41,7 @@ fun SettingsScreen(
     var isDarkMode by remember { mutableStateOf(false) }
 
     Scaffold(
+        modifier = modifier,
         topBar = {
             TopAppBar(
                 title = {

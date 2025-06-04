@@ -1,5 +1,7 @@
 package com.example.fairr.ui.screens.auth
 
+import androidx.compose.animation.*
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -17,16 +19,23 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.luminance
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.input.VisualTransformation
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import com.example.fairr.R
 import com.example.fairr.ui.theme.*
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -34,6 +43,17 @@ fun RegisterScreen(
     navController: NavController,
     onRegisterSuccess: () -> Unit = {}
 ) {
+    val systemUiController = rememberSystemUiController()
+    val useDarkIcons = MaterialTheme.colorScheme.background.luminance() > 0.5f
+
+    DisposableEffect(systemUiController, useDarkIcons) {
+        systemUiController.setSystemBarsColor(
+            color = Color.Transparent,
+            darkIcons = useDarkIcons
+        )
+        onDispose {}
+    }
+
     var firstName by remember { mutableStateOf("") }
     var lastName by remember { mutableStateOf("") }
     var email by remember { mutableStateOf("") }
@@ -41,297 +61,245 @@ fun RegisterScreen(
     var confirmPassword by remember { mutableStateOf("") }
     var passwordVisible by remember { mutableStateOf(false) }
     var confirmPasswordVisible by remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(false) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
 
-    Column(
-        modifier = Modifier.fillMaxSize()
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .systemBarsPadding()
+            .background(MaterialTheme.colorScheme.background)
     ) {
-        // Dark header section with back button
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .height(200.dp)
-                .background(
-                    color = DarkBackground,
-                    shape = RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp)
-                )
-        ) {
-            // Back button
-            IconButton(
-                onClick = { navController.popBackStack() },
-                modifier = Modifier
-                    .padding(16.dp)
-                    .align(Alignment.TopStart)
-            ) {
-                Icon(
-                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                    contentDescription = "Back",
-                    tint = NeutralWhite
-                )
-            }
-            
-            // Sign Up title
-            Text(
-                text = "Sign Up",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
-                color = NeutralWhite,
-                modifier = Modifier
-                    .align(Alignment.Center)
-                    .padding(top = 16.dp)
-            )
-        }
-
-        // White form section with scroll
         Column(
             modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .background(MaterialTheme.colorScheme.background)
-                .padding(24.dp)
-                .verticalScroll(rememberScrollState()),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxSize()
+                .verticalScroll(rememberScrollState())
         ) {
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // First name field
-            OutlinedTextField(
-                value = firstName,
-                onValueChange = { firstName = it },
-                label = { 
-                    Text(
-                        "First name",
-                        color = PlaceholderText,
-                        fontSize = 14.sp
-                    ) 
-                },
-                placeholder = {
-                    Text(
-                        "Enter your first name",
-                        color = PlaceholderText,
-                        fontSize = 14.sp
-                    )
-                },
-                leadingIcon = {
-                    Icon(
-                        Icons.Default.Person,
-                        contentDescription = "First name",
-                        tint = PlaceholderText
-                    )
-                },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = DarkGreen,
-                    unfocusedBorderColor = PlaceholderText,
-                    focusedLabelColor = DarkGreen
-                )
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Last name field
-            OutlinedTextField(
-                value = lastName,
-                onValueChange = { lastName = it },
-                label = { 
-                    Text(
-                        "Last name",
-                        color = PlaceholderText,
-                        fontSize = 14.sp
-                    ) 
-                },
-                placeholder = {
-                    Text(
-                        "Enter your last name",
-                        color = PlaceholderText,
-                        fontSize = 14.sp
-                    )
-                },
-                leadingIcon = {
-                    Icon(
-                        Icons.Default.Person,
-                        contentDescription = "Last name",
-                        tint = PlaceholderText
-                    )
-                },
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = DarkGreen,
-                    unfocusedBorderColor = PlaceholderText,
-                    focusedLabelColor = DarkGreen
-                )
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Email field
-            OutlinedTextField(
-                value = email,
-                onValueChange = { email = it },
-                label = { 
-                    Text(
-                        "Email",
-                        color = PlaceholderText,
-                        fontSize = 14.sp
-                    ) 
-                },
-                placeholder = {
-                    Text(
-                        "Enter your email",
-                        color = PlaceholderText,
-                        fontSize = 14.sp
-                    )
-                },
-                leadingIcon = {
-                    Icon(
-                        Icons.Default.Email,
-                        contentDescription = "Email",
-                        tint = PlaceholderText
-                    )
-                },
-                modifier = Modifier.fillMaxWidth(),
-                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
-                singleLine = true,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = DarkGreen,
-                    unfocusedBorderColor = PlaceholderText,
-                    focusedLabelColor = DarkGreen
-                )
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Password field
-            OutlinedTextField(
-                value = password,
-                onValueChange = { password = it },
-                label = { 
-                    Text(
-                        "Password",
-                        color = PlaceholderText,
-                        fontSize = 14.sp
-                    ) 
-                },
-                placeholder = {
-                    Text(
-                        "Enter your password",
-                        color = PlaceholderText,
-                        fontSize = 14.sp
-                    )
-                },
-                leadingIcon = {
-                    Icon(
-                        Icons.Default.Lock,
-                        contentDescription = "Password",
-                        tint = PlaceholderText
-                    )
-                },
-                trailingIcon = {
-                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
-                        Icon(
-                            if (passwordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                            contentDescription = if (passwordVisible) "Hide password" else "Show password",
-                            tint = PlaceholderText
-                        )
-                    }
-                },
-                visualTransformation = if (passwordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = DarkGreen,
-                    unfocusedBorderColor = PlaceholderText,
-                    focusedLabelColor = DarkGreen
-                )
-            )
-
-            Spacer(modifier = Modifier.height(16.dp))
-
-            // Confirm password field
-            OutlinedTextField(
-                value = confirmPassword,
-                onValueChange = { confirmPassword = it },
-                label = { 
-                    Text(
-                        "Confirm password",
-                        color = PlaceholderText,
-                        fontSize = 14.sp
-                    ) 
-                },
-                placeholder = {
-                    Text(
-                        "Confirm your password",
-                        color = PlaceholderText,
-                        fontSize = 14.sp
-                    )
-                },
-                leadingIcon = {
-                    Icon(
-                        Icons.Default.Lock,
-                        contentDescription = "Confirm password",
-                        tint = PlaceholderText
-                    )
-                },
-                trailingIcon = {
-                    IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
-                        Icon(
-                            if (confirmPasswordVisible) Icons.Default.Visibility else Icons.Default.VisibilityOff,
-                            contentDescription = if (confirmPasswordVisible) "Hide password" else "Show password",
-                            tint = PlaceholderText
-                        )
-                    }
-                },
-                visualTransformation = if (confirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                modifier = Modifier.fillMaxWidth(),
-                singleLine = true,
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = DarkGreen,
-                    unfocusedBorderColor = PlaceholderText,
-                    focusedLabelColor = DarkGreen
-                )
-            )
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            // Sign up button
-            Button(
-                onClick = { 
-                    // TODO: Implement actual registration logic
-                    onRegisterSuccess()
-                },
+            // Header with back button and logo
+            Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(56.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = NeutralBlack,
-                    contentColor = NeutralWhite
-                ),
-                shape = RoundedCornerShape(12.dp)
+                    .height(200.dp)
+                    .background(MaterialTheme.colorScheme.primary)
             ) {
-                Text(
-                    text = "Sign Up",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium
-                )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            // Sign in link
-            TextButton(
-                onClick = { 
-                    navController.popBackStack()
+                // Back button
+                IconButton(
+                    onClick = { navController.popBackStack() },
+                    modifier = Modifier
+                        .padding(16.dp)
+                        .align(Alignment.TopStart)
+                ) {
+                    Icon(
+                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        contentDescription = "Back",
+                        tint = MaterialTheme.colorScheme.onPrimary
+                    )
                 }
-            ) {
-                Text(
-                    text = "Already have any account? Sign In",
-                    color = TextSecondary,
-                    fontSize = 14.sp
+
+                // Logo
+                Image(
+                    painter = painterResource(id = R.drawable.fairr),
+                    contentDescription = "Fairr Logo",
+                    modifier = Modifier
+                        .size(80.dp)
+                        .align(Alignment.Center),
+                    contentScale = ContentScale.Fit
                 )
             }
 
-            Spacer(modifier = Modifier.height(24.dp))
+            // Registration form card
+            Card(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+                    .offset(y = (-30).dp),
+                shape = RoundedCornerShape(24.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Text(
+                        text = "Create Account",
+                        style = MaterialTheme.typography.headlineMedium,
+                        fontWeight = FontWeight.Bold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+
+                    Text(
+                        text = "Join Fairr to manage expenses together",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                        textAlign = TextAlign.Center
+                    )
+
+                    // Error message
+                    AnimatedVisibility(
+                        visible = errorMessage != null,
+                        enter = fadeIn() + expandVertically(),
+                        exit = fadeOut() + shrinkVertically()
+                    ) {
+                        Card(
+                            colors = CardDefaults.cardColors(
+                                containerColor = MaterialTheme.colorScheme.errorContainer
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text(
+                                text = errorMessage ?: "",
+                                color = MaterialTheme.colorScheme.error,
+                                style = MaterialTheme.typography.bodyMedium,
+                                modifier = Modifier.padding(12.dp)
+                            )
+                        }
+                    }
+
+                    // First name field
+                    OutlinedTextField(
+                        value = firstName,
+                        onValueChange = { firstName = it },
+                        label = { Text("First Name") },
+                        leadingIcon = {
+                            Icon(
+                                Icons.Default.Person,
+                                contentDescription = "First Name"
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+
+                    // Last name field
+                    OutlinedTextField(
+                        value = lastName,
+                        onValueChange = { lastName = it },
+                        label = { Text("Last Name") },
+                        leadingIcon = {
+                            Icon(
+                                Icons.Default.Person,
+                                contentDescription = "Last Name"
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+
+                    // Email field
+                    OutlinedTextField(
+                        value = email,
+                        onValueChange = { email = it },
+                        label = { Text("Email") },
+                        leadingIcon = {
+                            Icon(
+                                Icons.Default.Email,
+                                contentDescription = "Email"
+                            )
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                        singleLine = true,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+
+                    // Password field
+                    OutlinedTextField(
+                        value = password,
+                        onValueChange = { password = it },
+                        label = { Text("Password") },
+                        leadingIcon = {
+                            Icon(
+                                Icons.Default.Lock,
+                                contentDescription = "Password"
+                            )
+                        },
+                        trailingIcon = {
+                            IconButton(onClick = { passwordVisible = !passwordVisible }) {
+                                Icon(
+                                    if (passwordVisible) Icons.Default.Visibility 
+                                    else Icons.Default.VisibilityOff,
+                                    contentDescription = if (passwordVisible) 
+                                        "Hide password" else "Show password"
+                                )
+                            }
+                        },
+                        visualTransformation = if (passwordVisible) 
+                            VisualTransformation.None else PasswordVisualTransformation(),
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+
+                    // Confirm Password field
+                    OutlinedTextField(
+                        value = confirmPassword,
+                        onValueChange = { confirmPassword = it },
+                        label = { Text("Confirm Password") },
+                        leadingIcon = {
+                            Icon(
+                                Icons.Default.Lock,
+                                contentDescription = "Confirm Password"
+                            )
+                        },
+                        trailingIcon = {
+                            IconButton(onClick = { confirmPasswordVisible = !confirmPasswordVisible }) {
+                                Icon(
+                                    if (confirmPasswordVisible) Icons.Default.Visibility 
+                                    else Icons.Default.VisibilityOff,
+                                    contentDescription = if (confirmPasswordVisible) 
+                                        "Hide password" else "Show password"
+                                )
+                            }
+                        },
+                        visualTransformation = if (confirmPasswordVisible) 
+                            VisualTransformation.None else PasswordVisualTransformation(),
+                        modifier = Modifier.fillMaxWidth(),
+                        singleLine = true,
+                        shape = RoundedCornerShape(12.dp)
+                    )
+
+                    // Register button
+                    Button(
+                        onClick = {
+                            // Add validation and registration logic
+                            isLoading = true
+                            errorMessage = null
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        shape = RoundedCornerShape(28.dp),
+                        enabled = !isLoading
+                    ) {
+                        if (isLoading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(24.dp),
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        } else {
+                            Text(
+                                "Create Account",
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
+                    }
+
+                    // Terms and conditions text
+                    Text(
+                        text = "By creating an account, you agree to our Terms of Service and Privacy Policy",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.6f),
+                        textAlign = TextAlign.Center,
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                }
+            }
         }
     }
 }

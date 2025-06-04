@@ -202,10 +202,10 @@ Based on the provided images, the desired aesthetic is:
 
 # UI/UX Redesign Todo List
 
-- [ ] SplashScreen: Center logo in squircle, monotone background, fade-in animation use the fairr.png
-- [ ] OnboardingScreen: Large headings, line-art illustrations, card panels, monochrome, progress indicator, pill-shaped nav buttons.
-- [ ] WelcomeScreen: Centered logo, bold text, large pill-shaped buttons, minimal color.
-- [ ] Login/Register: Card-based forms, bold headings, outlined fields, pill-shaped buttons, compact error messages.
+- [x] SplashScreen: Center logo in squircle, monotone background, fade-in animation use the fairr.png
+- [x] OnboardingScreen: Large headings, line-art illustrations, card panels, monochrome, progress indicator, pill-shaped nav buttons.
+- [x] WelcomeScreen: Centered logo, bold text, large pill-shaped buttons, minimal color.
+- [x] Login/Register: Card-based forms, bold headings, outlined fields, pill-shaped buttons, compact error messages.
 - [ ] HomeScreen: Card layouts for content, icon-only nav bar with animation, large section headers, line-art for empty states.
 - [ ] Groups: Card-based group list/detail, modular cards for info, playful avatars, clear input forms.
 - [ ] NotificationsScreen: Rounded cards, bold section headers, subtle icons, minimal layout.

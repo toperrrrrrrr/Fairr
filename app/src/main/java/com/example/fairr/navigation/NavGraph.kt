@@ -7,7 +7,6 @@ import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.fairr.ui.screens.SplashScreen
-import com.example.fairr.ui.screens.analytics.AnalyticsScreen
 import com.example.fairr.ui.screens.auth.RegisterScreen
 import com.example.fairr.ui.screens.auth.WelcomeScreen
 import com.example.fairr.ui.screens.auth.MobileLoginScreen
@@ -34,7 +33,6 @@ import com.example.fairr.ui.screens.support.HelpSupportScreen
 import com.example.fairr.ui.screens.camera.PhotoCaptureScreen
 import com.example.fairr.ui.screens.MainScreen
 import com.example.fairr.ui.screens.SettingsScreenWrapper
-import com.example.fairr.ui.screens.AnalyticsScreenWrapper
 
 sealed class Screen(val route: String) {
     object Splash : Screen("splash")
@@ -50,7 +48,6 @@ sealed class Screen(val route: String) {
     object Categories : Screen("categories")
     object Budgets : Screen("budgets")
     object Search : Screen("search")
-    object Analytics : Screen("analytics")
     object PhotoCapture : Screen("photo_capture")
     object Settlement : Screen("settlement/{groupId}") {
         fun createRoute(groupId: String) = "settlement/$groupId"
@@ -134,40 +131,7 @@ fun FairrNavGraph(
                     }
                 },
                 onNavigateToSignUp = {
-                    navController.navigate(Screen.MobileSignUp.route) {
-                        popUpTo(Screen.MobileLogin.route) { inclusive = true }
-                    }
-                },
-                onNavigateToForgotPassword = {
-                    navController.navigate(Screen.ForgotPassword.route)
-                }
-            )
-        }
-        
-        composable(Screen.ForgotPassword.route) {
-            ForgotPasswordScreen(
-                navController = navController,
-                onNavigateBack = {
-                    navController.popBackStack()
-                }
-            )
-        }
-        
-        composable(Screen.MobileSignUp.route) {
-            MobileSignUpScreen(
-                navController = navController,
-                onNavigateBack = {
-                    navController.popBackStack()
-                },
-                onSignUpSuccess = {
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Welcome.route) { inclusive = true }
-                    }
-                },
-                onNavigateToLogin = {
-                    navController.navigate(Screen.MobileLogin.route) {
-                        popUpTo(Screen.MobileSignUp.route) { inclusive = true }
-                    }
+                    navController.navigate(Screen.MobileSignUp.route)
                 }
             )
         }
@@ -273,12 +237,6 @@ fun FairrNavGraph(
             )
         }
         
-        composable(Screen.Analytics.route) {
-            AnalyticsScreenWrapper(
-                navController = navController
-            )
-        }
-        
         composable(Screen.PhotoCapture.route) {
             PhotoCaptureScreen(
                 navController = navController,
@@ -330,9 +288,7 @@ fun FairrNavGraph(
                 navController = navController,
                 onGroupJoined = {
                     // Navigate back to home after joining group
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.JoinGroup.route) { inclusive = true }
-                    }
+                    navController.popBackStack()
                 }
             )
         }
@@ -341,10 +297,7 @@ fun FairrNavGraph(
             val groupId = backStackEntry.arguments?.getString("groupId") ?: ""
             GroupDetailScreen(
                 navController = navController,
-                groupId = groupId,
-                onNavigateToAddExpense = {
-                    navController.navigate(Screen.AddExpense.createRoute(groupId))
-                }
+                groupId = groupId
             )
         }
         
@@ -352,13 +305,7 @@ fun FairrNavGraph(
             val groupId = backStackEntry.arguments?.getString("groupId") ?: ""
             GroupSettingsScreen(
                 navController = navController,
-                groupId = groupId,
-                onLeaveGroup = {
-                    // Navigate back to home after leaving group
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.GroupSettings.route) { inclusive = true }
-                    }
-                }
+                groupId = groupId
             )
         }
         
@@ -368,7 +315,7 @@ fun FairrNavGraph(
                 navController = navController,
                 groupId = groupId,
                 onExpenseAdded = {
-                    // Navigate back to group detail after expense is added
+                    // Navigate back to group detail after adding expense
                     navController.popBackStack()
                 }
             )
@@ -380,7 +327,7 @@ fun FairrNavGraph(
                 navController = navController,
                 expenseId = expenseId,
                 onExpenseUpdated = {
-                    // Navigate back after updating expense
+                    // Navigate back to expense detail after editing
                     navController.popBackStack()
                 }
             )
@@ -390,26 +337,13 @@ fun FairrNavGraph(
             val expenseId = backStackEntry.arguments?.getString("expenseId") ?: ""
             ExpenseDetailScreen(
                 navController = navController,
-                expenseId = expenseId,
-                onEditExpense = {
-                    navController.navigate(Screen.EditExpense.createRoute(expenseId))
-                },
-                onDeleteExpense = {
-                    // Navigate back after deleting expense
-                    navController.popBackStack()
-                }
+                expenseId = expenseId
             )
         }
         
         composable(Screen.Notifications.route) {
             NotificationsScreen(
-                navController = navController,
-                onNotificationClick = { _ ->
-                    // Handle notification click based on type
-                    // For demo purposes, navigate to group detail for expense notifications
-                    // In real app, this would check notification type and navigate accordingly
-                    navController.navigate(Screen.GroupDetail.createRoute("1"))
-                }
+                navController = navController
             )
         }
     }

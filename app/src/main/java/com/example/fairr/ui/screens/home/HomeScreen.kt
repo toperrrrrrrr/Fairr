@@ -47,7 +47,6 @@ fun HomeScreen(
     onNavigateToNotifications: () -> Unit = {},
     onNavigateToSettings: () -> Unit = {},
     onNavigateToGroupDetail: (String) -> Unit = {},
-    onNavigateToAnalytics: () -> Unit = {},
     onNavigateToBudgets: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
@@ -67,14 +66,9 @@ fun HomeScreen(
             TopAppBar(
                 title = { 
                     Text(
-                        text = when (selectedTab) {
-                            0 -> "Fairr"
-                            1 -> "Groups"
-                            2 -> "Settings"
-                            else -> "Fairr"
-                        },
+                        text = "Fairr",
                         fontWeight = FontWeight.Bold,
-                        color = TextPrimary
+                        color = MaterialTheme.colorScheme.onBackground
                     ) 
                 },
                 actions = {
@@ -83,123 +77,14 @@ fun HomeScreen(
                         Icon(
                             Icons.Default.Search,
                             contentDescription = "Search",
-                            tint = IconTint
+                            tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = BackgroundPrimary
+                    containerColor = MaterialTheme.colorScheme.background
                 )
             )
-        },
-        floatingActionButton = {
-            FloatingActionButton(
-                onClick = { onNavigateToCreateGroup() },
-                containerColor = Primary,
-                contentColor = TextOnDark,
-                shape = CircleShape,
-                modifier = Modifier.offset(y = (-40).dp)
-            ) {
-                Icon(Icons.Default.Add, contentDescription = "Create Group")
-            }
-        },
-        floatingActionButtonPosition = FabPosition.Center,
-        bottomBar = {
-            NavigationBar(
-                containerColor = PureWhite,
-                tonalElevation = 8.dp,
-                modifier = Modifier.height(80.dp)
-            ) {
-                // Home Tab
-                NavigationBarItem(
-                    icon = { 
-                        Icon(
-                            if (selectedTab == 0) Icons.Filled.Home else Icons.Outlined.Home,
-                            contentDescription = "Home"
-                        ) 
-                    },
-                    label = { Text("Home") },
-                    selected = selectedTab == 0,
-                    onClick = { selectedTab = 0 },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Primary,
-                        selectedTextColor = Primary,
-                        unselectedIconColor = IconTint,
-                        unselectedTextColor = IconTint
-                    )
-                )
-                
-                // Notifications Tab
-                NavigationBarItem(
-                    icon = { 
-                        Icon(
-                            Icons.Default.Notifications,
-                            contentDescription = "Notifications"
-                        ) 
-                    },
-                    label = { Text("Notifications") },
-                    selected = false,
-                    onClick = onNavigateToNotifications,
-                    colors = NavigationBarItemDefaults.colors(
-                        unselectedIconColor = IconTint,
-                        unselectedTextColor = IconTint
-                    )
-                )
-                
-                // Spacer for FAB
-                NavigationBarItem(
-                    icon = { Box {} },
-                    label = { Text("") },
-                    selected = false,
-                    onClick = { },
-                    enabled = false,
-                    colors = NavigationBarItemDefaults.colors(
-                        unselectedIconColor = Color.Transparent,
-                        unselectedTextColor = Color.Transparent
-                    )
-                )
-                
-                // Groups Tab
-                NavigationBarItem(
-                    icon = { 
-                        Icon(
-                            if (selectedTab == 1) Icons.Filled.Group else Icons.Outlined.Group,
-                            contentDescription = "Groups"
-                        ) 
-                    },
-                    label = { Text("Groups") },
-                    selected = selectedTab == 1,
-                    onClick = { selectedTab = 1 },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Primary,
-                        selectedTextColor = Primary,
-                        unselectedIconColor = IconTint,
-                        unselectedTextColor = IconTint
-                    )
-                )
-                
-                // Settings Tab
-                NavigationBarItem(
-                    icon = { 
-                        Icon(
-                            if (selectedTab == 2) Icons.Filled.Settings else Icons.Outlined.Settings,
-                            contentDescription = "Settings"
-                        ) 
-                    },
-                    label = { Text("Settings") },
-                    selected = selectedTab == 2,
-                    onClick = { 
-                        selectedTab = 2
-                        onNavigateToSettings()
-                    },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Primary,
-                        selectedTextColor = Primary,
-                        unselectedIconColor = IconTint,
-                        unselectedTextColor = IconTint
-                    )
-                )
-            }
         }
     ) { padding ->
         when (selectedTab) {
@@ -216,9 +101,6 @@ fun HomeScreen(
                 onNavigateToJoinGroup = onNavigateToJoinGroup,
                 modifier = Modifier.padding(padding)
             )
-            2 -> SettingsTabContent(
-                modifier = Modifier.padding(padding)
-            )
         }
     }
 }
@@ -230,93 +112,37 @@ fun HomeTabContent(
     onNavigateToBudgets: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    LazyColumn(
+    Column(
         modifier = modifier
             .fillMaxSize()
-            .background(BackgroundSecondary),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(20.dp)
+            .padding(16.dp)
     ) {
-        // Welcome Header
-        item {
-            ModernHeader(
-                title = "Welcome back!",
-                subtitle = "Manage your shared expenses"
-            )
-        }
+        // Overview Card
+        OverviewCard(
+            totalBalance = 1234.56,
+            currency = "$",
+            onNavigateToBudgets = onNavigateToBudgets
+        )
         
-        // Quick Stats
-        item {
-            Text(
-                text = "Overview",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = TextPrimary,
-                modifier = Modifier.padding(horizontal = 4.dp)
-            )
-            
-            Spacer(modifier = Modifier.height(12.dp))
-            
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                ModernStatsCard(
-                    title = "Total Balance",
-                    value = "$${String.format("%.2f", groups.sumOf { kotlin.math.abs(it.balance) })}",
-                    icon = Icons.Default.AccountBalance,
-                    changeValue = "Active",
-                    modifier = Modifier.weight(1f)
-                )
-                
-                ModernStatsCard(
-                    title = "Groups",
-                    value = "${groups.size}",
-                    icon = Icons.Default.Group,
-                    changeValue = "Joined",
-                    modifier = Modifier.weight(1f)
-                )
-            }
-        }
+        Spacer(modifier = Modifier.height(16.dp))
         
-        // Recent Groups Section
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Text(
-                    text = "Recent Groups",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextPrimary,
-                    modifier = Modifier.padding(horizontal = 4.dp)
-                )
-                
-                TextButton(
-                    onClick = { /* Navigate to all groups */ }
-                ) {
-                    Text(
-                        text = "View All",
-                        color = Primary,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-            }
-        }
+        // Recent Groups
+        Text(
+            text = "Recent Groups",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground
+        )
         
-        // Groups List
-        items(groups.take(3)) { group ->
-            ModernGroupCard(
+        Spacer(modifier = Modifier.height(8.dp))
+        
+        // Group List
+        groups.forEach { group ->
+            GroupCard(
                 group = group,
                 onClick = { onNavigateToGroupDetail(group.id) }
             )
-        }
-        
-        // Bottom spacing for FAB
-        item {
-            Spacer(modifier = Modifier.height(80.dp))
+            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }
@@ -332,40 +158,47 @@ fun GroupsTabContent(
     Column(
         modifier = modifier
             .fillMaxSize()
-            .background(BackgroundSecondary)
             .padding(16.dp)
     ) {
+        // Groups List
+        Text(
+            text = "Your Groups",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground
+        )
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
         // Group Actions
         Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(bottom = 16.dp),
+            modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            ModernButton(
-                text = "Create Group",
+            OutlinedButton(
                 onClick = onNavigateToCreateGroup,
-                modifier = Modifier.weight(1f),
-                icon = Icons.Default.Add
-            )
-            ModernButton(
-                text = "Join Group",
-                onClick = onNavigateToJoinGroup,
-                modifier = Modifier.weight(1f),
-                icon = Icons.Default.PersonAdd
-            )
-        }
-
-        // Groups List
-        LazyColumn(
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(groups) { group ->
-                ModernGroupCard(
-                    group = group,
-                    onClick = { onNavigateToGroupDetail(group.id) }
-                )
+                modifier = Modifier.weight(1f)
+            ) {
+                Text("Create Group")
             }
+            
+            OutlinedButton(
+                onClick = onNavigateToJoinGroup,
+                modifier = Modifier.weight(1f)
+            ) {
+                Text("Join Group")
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        // Group List
+        groups.forEach { group ->
+            GroupCard(
+                group = group,
+                onClick = { onNavigateToGroupDetail(group.id) }
+            )
+            Spacer(modifier = Modifier.height(8.dp))
         }
     }
 }
