@@ -132,6 +132,9 @@ fun FairrNavGraph(
                 },
                 onNavigateToSignUp = {
                     navController.navigate(Screen.MobileSignUp.route)
+                },
+                onNavigateToForgotPassword = {
+                    navController.navigate(Screen.ForgotPassword.route)
                 }
             )
         }
@@ -144,6 +147,39 @@ fun FairrNavGraph(
                     navController.navigate(Screen.Home.route) {
                         popUpTo(Screen.Register.route) { inclusive = true }
                     }
+                }
+            )
+        }
+        
+        composable(Screen.MobileSignUp.route) {
+            MobileSignUpScreen(
+                navController = navController,
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onSignUpSuccess = {
+                    navController.navigate(Screen.Home.route) {
+                        popUpTo(Screen.Welcome.route) { inclusive = true }
+                    }
+                },
+                onNavigateToLogin = {
+                    navController.navigate(Screen.MobileLogin.route) {
+                        popUpTo(Screen.MobileSignUp.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+        
+        composable(Screen.ForgotPassword.route) {
+            ForgotPasswordScreen(
+                navController = navController,
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onResetSent = {
+                    // After successful reset email sent, we can either:
+                    // 1. Stay on the same screen with success message (current implementation)
+                    // 2. Navigate back to login screen
                 }
             )
         }

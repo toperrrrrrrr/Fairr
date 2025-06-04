@@ -33,7 +33,7 @@ fun MobileLoginScreen(
     onNavigateBack: () -> Unit,
     onLoginSuccess: () -> Unit,
     onNavigateToSignUp: () -> Unit,
-    onNavigateToForgotPassword: () -> Unit = { navController.navigate("forgot_password") }
+    onNavigateToForgotPassword: () -> Unit
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -310,7 +310,8 @@ fun MobileLoginScreenPreview() {
             navController = rememberNavController(),
             onNavigateBack = {},
             onLoginSuccess = {},
-            onNavigateToSignUp = {}
+            onNavigateToSignUp = {},
+            onNavigateToForgotPassword = {}
         )
     }
 } 
