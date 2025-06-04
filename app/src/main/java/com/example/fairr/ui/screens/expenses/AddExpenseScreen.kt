@@ -259,130 +259,121 @@ fun AddExpenseScreen(
             ModernCard(
                 modifier = Modifier.padding(horizontal = 16.dp)
             ) {
-                Text(
-                    text = "Expense Details",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = TextPrimary
-                )
-                
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                ModernTextField(
-                    value = description,
-                    onValueChange = { description = it },
-                    label = "Description",
-                    leadingIcon = Icons.Default.Description
-                )
-                
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                ModernTextField(
-                    value = amount,
-                    onValueChange = { amount = it },
-                    label = "Amount ($)",
-                    leadingIcon = Icons.Default.AttachMoney
-                )
-            }
-            
-            // Category Selection
-            ModernCard(
-                modifier = Modifier.padding(horizontal = 16.dp)
-            ) {
-                Text(
-                    text = "Category",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = TextPrimary
-                )
-                
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                ExposedDropdownMenuBox(
-                    expanded = showCategoryDropdown,
-                    onExpandedChange = { showCategoryDropdown = it }
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    ModernTextField(
-                        value = selectedCategory.name,
-                        onValueChange = { },
-                        label = "Select Category",
-                        leadingIcon = selectedCategory.icon,
-                        trailingIcon = if (showCategoryDropdown) Icons.Default.ExpandLess else Icons.Default.ExpandMore,
-                        modifier = Modifier.menuAnchor()
+                    Text(
+                        text = "Expense Details",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = TextPrimary
                     )
                     
-                    ExposedDropdownMenu(
-                        expanded = showCategoryDropdown,
-                        onDismissRequest = { showCategoryDropdown = false }
-                    ) {
-                        categories.forEach { category ->
-                            DropdownMenuItem(
-                                text = { Text(category.name) },
-                                onClick = {
-                                    selectedCategory = category
-                                    showCategoryDropdown = false
-                                },
-                                leadingIcon = {
-                                    Icon(category.icon, contentDescription = null)
-                                }
+                    OutlinedTextField(
+                        value = description,
+                        onValueChange = { description = it },
+                        label = { Text("Description") },
+                        placeholder = { Text("What's this expense for?") },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Primary,
+                            focusedLabelColor = Primary
+                        )
+                    )
+                    
+                    // Amount Calculator
+                    Calculator(
+                        value = amount,
+                        onValueChange = { amount = it },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .background(
+                                Primary.copy(alpha = 0.05f),
+                                RoundedCornerShape(12.dp)
                             )
+                    )
+                    
+                    // Category Dropdown
+                    ExposedDropdownMenuBox(
+                        expanded = showCategoryDropdown,
+                        onExpandedChange = { showCategoryDropdown = it }
+                    ) {
+                        OutlinedTextField(
+                            value = selectedCategory.name,
+                            onValueChange = {},
+                            readOnly = true,
+                            label = { Text("Category") },
+                            leadingIcon = {
+                                Icon(
+                                    selectedCategory.icon,
+                                    contentDescription = null,
+                                    tint = selectedCategory.color,
+                                    modifier = Modifier.size(20.dp)
+                                )
+                            },
+                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = showCategoryDropdown) },
+                            modifier = Modifier
+                                .menuAnchor()
+                                .fillMaxWidth(),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = Primary,
+                                focusedLabelColor = Primary
+                            )
+                        )
+                        
+                        ExposedDropdownMenu(
+                            expanded = showCategoryDropdown,
+                            onDismissRequest = { showCategoryDropdown = false }
+                        ) {
+                            categories.forEach { category ->
+                                DropdownMenuItem(
+                                    text = {
+                                        Row(
+                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                            verticalAlignment = Alignment.CenterVertically
+                                        ) {
+                                            Icon(
+                                                category.icon,
+                                                contentDescription = null,
+                                                tint = category.color,
+                                                modifier = Modifier.size(20.dp)
+                                            )
+                                            Text(category.name)
+                                        }
+                                    },
+                                    onClick = {
+                                        selectedCategory = category
+                                        showCategoryDropdown = false
+                                    }
+                                )
+                            }
                         }
                     }
-                }
-            }
-            
-            // Split Method
-            ModernCard(
-                modifier = Modifier.padding(horizontal = 16.dp)
-            ) {
-                Text(
-                    text = "Split Method",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = TextPrimary
-                )
-                
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                Column(
-                    verticalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    splitTypes.forEach { splitType ->
+                    
+                    // Split Type Selection
+                    Column {
+                        Text(
+                            text = "Split Type",
+                            fontSize = 14.sp,
+                            color = TextSecondary,
+                            modifier = Modifier.padding(bottom = 8.dp)
+                        )
+                        
                         Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .clickable { selectedSplitType = splitType }
-                                .background(
-                                    if (selectedSplitType == splitType) Primary.copy(alpha = 0.1f) else Color.Transparent,
-                                    RoundedCornerShape(8.dp)
-                                )
-                                .padding(12.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
-                            RadioButton(
-                                selected = selectedSplitType == splitType,
-                                onClick = { selectedSplitType = splitType },
-                                colors = RadioButtonDefaults.colors(
-                                    selectedColor = Primary
-                                )
-                            )
-                            Spacer(modifier = Modifier.width(12.dp))
-                            Column {
-                                Text(
-                                    text = splitType,
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Medium,
-                                    color = TextPrimary
-                                )
-                                Text(
-                                    text = when (splitType) {
-                                        "Equal Split" -> "Split equally among all members"
-                                        "Percentage" -> "Split by custom percentages"
-                                        "Custom Amount" -> "Enter exact amounts for each member"
-                                        else -> ""
-                                    },
-                                    fontSize = 12.sp,
-                                    color = TextSecondary
+                            splitTypes.forEach { type ->
+                                FilterChip(
+                                    selected = selectedSplitType == type,
+                                    onClick = { selectedSplitType = type },
+                                    label = { Text(type) },
+                                    colors = FilterChipDefaults.filterChipColors(
+                                        selectedContainerColor = Primary,
+                                        selectedLabelColor = PureWhite
+                                    )
                                 )
                             }
                         }
@@ -390,26 +381,32 @@ fun AddExpenseScreen(
                 }
             }
             
+            Spacer(modifier = Modifier.height(32.dp))
+            
             // Save Button
             ModernButton(
-                text = if (isLoading) "Saving..." else "Save Expense",
+                text = "Save Expense",
                 onClick = {
-                    if (description.isNotBlank() && amount.isNotBlank()) {
-                        isLoading = true
-                        // Simulate API call
-                        // In real implementation: save expense and navigate back
-                        onExpenseAdded()
-                    }
+                    // TODO: Validate and save expense
+                    isLoading = true
                 },
-                enabled = !isLoading && description.isNotBlank() && amount.isNotBlank(),
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp),
-                icon = Icons.Default.Save
+                    .padding(horizontal = 16.dp)
+                    .height(56.dp),
+                enabled = description.isNotBlank() && amount.isNotBlank()
             )
             
-            Spacer(modifier = Modifier.height(20.dp))
+            Spacer(modifier = Modifier.height(16.dp))
         }
+    }
+    
+    if (isLoading) {
+        FairrLoadingDialog(
+            isVisible = true,
+            message = "Saving expense...",
+            onDismiss = { isLoading = false }
+        )
     }
 }
 

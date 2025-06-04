@@ -11,6 +11,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.*
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
@@ -30,256 +31,302 @@ import com.example.fairr.ui.theme.*
 @Composable
 fun SettingsScreen(
     navController: NavController,
-    onSignOut: () -> Unit = {}
+    onSignOut: () -> Unit
 ) {
-    val themeManager = LocalThemeManager.current
-    var notificationsEnabled by remember { mutableStateOf(true) }
-    var soundEnabled by remember { mutableStateOf(true) }
-
-    // Sample user data
-    val user = remember {
-        UserProfile(
-            name = "John Doe",
-            email = "john.doe@example.com",
-            totalGroups = 5,
-            totalExpenses = 1250.75
-        )
-    }
+    var selectedTab by remember { mutableStateOf(0) }
+    val settingsTabs = listOf("Profile", "Preferences", "Support")
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { 
+                title = {
                     Text(
-                        "Settings",
+                        text = when (selectedTab) {
+                            0 -> "Profile"
+                            1 -> "Preferences"
+                            2 -> "Support"
+                            else -> "Settings"
+                        },
                         fontWeight = FontWeight.Bold,
                         color = TextPrimary
-                    ) 
-                },
-                navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack, 
-                            contentDescription = "Back",
-                            tint = IconTint
-                        )
-                    }
+                    )
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = BackgroundPrimary
                 )
             )
+        },
+        bottomBar = {
+            NavigationBar(
+                containerColor = PureWhite,
+                tonalElevation = 8.dp
+            ) {
+                // Home Tab
+                NavigationBarItem(
+                    icon = { Icon(Icons.Filled.Home, contentDescription = "Home") },
+                    label = { Text("Home") },
+                    selected = false,
+                    onClick = { navController.navigate("home") },
+                    colors = NavigationBarItemDefaults.colors(
+                        unselectedIconColor = IconTint,
+                        unselectedTextColor = IconTint
+                    )
+                )
+                
+                // Groups Tab
+                NavigationBarItem(
+                    icon = { Icon(Icons.Filled.Group, contentDescription = "Groups") },
+                    label = { Text("Groups") },
+                    selected = false,
+                    onClick = { navController.navigate("groups") },
+                    colors = NavigationBarItemDefaults.colors(
+                        unselectedIconColor = IconTint,
+                        unselectedTextColor = IconTint
+                    )
+                )
+                
+                // Settings Tab
+                NavigationBarItem(
+                    icon = { Icon(Icons.Filled.Settings, contentDescription = "Settings") },
+                    label = { Text("Settings") },
+                    selected = true,
+                    onClick = { },
+                    colors = NavigationBarItemDefaults.colors(
+                        selectedIconColor = Primary,
+                        selectedTextColor = Primary,
+                        unselectedIconColor = IconTint,
+                        unselectedTextColor = IconTint
+                    )
+                )
+            }
         }
-    ) { paddingValues ->
-        LazyColumn(
+    ) { padding ->
+        Column(
             modifier = Modifier
                 .fillMaxSize()
                 .background(BackgroundSecondary)
-                .padding(paddingValues),
-            contentPadding = PaddingValues(16.dp),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+                .padding(padding)
         ) {
-            // Profile Section
-            item {
-                ModernProfileCard(user = user, navController = navController)
-            }
-
-            // Account Section
-            item {
-                Text(
-                    text = "Account & Security",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextPrimary,
-                    modifier = Modifier.padding(horizontal = 4.dp)
-                )
-                
-                Spacer(modifier = Modifier.height(12.dp))
-                
-                ModernCard {
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(0.dp)
-                    ) {
-                        ModernListItem(
-                            title = "Change Password",
-                            subtitle = "Update your account password",
-                            leadingIcon = Icons.Default.Lock,
-                            onClick = { /* Navigate to change password */ }
-                        )
-                        HorizontalDivider(color = DividerColor)
-                        ModernListItem(
-                            title = "Two-Factor Authentication",
-                            subtitle = "Add extra security to your account",
-                            leadingIcon = Icons.Default.Security,
-                            onClick = { /* Navigate to 2FA settings */ }
-                        )
-                        HorizontalDivider(color = DividerColor)
-                        ModernListItem(
-                            title = "Download My Data",
-                            subtitle = "Export your account data",
-                            leadingIcon = Icons.Default.Download,
-                            onClick = { /* Navigate to data export */ }
-                        )
-                        HorizontalDivider(color = DividerColor)
-                        ModernListItem(
-                            title = "Delete Account",
-                            subtitle = "Permanently delete your account",
-                            leadingIcon = Icons.Default.Delete,
-                            onClick = { /* Show delete account dialog */ }
-                        )
-                    }
+            // Settings Tabs
+            TabRow(
+                selectedTabIndex = selectedTab,
+                containerColor = PureWhite,
+                contentColor = Primary,
+                indicator = { tabPositions ->
+                    TabRowDefaults.Indicator(
+                        modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
+                        color = Primary
+                    )
+                }
+            ) {
+                settingsTabs.forEachIndexed { index, title ->
+                    Tab(
+                        selected = selectedTab == index,
+                        onClick = { selectedTab = index },
+                        text = { 
+                            Text(
+                                text = title,
+                                fontSize = 14.sp,
+                                fontWeight = if (selectedTab == index) FontWeight.Medium else FontWeight.Normal
+                            )
+                        },
+                        selectedContentColor = Primary,
+                        unselectedContentColor = TextSecondary
+                    )
                 }
             }
 
-            // Preferences Section
-            item {
-                Text(
-                    text = "Preferences",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextPrimary,
-                    modifier = Modifier.padding(horizontal = 4.dp)
+            // Tab Content
+            when (selectedTab) {
+                0 -> ProfileTabContent(
+                    modifier = Modifier.padding(16.dp)
                 )
-                
-                Spacer(modifier = Modifier.height(12.dp))
-                
-                ModernCard {
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(0.dp)
-                    ) {
-                        ModernSwitchItem(
-                            title = "Dark Mode",
-                            subtitle = "Use dark theme",
-                            icon = Icons.Default.DarkMode,
-                            checked = themeManager.isDarkTheme(),
-                            onCheckedChange = { themeManager.toggleDarkMode() }
+                1 -> PreferencesTabContent(
+                    modifier = Modifier.padding(16.dp)
+                )
+                2 -> SupportTabContent(
+                    modifier = Modifier.padding(16.dp)
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ProfileTabContent(
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        ModernCard {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(
+                            text = "John Doe",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
                         )
-                        HorizontalDivider(color = DividerColor)
-                        ModernSwitchItem(
-                            title = "Notifications",
-                            subtitle = "Enable push notifications",
-                            icon = Icons.Default.Notifications,
-                            checked = notificationsEnabled,
-                            onCheckedChange = { notificationsEnabled = it }
-                        )
-                        HorizontalDivider(color = DividerColor)
-                        ModernSwitchItem(
-                            title = "Sound",
-                            subtitle = "Enable notification sounds",
-                            icon = Icons.AutoMirrored.Filled.VolumeUp,
-                            checked = soundEnabled,
-                            onCheckedChange = { soundEnabled = it }
+                        Text(
+                            text = "john.doe@example.com",
+                            fontSize = 14.sp,
+                            color = TextSecondary
                         )
                     }
+                    ModernButton(
+                        text = "Edit Profile",
+                        onClick = { },
+                        backgroundColor = Primary.copy(alpha = 0.1f),
+                        textColor = Primary
+                    )
                 }
             }
+        }
 
-            // App Management Section
-            item {
-                Text(
-                    text = "App Management",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextPrimary,
-                    modifier = Modifier.padding(horizontal = 4.dp)
+        ModernCard {
+            Column {
+                SettingsItem(
+                    title = "Personal Information",
+                    icon = Icons.Default.Person,
+                    onClick = { }
                 )
-                
-                Spacer(modifier = Modifier.height(12.dp))
-                
-                ModernCard {
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(0.dp)
-                    ) {
-                        ModernListItem(
-                            title = "Manage Categories",
-                            subtitle = "Customize expense categories",
-                            leadingIcon = Icons.Default.Category,
-                            onClick = { 
-                                navController.navigate("categories")
-                            }
-                        )
-                        HorizontalDivider(color = DividerColor)
-                        ModernListItem(
-                            title = "Budget Management",
-                            subtitle = "Set and track spending budgets",
-                            leadingIcon = Icons.Default.AccountBalance,
-                            onClick = { 
-                                navController.navigate("budgets")
-                            }
-                        )
-                        HorizontalDivider(color = DividerColor)
-                        ModernListItem(
-                            title = "Backup & Restore",
-                            subtitle = "Backup your data to cloud",
-                            leadingIcon = Icons.Default.Archive,
-                            onClick = { /* Navigate to backup settings */ }
-                        )
-                    }
-                }
+                SettingsItem(
+                    title = "Payment Methods",
+                    icon = Icons.Default.Payment,
+                    onClick = { }
+                )
+                SettingsItem(
+                    title = "Account Security",
+                    icon = Icons.Default.Security,
+                    onClick = { }
+                )
             }
+        }
+    }
+}
 
-            // Support Section
-            item {
-                Text(
-                    text = "Support & About",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextPrimary,
-                    modifier = Modifier.padding(horizontal = 4.dp)
+@Composable
+private fun PreferencesTabContent(
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        ModernCard {
+            Column {
+                SettingsItem(
+                    title = "Notifications",
+                    icon = Icons.Default.Notifications,
+                    onClick = { }
                 )
-                
-                Spacer(modifier = Modifier.height(12.dp))
-                
-                ModernCard {
-                    Column(
-                        verticalArrangement = Arrangement.spacedBy(0.dp)
-                    ) {
-                        ModernListItem(
-                            title = "Help & Support",
-                            subtitle = "Get help and contact support",
-                            leadingIcon = Icons.Default.Help,
-                            onClick = { 
-                                navController.navigate("support")
-                            }
-                        )
-                        HorizontalDivider(color = DividerColor)
-                        ModernListItem(
-                            title = "Privacy Policy",
-                            subtitle = "Read our privacy policy",
-                            leadingIcon = Icons.Default.Policy,
-                            onClick = { /* Navigate to privacy policy */ }
-                        )
-                        HorizontalDivider(color = DividerColor)
-                        ModernListItem(
-                            title = "Terms of Service",
-                            subtitle = "Read our terms of service",
-                            leadingIcon = Icons.Default.Description,
-                            onClick = { /* Navigate to terms */ }
-                        )
-                        HorizontalDivider(color = DividerColor)
-                        ModernListItem(
-                            title = "About",
-                            subtitle = "Version 1.0.0",
-                            leadingIcon = Icons.Default.Info,
-                            onClick = { /* Show about dialog */ }
-                        )
-                    }
-                }
+                SettingsItem(
+                    title = "Currency",
+                    icon = Icons.Default.AttachMoney,
+                    onClick = { }
+                )
+                SettingsItem(
+                    title = "Language",
+                    icon = Icons.Default.Language,
+                    onClick = { }
+                )
+                SettingsItem(
+                    title = "Theme",
+                    icon = Icons.Default.Palette,
+                    onClick = { }
+                )
             }
+        }
+    }
+}
 
-            // Sign Out Section
-            item {
-                ModernButton(
-                    text = "Sign Out",
-                    onClick = onSignOut,
-                    backgroundColor = ErrorRed,
-                    textColor = TextOnDark,
-                    icon = Icons.AutoMirrored.Filled.ExitToApp,
-                    modifier = Modifier.fillMaxWidth()
+@Composable
+private fun SupportTabContent(
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        ModernCard {
+            Column {
+                SettingsItem(
+                    title = "Help Center",
+                    icon = Icons.Default.Help,
+                    onClick = { }
                 )
-                
-                Spacer(modifier = Modifier.height(20.dp))
+                SettingsItem(
+                    title = "Contact Support",
+                    icon = Icons.Default.SupportAgent,
+                    onClick = { }
+                )
+                SettingsItem(
+                    title = "Privacy Policy",
+                    icon = Icons.Default.Policy,
+                    onClick = { }
+                )
+                SettingsItem(
+                    title = "Terms of Service",
+                    icon = Icons.Default.Description,
+                    onClick = { }
+                )
+                SettingsItem(
+                    title = "About",
+                    icon = Icons.Default.Info,
+                    onClick = { }
+                )
+                SettingsItem(
+                    title = "Sign Out",
+                    icon = Icons.Default.ExitToApp,
+                    onClick = { },
+                    textColor = ErrorRed,
+                    iconTint = ErrorRed
+                )
             }
+        }
+    }
+}
+
+@Composable
+private fun SettingsItem(
+    title: String,
+    icon: ImageVector,
+    onClick: () -> Unit,
+    textColor: Color = TextPrimary,
+    iconTint: Color = Primary
+) {
+    Surface(
+        onClick = onClick,
+        color = Color.Transparent
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = iconTint,
+                modifier = Modifier.size(24.dp)
+            )
+            Text(
+                text = title,
+                fontSize = 16.sp,
+                color = textColor
+            )
         }
     }
 }
@@ -430,7 +477,8 @@ data class UserProfile(
 fun SettingsScreenPreview() {
     FairrTheme {
         SettingsScreen(
-            navController = rememberNavController()
+            navController = rememberNavController(),
+            onSignOut = {}
         )
     }
 } 

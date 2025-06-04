@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Material3 Text Appearances -->
+    <style name="TextAppearance.Material3.BodyLarge" parent="android:TextAppearance.Material.Body1" />
+    <style name="TextAppearance.Material3.BodyMedium" parent="android:TextAppearance.Material.Body2" />
+    <style name="TextAppearance.Material3.BodySmall" parent="android:TextAppearance.Material.Caption" />
+    <style name="TextAppearance.Material3.DisplayLarge" parent="android:TextAppearance.Material.Display4" />
+    <style name="TextAppearance.Material3.DisplayMedium" parent="android:TextAppearance.Material.Display3" />
+    <style name="TextAppearance.Material3.DisplaySmall" parent="android:TextAppearance.Material.Display2" />
+    <style name="TextAppearance.Material3.HeadlineLarge" parent="android:TextAppearance.Material.Display1" />
+    <style name="TextAppearance.Material3.HeadlineMedium" parent="android:TextAppearance.Material.Headline" />
+    <style name="TextAppearance.Material3.HeadlineSmall" parent="android:TextAppearance.Material.Title" />
+    <style name="TextAppearance.Material3.LabelLarge" parent="android:TextAppearance.Material.Button" />
+    <style name="TextAppearance.Material3.LabelMedium" parent="android:TextAppearance.Material.Caption" />
+    <style name="TextAppearance.Material3.LabelSmall" parent="android:TextAppearance.Material.Caption" />
+</resources> 

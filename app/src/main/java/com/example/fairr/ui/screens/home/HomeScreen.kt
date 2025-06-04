@@ -8,6 +8,7 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.filled.Add
 import androidx.compose.material.icons.filled.AccountBalance
 import androidx.compose.material.icons.filled.Analytics
@@ -17,16 +18,16 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Person
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material.icons.filled.Settings
-import androidx.compose.material.icons.outlined.Analytics
-import androidx.compose.material.icons.outlined.Group
-import androidx.compose.material.icons.outlined.Home
-import androidx.compose.material.icons.outlined.Person
+import androidx.compose.material.icons.outlined.*
 import androidx.compose.material3.*
+import androidx.compose.material3.TabRowDefaults.tabIndicatorOffset
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
@@ -64,42 +65,24 @@ fun HomeScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { 
+                title = {
                     Text(
-                        "FairShare",
+                        when (selectedTab) {
+                            0 -> "Home"
+                            1 -> "Groups"
+                            2 -> "Settings"
+                            else -> "Home"
+                        },
                         fontWeight = FontWeight.Bold,
                         color = TextPrimary
-                    ) 
+                    )
                 },
                 actions = {
-                    // Search Action
+                    // Search action
                     IconButton(onClick = onNavigateToSearch) {
                         Icon(
-                            Icons.Default.Search, 
+                            Icons.Default.Search,
                             contentDescription = "Search",
-                            tint = IconTint
-                        )
-                    }
-                    // Notifications Action
-                    IconButton(onClick = onNavigateToNotifications) {
-                        Icon(
-                            Icons.Default.Notifications, 
-                            contentDescription = "Notifications",
-                            tint = IconTint
-                        )
-                    }
-                    // Join Group Action
-                    IconButton(onClick = onNavigateToJoinGroup) {
-                        Icon(
-                            Icons.Default.Group, 
-                            contentDescription = "Join Group",
-                            tint = IconTint
-                        )
-                    }
-                    IconButton(onClick = onNavigateToSettings) {
-                        Icon(
-                            Icons.Default.Settings, 
-                            contentDescription = "Settings",
                             tint = IconTint
                         )
                     }
@@ -114,15 +97,18 @@ fun HomeScreen(
                 onClick = { onNavigateToCreateGroup() },
                 containerColor = Primary,
                 contentColor = TextOnDark,
-                shape = CircleShape
+                shape = CircleShape,
+                modifier = Modifier.offset(y = (-40).dp)
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Create Group")
             }
         },
+        floatingActionButtonPosition = FabPosition.Center,
         bottomBar = {
             NavigationBar(
-                containerColor = BackgroundPrimary,
-                tonalElevation = 8.dp
+                containerColor = PureWhite,
+                tonalElevation = 8.dp,
+                modifier = Modifier.height(80.dp)
             ) {
                 // Home Tab
                 NavigationBarItem(
@@ -143,7 +129,37 @@ fun HomeScreen(
                     )
                 )
                 
-                // Groups Tab  
+                // Notifications Tab
+                NavigationBarItem(
+                    icon = { 
+                        Icon(
+                            Icons.Default.Notifications,
+                            contentDescription = "Notifications"
+                        ) 
+                    },
+                    label = { Text("Notifications") },
+                    selected = false,
+                    onClick = onNavigateToNotifications,
+                    colors = NavigationBarItemDefaults.colors(
+                        unselectedIconColor = IconTint,
+                        unselectedTextColor = IconTint
+                    )
+                )
+                
+                // Spacer for FAB
+                NavigationBarItem(
+                    icon = { Box {} },
+                    label = { Text("") },
+                    selected = false,
+                    onClick = { },
+                    enabled = false,
+                    colors = NavigationBarItemDefaults.colors(
+                        unselectedIconColor = Color.Transparent,
+                        unselectedTextColor = Color.Transparent
+                    )
+                )
+                
+                // Groups Tab
                 NavigationBarItem(
                     icon = { 
                         Icon(
@@ -162,41 +178,19 @@ fun HomeScreen(
                     )
                 )
                 
-                // Analytics Tab
+                // Settings Tab
                 NavigationBarItem(
                     icon = { 
                         Icon(
-                            if (selectedTab == 2) Icons.Filled.Analytics else Icons.Outlined.Analytics,
-                            contentDescription = "Analytics"
+                            if (selectedTab == 2) Icons.Filled.Settings else Icons.Outlined.Settings,
+                            contentDescription = "Settings"
                         ) 
                     },
-                    label = { Text("Analytics") },
+                    label = { Text("Settings") },
                     selected = selectedTab == 2,
                     onClick = { 
                         selectedTab = 2
-                        onNavigateToAnalytics()
-                    },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Primary,
-                        selectedTextColor = Primary,
-                        unselectedIconColor = IconTint,
-                        unselectedTextColor = IconTint
-                    )
-                )
-                
-                // Profile Tab
-                NavigationBarItem(
-                    icon = { 
-                        Icon(
-                            if (selectedTab == 3) Icons.Filled.Person else Icons.Outlined.Person,
-                            contentDescription = "Profile"
-                        ) 
-                    },
-                    label = { Text("Profile") },
-                    selected = selectedTab == 3,
-                    onClick = { 
-                        selectedTab = 3
-                        onNavigateToSettings() // Navigate to settings/profile
+                        onNavigateToSettings()
                     },
                     colors = NavigationBarItemDefaults.colors(
                         selectedIconColor = Primary,
@@ -218,12 +212,11 @@ fun HomeScreen(
             1 -> GroupsTabContent(
                 groups = groups,
                 onNavigateToGroupDetail = onNavigateToGroupDetail,
+                onNavigateToCreateGroup = onNavigateToCreateGroup,
+                onNavigateToJoinGroup = onNavigateToJoinGroup,
                 modifier = Modifier.padding(padding)
             )
-            2 -> AnalyticsTabContent(
-                modifier = Modifier.padding(padding)
-            )
-            3 -> ProfileTabContent(
+            2 -> SettingsTabContent(
                 modifier = Modifier.padding(padding)
             )
         }
@@ -332,68 +325,81 @@ fun HomeTabContent(
 fun GroupsTabContent(
     groups: List<GroupItem>,
     onNavigateToGroupDetail: (String) -> Unit,
+    onNavigateToCreateGroup: () -> Unit,
+    onNavigateToJoinGroup: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    LazyColumn(
-        modifier = modifier
-            .fillMaxSize()
-            .background(BackgroundSecondary),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(12.dp)
-    ) {
-        item {
-            ModernHeader(
-                title = "Your Groups",
-                subtitle = "${groups.size} active groups"
-            )
-        }
-        
-        items(groups) { group ->
-            ModernGroupCard(
-                group = group,
-                onClick = { onNavigateToGroupDetail(group.id) }
-            )
-        }
-        
-        item {
-            Spacer(modifier = Modifier.height(80.dp))
-        }
-    }
-}
+    var selectedGroupTab by remember { mutableStateOf(0) }
+    val groupTabs = listOf("My Groups", "Create Group", "Join Group")
 
-@Composable
-fun AnalyticsTabContent(
-    modifier: Modifier = Modifier
-) {
     Column(
         modifier = modifier
             .fillMaxSize()
             .background(BackgroundSecondary)
-            .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
     ) {
-        ModernCard {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally
-            ) {
-                Icon(
-                    Icons.Default.Analytics,
-                    contentDescription = "Analytics",
-                    tint = Primary,
-                    modifier = Modifier.size(48.dp)
+        // Tabs
+        TabRow(
+            selectedTabIndex = selectedGroupTab,
+            containerColor = PureWhite,
+            contentColor = Primary,
+            indicator = { tabPositions ->
+                TabRowDefaults.Indicator(
+                    modifier = Modifier.tabIndicatorOffset(tabPositions[selectedGroupTab]),
+                    color = Primary
                 )
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "Analytics",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextPrimary
+            }
+        ) {
+            groupTabs.forEachIndexed { index, title ->
+                Tab(
+                    selected = selectedGroupTab == index,
+                    onClick = { selectedGroupTab = index },
+                    text = { 
+                        Text(
+                            text = title,
+                            fontSize = 14.sp,
+                            fontWeight = if (selectedGroupTab == index) FontWeight.Medium else FontWeight.Normal
+                        )
+                    },
+                    selectedContentColor = Primary,
+                    unselectedContentColor = TextSecondary
                 )
-                Text(
-                    text = "Coming soon",
-                    fontSize = 14.sp,
-                    color = TextSecondary
+            }
+        }
+
+        // Tab Content
+        when (selectedGroupTab) {
+            0 -> {
+                // My Groups List
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(groups) { group ->
+                        ModernGroupCard(
+                            group = group,
+                            onClick = { onNavigateToGroupDetail(group.id) }
+                        )
+                    }
+                }
+            }
+            1 -> {
+                // Create Group Content
+                CreateGroupContent(
+                    onCreateGroup = onNavigateToCreateGroup,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
+                )
+            }
+            2 -> {
+                // Join Group Content
+                JoinGroupContent(
+                    onJoinGroup = onNavigateToJoinGroup,
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp)
                 )
             }
         }
@@ -401,7 +407,82 @@ fun AnalyticsTabContent(
 }
 
 @Composable
-fun ProfileTabContent(
+private fun CreateGroupContent(
+    onCreateGroup: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        OutlinedTextField(
+            value = "",
+            onValueChange = { },
+            label = { Text("Group Name") },
+            placeholder = { Text("Enter group name") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        OutlinedTextField(
+            value = "",
+            onValueChange = { },
+            label = { Text("Description") },
+            placeholder = { Text("Enter group description") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        OutlinedTextField(
+            value = "",
+            onValueChange = { },
+            label = { Text("Currency") },
+            placeholder = { Text("Select currency") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        ModernButton(
+            text = "Create Group",
+            onClick = onCreateGroup,
+            modifier = Modifier.fillMaxWidth(),
+            icon = Icons.Default.Add
+        )
+    }
+}
+
+@Composable
+private fun JoinGroupContent(
+    onJoinGroup: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        OutlinedTextField(
+            value = "",
+            onValueChange = { },
+            label = { Text("Group Code") },
+            placeholder = { Text("Enter group code") },
+            modifier = Modifier.fillMaxWidth()
+        )
+
+        Text(
+            text = "Ask your friends for the group code to join their group",
+            fontSize = 14.sp,
+            color = TextSecondary,
+            modifier = Modifier.padding(vertical = 8.dp)
+        )
+
+        ModernButton(
+            text = "Join Group",
+            onClick = onJoinGroup,
+            modifier = Modifier.fillMaxWidth(),
+            icon = Icons.Default.PersonAdd
+        )
+    }
+}
+
+@Composable
+fun SettingsTabContent(
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -409,32 +490,107 @@ fun ProfileTabContent(
             .fillMaxSize()
             .background(BackgroundSecondary)
             .padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         ModernCard {
             Column(
-                horizontalAlignment = Alignment.CenterHorizontally
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                Icon(
-                    Icons.Default.Person,
-                    contentDescription = "Profile",
-                    tint = Primary,
-                    modifier = Modifier.size(48.dp)
+                // Profile Section
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Column {
+                        Text(
+                            text = "John Doe",
+                            fontSize = 20.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+                        Text(
+                            text = "john.doe@example.com",
+                            fontSize = 14.sp,
+                            color = TextSecondary
+                        )
+                    }
+                    ModernButton(
+                        text = "Edit Profile",
+                        onClick = { /* Navigate to edit profile */ },
+                        backgroundColor = Primary.copy(alpha = 0.1f),
+                        textColor = Primary
+                    )
+                }
+            }
+        }
+
+        // Settings List
+        ModernCard {
+            Column {
+                SettingsItem(
+                    title = "Notifications",
+                    icon = Icons.Default.Notifications,
+                    onClick = { /* Handle click */ }
                 )
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = "Profile",
-                    fontSize = 24.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextPrimary
+                SettingsItem(
+                    title = "Privacy",
+                    icon = Icons.Default.Lock,
+                    onClick = { /* Handle click */ }
                 )
-                Text(
-                    text = "Manage your account",
-                    fontSize = 14.sp,
-                    color = TextSecondary
+                SettingsItem(
+                    title = "Help & Support",
+                    icon = Icons.Default.Help,
+                    onClick = { /* Handle click */ }
+                )
+                SettingsItem(
+                    title = "About",
+                    icon = Icons.Default.Info,
+                    onClick = { /* Handle click */ }
+                )
+                SettingsItem(
+                    title = "Sign Out",
+                    icon = Icons.Default.ExitToApp,
+                    onClick = { /* Handle sign out */ },
+                    textColor = ErrorRed,
+                    iconTint = ErrorRed
                 )
             }
+        }
+    }
+}
+
+@Composable
+private fun SettingsItem(
+    title: String,
+    icon: ImageVector,
+    onClick: () -> Unit,
+    textColor: Color = TextPrimary,
+    iconTint: Color = Primary
+) {
+    Surface(
+        onClick = onClick,
+        color = Color.Transparent
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = iconTint,
+                modifier = Modifier.size(24.dp)
+            )
+            Text(
+                text = title,
+                fontSize = 16.sp,
+                color = textColor
+            )
         }
     }
 }

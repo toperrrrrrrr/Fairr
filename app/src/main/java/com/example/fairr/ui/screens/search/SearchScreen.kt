@@ -182,6 +182,7 @@ fun SearchScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FilterSection(
     selectedFilter: SearchFilter,
