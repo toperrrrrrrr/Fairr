@@ -1,6 +1,7 @@
 package com.example.fairr.ui.screens
 
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -10,11 +11,15 @@ import androidx.compose.material3.Text
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.example.fairr.R
 import com.example.fairr.ui.theme.*
 import kotlinx.coroutines.delay
 
@@ -22,68 +27,68 @@ import kotlinx.coroutines.delay
 fun SplashScreen(
     onTimeout: () -> Unit
 ) {
-    // Animation for the logo
-    val infiniteTransition = rememberInfiniteTransition()
-    val scale by infiniteTransition.animateFloat(
-        initialValue = 0.8f,
-        targetValue = 1f,
-        animationSpec = infiniteRepeatable(
-            animation = tween(1000, easing = FastOutSlowInEasing),
-            repeatMode = RepeatMode.Reverse
-        ), label = "Logo scale animation"
+    // Animation states
+    var isVisible by remember { mutableStateOf(false) }
+    val alphaAnim by animateFloatAsState(
+        targetValue = if (isVisible) 1f else 0f,
+        animationSpec = tween(durationMillis = 800),
+        label = "Fade animation"
+    )
+    
+    val scale by animateFloatAsState(
+        targetValue = if (isVisible) 1f else 0.8f,
+        animationSpec = tween(
+            durationMillis = 500,
+            easing = FastOutSlowInEasing
+        ),
+        label = "Scale animation"
     )
 
-    // Handle splash timeout
+    // Start animations and handle timeout
     LaunchedEffect(Unit) {
-        delay(2500) // Show splash for 2.5 seconds
+        isVisible = true
+        delay(2000) // Show splash for 2 seconds
         onTimeout()
     }
 
-    // Full screen dark background
+    // Full screen background with system UI handling
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(DarkBackground),
+            .background(MaterialTheme.colorScheme.background)
+            .systemBarsPadding(), // Handle system bars
         contentAlignment = Alignment.Center
     ) {
-        // Animated logo
+        // Animated logo container
         Box(
             modifier = Modifier
-                .size(120.dp)
-                .scale(scale)
-                .background(
-                    color = NeutralWhite,
-                    shape = RoundedCornerShape(24.dp)
+                .size(160.dp)
+                .graphicsLayer(
+                    alpha = alphaAnim,
+                    scaleX = scale,
+                    scaleY = scale
                 ),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = "F",
-                fontSize = 48.sp,
-                fontWeight = FontWeight.Bold,
-                color = DarkBackground
+            Image(
+                painter = painterResource(id = R.drawable.fairr),
+                contentDescription = "Fairr Logo",
+                modifier = Modifier.fillMaxSize(),
+                contentScale = ContentScale.Fit
             )
         }
         
-        // App name below logo
-        Column(
-            horizontalAlignment = Alignment.CenterHorizontally,
-            modifier = Modifier.offset(y = 100.dp)
-        ) {
-            Text(
-                text = "Fairr",
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold,
-                color = NeutralWhite
-            )
-            Text(
-                text = "Split expenses fairly",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.Normal,
-                color = TextOnDark.copy(alpha = 0.7f),
-                modifier = Modifier.padding(top = 8.dp)
-            )
-        }
+        // App name with fade animation
+        Text(
+            text = "Fairr",
+            fontSize = 32.sp,
+            fontWeight = FontWeight.Bold,
+            color = MaterialTheme.colorScheme.onBackground,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(bottom = 64.dp)
+                .graphicsLayer(alpha = alphaAnim)
+        )
     }
 }
 
