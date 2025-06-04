@@ -21,6 +21,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.fairr.R
 import com.example.fairr.ui.components.*
 import com.example.fairr.ui.theme.*
+import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 @Composable
 fun WelcomeScreen(
@@ -28,37 +29,52 @@ fun WelcomeScreen(
     onNavigateToLogin: () -> Unit,
     onNavigateToSignUp: () -> Unit
 ) {
+    val systemUiController = rememberSystemUiController()
+    val useDarkIcons = MaterialTheme.colorScheme.background.luminance() > 0.5f
+
+    DisposableEffect(systemUiController, useDarkIcons) {
+        systemUiController.setSystemBarsColor(
+            color = Color.Transparent,
+            darkIcons = useDarkIcons
+        )
+        onDispose {}
+    }
+
     Box(
         modifier = Modifier
             .fillMaxSize()
+            .systemBarsPadding()
             .background(MaterialTheme.colorScheme.background)
-            .systemBarsPadding() // Handle system bars
     ) {
         Column(
             modifier = Modifier
-                .fillMaxSize(),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .fillMaxSize()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            // Header section with logo
+            Spacer(modifier = Modifier.windowInsetsPadding(WindowInsets.statusBars))
+            
+            // Modern geometric header with primary color background
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .weight(0.4f)
                     .background(
                         color = MaterialTheme.colorScheme.primary,
-                        shape = RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp)
-                    ),
+                        shape = RoundedCornerShape(32.dp)
+                    )
+                    .padding(32.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Column(
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // App Logo
+                    // App Icon/Logo
                     Image(
                         painter = painterResource(id = R.drawable.fairr),
                         contentDescription = "Fairr Logo",
-                        modifier = Modifier.size(120.dp),
+                        modifier = Modifier.size(80.dp),
                         contentScale = ContentScale.Fit
                     )
                     
@@ -70,80 +86,110 @@ fun WelcomeScreen(
                         color = MaterialTheme.colorScheme.onPrimary,
                         textAlign = TextAlign.Center
                     )
+                    
+                    // Tagline
+                    Text(
+                        text = "Smart expense sharing",
+                        fontSize = 16.sp,
+                        color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.8f),
+                        textAlign = TextAlign.Center
+                    )
                 }
             }
             
-            // Content section
+            // Welcome Message
             Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .weight(0.6f)
-                    .padding(horizontal = 24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.SpaceEvenly
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                // Welcome Message
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally,
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                Text(
+                    text = "Welcome to",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+                    textAlign = TextAlign.Center
+                )
+                
+                Text(
+                    text = "Modern Finance Management",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.onBackground,
+                    textAlign = TextAlign.Center
+                )
+            }
+            
+            // Description
+            Text(
+                text = "Track expenses, split bills with friends,\nand manage your budget effortlessly\nwith our clean, modern interface.",
+                fontSize = 16.sp,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
+                textAlign = TextAlign.Center,
+                lineHeight = 24.sp
+            )
+            
+            Spacer(modifier = Modifier.weight(1f))
+            
+            // Action Buttons
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Primary Login Button
+                Button(
+                    onClick = onNavigateToLogin,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    ),
+                    shape = RoundedCornerShape(16.dp),
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp)
                 ) {
                     Text(
-                        text = "Smart Expense Management",
-                        fontSize = 24.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground,
-                        textAlign = TextAlign.Center
-                    )
-                    
-                    Text(
-                        text = "Track expenses, split bills, and manage your finances with ease",
+                        text = "Sign In",
                         fontSize = 16.sp,
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
-                        textAlign = TextAlign.Center,
-                        lineHeight = 24.sp
+                        fontWeight = FontWeight.SemiBold
                     )
                 }
                 
-                // Action Buttons
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                // Secondary Sign Up Button
+                OutlinedButton(
+                    onClick = onNavigateToSignUp,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.onBackground,
+                        containerColor = Color.Transparent
+                    ),
+                    border = androidx.compose.foundation.BorderStroke(
+                        1.dp,
+                        MaterialTheme.colorScheme.outline
+                    ),
+                    shape = RoundedCornerShape(16.dp)
                 ) {
-                    Button(
-                        onClick = onNavigateToLogin,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = MaterialTheme.colorScheme.primary
-                        ),
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
-                        Text(
-                            text = "Sign In",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
-                    
-                    OutlinedButton(
-                        onClick = onNavigateToSignUp,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = MaterialTheme.colorScheme.primary
-                        ),
-                        shape = RoundedCornerShape(16.dp)
-                    ) {
-                        Text(
-                            text = "Create Account",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
+                    Text(
+                        text = "Create Account",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
                 }
             }
+            
+            // Footer
+            Text(
+                text = "Join thousands who trust Fairr for\ntheir expense management",
+                fontSize = 14.sp,
+                color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.5f),
+                textAlign = TextAlign.Center,
+                lineHeight = 20.sp,
+                modifier = Modifier.padding(vertical = 16.dp)
+            )
+            
+            Spacer(modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars))
         }
     }
 }
