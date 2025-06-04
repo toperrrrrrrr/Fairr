@@ -197,7 +197,7 @@ fun GroupDetailScreen(
                         title = "Total Spent",
                         value = "${group.currency}${String.format("%.2f", group.totalExpenses)}",
                         icon = Icons.Default.Receipt,
-                        change = "This month",
+                        changeValue = "This month",
                         modifier = Modifier.weight(1f)
                     )
                     
@@ -205,8 +205,8 @@ fun GroupDetailScreen(
                         title = "Your Balance",
                         value = "${group.currency}${String.format("%.2f", kotlin.math.abs(group.yourBalance))}",
                         icon = Icons.Default.AccountBalance,
-                        change = if (group.yourBalance >= 0) "You're owed" else "You owe",
-                        isPositive = group.yourBalance >= 0,
+                        changeValue = if (group.yourBalance >= 0) "You're owed" else "You owe",
+                        changePositive = group.yourBalance >= 0,
                         modifier = Modifier.weight(1f)
                     )
                 }

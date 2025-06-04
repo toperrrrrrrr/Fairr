@@ -83,7 +83,7 @@ fun AnalyticsScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = PureWhite
+                    containerColor = NeutralWhite
                 )
             )
         }
@@ -112,8 +112,8 @@ fun AnalyticsScreen(
                             selected = selectedPeriod == period,
                             colors = FilterChipDefaults.filterChipColors(
                                 selectedContainerColor = DarkGreen,
-                                selectedLabelColor = PureWhite,
-                                containerColor = PureWhite,
+                                selectedLabelColor = NeutralWhite,
+                                containerColor = NeutralWhite,
                                 labelColor = TextSecondary
                             )
                         )
@@ -204,7 +204,7 @@ fun OverviewStatsCard(
             .fillMaxWidth()
             .shadow(2.dp, RoundedCornerShape(16.dp)),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = PureWhite)
+        colors = CardDefaults.cardColors(containerColor = NeutralWhite)
     ) {
         Column(
             modifier = Modifier.padding(20.dp)
@@ -294,7 +294,7 @@ fun MonthlySpendingChart(
             .fillMaxWidth()
             .shadow(2.dp, RoundedCornerShape(16.dp)),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = PureWhite)
+        colors = CardDefaults.cardColors(containerColor = NeutralWhite)
     ) {
         Column(
             modifier = Modifier.padding(20.dp)
@@ -356,7 +356,7 @@ fun CategoryBreakdownCard(
             .fillMaxWidth()
             .shadow(2.dp, RoundedCornerShape(16.dp)),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = PureWhite)
+        colors = CardDefaults.cardColors(containerColor = NeutralWhite)
     ) {
         Column(
             modifier = Modifier.padding(20.dp)
@@ -434,7 +434,7 @@ fun GroupStatsCard(
             .fillMaxWidth()
             .shadow(1.dp, RoundedCornerShape(12.dp)),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = PureWhite)
+        colors = CardDefaults.cardColors(containerColor = NeutralWhite)
     ) {
         Row(
             modifier = Modifier

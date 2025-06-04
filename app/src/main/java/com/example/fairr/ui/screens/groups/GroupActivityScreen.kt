@@ -9,6 +9,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -118,7 +119,7 @@ fun GroupActivityScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = PureWhite
+                    containerColor = NeutralWhite
                 )
             )
         }
@@ -136,7 +137,7 @@ fun GroupActivityScreen(
                     .padding(16.dp)
                     .shadow(1.dp, RoundedCornerShape(12.dp)),
                 shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = PureWhite)
+                colors = CardDefaults.cardColors(containerColor = NeutralWhite)
             ) {
                 LazyRow(
                     modifier = Modifier.padding(16.dp),
@@ -148,7 +149,7 @@ fun GroupActivityScreen(
                             onClick = { selectedFilter = filter },
                             label = filter,
                             leadingIcon = when (filter) {
-                                "All" -> Icons.Default.List
+                                "All" -> Icons.AutoMirrored.Filled.List
                                 "Expenses" -> Icons.Default.Receipt
                                 "Payments" -> Icons.Default.Payment
                                 "Members" -> Icons.Default.Group
@@ -202,7 +203,7 @@ fun ActivityCard(
             .fillMaxWidth()
             .shadow(1.dp, RoundedCornerShape(12.dp)),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = PureWhite)
+        colors = CardDefaults.cardColors(containerColor = NeutralWhite)
     ) {
         Row(
             modifier = Modifier
@@ -271,7 +272,7 @@ fun ActivityCard(
                                 Text(
                                     text = activity.userInitials,
                                     fontSize = 8.sp,
-                                    color = PureWhite,
+                                    color = NeutralWhite,
                                     fontWeight = FontWeight.Bold
                                 )
                             }

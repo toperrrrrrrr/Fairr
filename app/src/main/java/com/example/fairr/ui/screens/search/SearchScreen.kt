@@ -107,7 +107,7 @@ fun SearchScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = PureWhite
+                    containerColor = NeutralWhite
                 )
             )
         }
@@ -202,7 +202,7 @@ fun FilterSection(
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .shadow(1.dp, RoundedCornerShape(12.dp)),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = PureWhite)
+        colors = CardDefaults.cardColors(containerColor = NeutralWhite)
     ) {
         Column(
             modifier = Modifier.padding(16.dp),
@@ -220,7 +220,7 @@ fun FilterSection(
                         selected = selectedFilter == filter,
                         colors = FilterChipDefaults.filterChipColors(
                             selectedContainerColor = DarkGreen,
-                            selectedLabelColor = PureWhite
+                            selectedLabelColor = NeutralWhite
                         )
                     )
                 }
@@ -356,7 +356,7 @@ fun ExpenseSearchCard(
             .fillMaxWidth()
             .shadow(1.dp, RoundedCornerShape(12.dp)),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = PureWhite)
+        colors = CardDefaults.cardColors(containerColor = NeutralWhite)
     ) {
         Row(
             modifier = Modifier
@@ -429,7 +429,7 @@ fun GroupSearchCard(
             .fillMaxWidth()
             .shadow(1.dp, RoundedCornerShape(12.dp)),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = PureWhite)
+        colors = CardDefaults.cardColors(containerColor = NeutralWhite)
     ) {
         Row(
             modifier = Modifier

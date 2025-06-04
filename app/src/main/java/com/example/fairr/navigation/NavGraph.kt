@@ -8,11 +8,11 @@ import androidx.navigation.compose.composable
 import androidx.navigation.compose.rememberNavController
 import com.example.fairr.ui.screens.SplashScreen
 import com.example.fairr.ui.screens.analytics.AnalyticsScreen
-import com.example.fairr.ui.screens.auth.LoginScreen
 import com.example.fairr.ui.screens.auth.RegisterScreen
 import com.example.fairr.ui.screens.auth.WelcomeScreen
 import com.example.fairr.ui.screens.auth.MobileLoginScreen
 import com.example.fairr.ui.screens.auth.MobileSignUpScreen
+import com.example.fairr.ui.screens.auth.ForgotPasswordScreen
 import com.example.fairr.ui.screens.budget.BudgetManagementScreen
 import com.example.fairr.ui.screens.categories.CategoryManagementScreen
 import com.example.fairr.ui.screens.expenses.AddExpenseScreen
@@ -32,13 +32,16 @@ import com.example.fairr.ui.screens.settings.SettingsScreen
 import com.example.fairr.ui.screens.settlements.SettlementScreen
 import com.example.fairr.ui.screens.support.HelpSupportScreen
 import com.example.fairr.ui.screens.camera.PhotoCaptureScreen
+import com.example.fairr.ui.screens.MainScreen
+import com.example.fairr.ui.screens.SettingsScreenWrapper
+import com.example.fairr.ui.screens.AnalyticsScreenWrapper
 
 sealed class Screen(val route: String) {
     object Splash : Screen("splash")
     object Onboarding : Screen("onboarding")
     object Welcome : Screen("welcome")
-    object Login : Screen("login")
     object MobileLogin : Screen("mobile_login")
+    object ForgotPassword : Screen("forgot_password")
     object Register : Screen("register")
     object MobileSignUp : Screen("mobile_signup")
     object Home : Screen("home")
@@ -134,6 +137,18 @@ fun FairrNavGraph(
                     navController.navigate(Screen.MobileSignUp.route) {
                         popUpTo(Screen.MobileLogin.route) { inclusive = true }
                     }
+                },
+                onNavigateToForgotPassword = {
+                    navController.navigate(Screen.ForgotPassword.route)
+                }
+            )
+        }
+        
+        composable(Screen.ForgotPassword.route) {
+            ForgotPasswordScreen(
+                navController = navController,
+                onNavigateBack = {
+                    navController.popBackStack()
                 }
             )
         }
@@ -157,21 +172,6 @@ fun FairrNavGraph(
             )
         }
         
-        composable(Screen.Login.route) {
-            LoginScreen(
-                navController = navController,
-                onLoginSuccess = {
-                    // Navigate to home on successful login
-                    navController.navigate(Screen.Home.route) {
-                        popUpTo(Screen.Login.route) { inclusive = true }
-                    }
-                },
-                onNavigateToRegister = {
-                    navController.navigate(Screen.Register.route)
-                }
-            )
-        }
-        
         composable(Screen.Register.route) {
             RegisterScreen(
                 navController = navController,
@@ -185,7 +185,11 @@ fun FairrNavGraph(
         }
         
         composable(Screen.Home.route) {
-            HomeScreen(
+            MainScreen(
+                navController = navController,
+                onNavigateToAddExpense = {
+                    navController.navigate(Screen.AddExpense.createRoute("default_group"))
+                },
                 onNavigateToCreateGroup = {
                     navController.navigate(Screen.CreateGroup.route)
                 },
@@ -198,27 +202,27 @@ fun FairrNavGraph(
                 onNavigateToNotifications = {
                     navController.navigate(Screen.Notifications.route)
                 },
-                onNavigateToSettings = {
-                    navController.navigate(Screen.Settings.route)
-                },
                 onNavigateToGroupDetail = { groupId ->
                     navController.navigate(Screen.GroupDetail.createRoute(groupId))
                 },
-                onNavigateToAnalytics = {
-                    navController.navigate(Screen.Analytics.route)
-                },
                 onNavigateToBudgets = {
                     navController.navigate(Screen.Budgets.route)
+                },
+                onSignOut = {
+                    // Handle sign out
+                    navController.navigate(Screen.Welcome.route) {
+                        popUpTo(0) { inclusive = true }
+                    }
                 }
             )
         }
         
         composable(Screen.Settings.route) {
-            SettingsScreen(
+            SettingsScreenWrapper(
                 navController = navController,
                 onSignOut = {
                     // Handle sign out
-                    navController.navigate(Screen.Login.route) {
+                    navController.navigate(Screen.Welcome.route) {
                         popUpTo(0) { inclusive = true }
                     }
                 }
@@ -270,7 +274,7 @@ fun FairrNavGraph(
         }
         
         composable(Screen.Analytics.route) {
-            AnalyticsScreen(
+            AnalyticsScreenWrapper(
                 navController = navController
             )
         }

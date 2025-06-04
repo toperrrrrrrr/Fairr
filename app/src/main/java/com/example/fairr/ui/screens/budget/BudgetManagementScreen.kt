@@ -78,7 +78,7 @@ fun BudgetManagementScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = PureWhite
+                    containerColor = NeutralWhite
                 )
             )
         },
@@ -86,7 +86,7 @@ fun BudgetManagementScreen(
             FloatingActionButton(
                 onClick = { showAddDialog = true },
                 containerColor = DarkGreen,
-                contentColor = PureWhite,
+                contentColor = NeutralWhite,
                 shape = CircleShape
             ) {
                 Icon(Icons.Default.Add, contentDescription = "Add Budget")
@@ -106,7 +106,7 @@ fun BudgetManagementScreen(
                     .padding(16.dp)
                     .shadow(2.dp, RoundedCornerShape(16.dp)),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = PureWhite)
+                colors = CardDefaults.cardColors(containerColor = NeutralWhite)
             ) {
                 Column(
                     modifier = Modifier.padding(20.dp),
@@ -142,11 +142,11 @@ fun BudgetManagementScreen(
                     .padding(horizontal = 16.dp)
                     .shadow(1.dp, RoundedCornerShape(12.dp)),
                 shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(containerColor = PureWhite)
+                colors = CardDefaults.cardColors(containerColor = NeutralWhite)
             ) {
                 TabRow(
                     selectedTabIndex = selectedTab,
-                    containerColor = PureWhite,
+                    containerColor = NeutralWhite,
                     contentColor = DarkGreen
                 ) {
                     Tab(
@@ -301,12 +301,11 @@ fun BudgetCard(
             .fillMaxWidth()
             .shadow(1.dp, RoundedCornerShape(12.dp)),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = PureWhite)
+        colors = CardDefaults.cardColors(containerColor = ComponentColors.CardBackgroundElevated)
     ) {
         Column(
             modifier = Modifier.padding(16.dp)
         ) {
-            // Header
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -329,8 +328,7 @@ fun BudgetCard(
                     Spacer(modifier = Modifier.width(12.dp))
                     Text(
                         text = budget.name,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium,
+                        style = MaterialTheme.typography.titleMedium,
                         color = TextPrimary
                     )
                 }
@@ -338,24 +336,22 @@ fun BudgetCard(
                 Column(horizontalAlignment = Alignment.End) {
                     Text(
                         text = "$${String.format("%.0f", budget.spent)} / $${String.format("%.0f", budget.amount)}",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = if (isOverBudget) ErrorRed else TextPrimary
+                        style = MaterialTheme.typography.labelLarge,
+                        color = if (isOverBudget) ComponentColors.Error else TextPrimary
                     )
                     Text(
                         text = if (isOverBudget) 
                             "$${String.format("%.0f", budget.spent - budget.amount)} over" 
                         else 
                             "$${String.format("%.0f", budget.amount - budget.spent)} left",
-                        fontSize = 12.sp,
-                        color = if (isOverBudget) ErrorRed else SuccessGreen
+                        style = MaterialTheme.typography.labelMedium,
+                        color = if (isOverBudget) ComponentColors.Error else ComponentColors.Success
                     )
                 }
             }
             
             Spacer(modifier = Modifier.height(12.dp))
             
-            // Progress Bar
             Column {
                 LinearProgressIndicator(
                     progress = { progress.toFloat() },
@@ -364,18 +360,18 @@ fun BudgetCard(
                         .height(8.dp)
                         .clip(RoundedCornerShape(4.dp)),
                     color = when {
-                        isOverBudget -> ErrorRed
-                        progress > 0.8 -> WarningOrange
-                        else -> SuccessGreen
+                        isOverBudget -> ComponentColors.ProgressError
+                        progress > 0.8 -> ComponentColors.ProgressWarning
+                        else -> ComponentColors.ProgressDefault
                     },
-                    trackColor = PlaceholderText.copy(alpha = 0.1f)
+                    trackColor = ComponentColors.ProgressTrack
                 )
                 
                 Spacer(modifier = Modifier.height(4.dp))
                 
                 Text(
                     text = "${(progress * 100).toInt()}% used",
-                    fontSize = 12.sp,
+                    style = MaterialTheme.typography.labelSmall,
                     color = TextSecondary
                 )
             }
@@ -397,7 +393,7 @@ fun OverallBudgetCard(
             .fillMaxWidth()
             .shadow(2.dp, RoundedCornerShape(16.dp)),
         shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = PureWhite)
+        colors = CardDefaults.cardColors(containerColor = NeutralWhite)
     ) {
         Column(
             modifier = Modifier.padding(20.dp)
@@ -460,7 +456,7 @@ fun BudgetSummaryCard(budget: Budget) {
             .fillMaxWidth()
             .shadow(1.dp, RoundedCornerShape(8.dp)),
         shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = PureWhite)
+        colors = CardDefaults.cardColors(containerColor = NeutralWhite)
     ) {
         Row(
             modifier = Modifier

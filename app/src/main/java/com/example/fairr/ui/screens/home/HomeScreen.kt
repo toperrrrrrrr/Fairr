@@ -48,11 +48,11 @@ fun HomeScreen(
     onNavigateToSettings: () -> Unit = {},
     onNavigateToGroupDetail: (String) -> Unit = {},
     onNavigateToAnalytics: () -> Unit = {},
-    onNavigateToBudgets: () -> Unit = {}
+    onNavigateToBudgets: () -> Unit = {},
+    modifier: Modifier = Modifier
 ) {
-    // Sample data for groups
-    val groups = remember { 
-        mutableStateListOf(
+    val groups = remember {
+        listOf(
             GroupItem("1", "Weekend Trip", 4, -125.75, "$"),
             GroupItem("2", "Apartment Rent", 3, 150.25, "$"),
             GroupItem("3", "Dinner Party", 6, 0.00, "$"),
@@ -65,17 +65,17 @@ fun HomeScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = {
+                title = { 
                     Text(
-                        when (selectedTab) {
-                            0 -> "Home"
+                        text = when (selectedTab) {
+                            0 -> "Fairr"
                             1 -> "Groups"
                             2 -> "Settings"
-                            else -> "Home"
+                            else -> "Fairr"
                         },
                         fontWeight = FontWeight.Bold,
                         color = TextPrimary
-                    )
+                    ) 
                 },
                 actions = {
                     // Search action
@@ -265,7 +265,7 @@ fun HomeTabContent(
                     title = "Total Balance",
                     value = "$${String.format("%.2f", groups.sumOf { kotlin.math.abs(it.balance) })}",
                     icon = Icons.Default.AccountBalance,
-                    change = "Active",
+                    changeValue = "Active",
                     modifier = Modifier.weight(1f)
                 )
                 
@@ -273,7 +273,7 @@ fun HomeTabContent(
                     title = "Groups",
                     value = "${groups.size}",
                     icon = Icons.Default.Group,
-                    change = "Joined",
+                    changeValue = "Joined",
                     modifier = Modifier.weight(1f)
                 )
             }
@@ -329,155 +329,44 @@ fun GroupsTabContent(
     onNavigateToJoinGroup: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var selectedGroupTab by remember { mutableStateOf(0) }
-    val groupTabs = listOf("My Groups", "Create Group", "Join Group")
-
     Column(
         modifier = modifier
             .fillMaxSize()
             .background(BackgroundSecondary)
+            .padding(16.dp)
     ) {
-        // Tabs
-        TabRow(
-            selectedTabIndex = selectedGroupTab,
-            containerColor = PureWhite,
-            contentColor = Primary,
-            indicator = { tabPositions ->
-                TabRowDefaults.Indicator(
-                    modifier = Modifier.tabIndicatorOffset(tabPositions[selectedGroupTab]),
-                    color = Primary
-                )
-            }
+        // Group Actions
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(bottom = 16.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            groupTabs.forEachIndexed { index, title ->
-                Tab(
-                    selected = selectedGroupTab == index,
-                    onClick = { selectedGroupTab = index },
-                    text = { 
-                        Text(
-                            text = title,
-                            fontSize = 14.sp,
-                            fontWeight = if (selectedGroupTab == index) FontWeight.Medium else FontWeight.Normal
-                        )
-                    },
-                    selectedContentColor = Primary,
-                    unselectedContentColor = TextSecondary
+            ModernButton(
+                text = "Create Group",
+                onClick = onNavigateToCreateGroup,
+                modifier = Modifier.weight(1f),
+                icon = Icons.Default.Add
+            )
+            ModernButton(
+                text = "Join Group",
+                onClick = onNavigateToJoinGroup,
+                modifier = Modifier.weight(1f),
+                icon = Icons.Default.PersonAdd
+            )
+        }
+
+        // Groups List
+        LazyColumn(
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            items(groups) { group ->
+                ModernGroupCard(
+                    group = group,
+                    onClick = { onNavigateToGroupDetail(group.id) }
                 )
             }
         }
-
-        // Tab Content
-        when (selectedGroupTab) {
-            0 -> {
-                // My Groups List
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    items(groups) { group ->
-                        ModernGroupCard(
-                            group = group,
-                            onClick = { onNavigateToGroupDetail(group.id) }
-                        )
-                    }
-                }
-            }
-            1 -> {
-                // Create Group Content
-                CreateGroupContent(
-                    onCreateGroup = onNavigateToCreateGroup,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp)
-                )
-            }
-            2 -> {
-                // Join Group Content
-                JoinGroupContent(
-                    onJoinGroup = onNavigateToJoinGroup,
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp)
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun CreateGroupContent(
-    onCreateGroup: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        OutlinedTextField(
-            value = "",
-            onValueChange = { },
-            label = { Text("Group Name") },
-            placeholder = { Text("Enter group name") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        OutlinedTextField(
-            value = "",
-            onValueChange = { },
-            label = { Text("Description") },
-            placeholder = { Text("Enter group description") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        OutlinedTextField(
-            value = "",
-            onValueChange = { },
-            label = { Text("Currency") },
-            placeholder = { Text("Select currency") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        ModernButton(
-            text = "Create Group",
-            onClick = onCreateGroup,
-            modifier = Modifier.fillMaxWidth(),
-            icon = Icons.Default.Add
-        )
-    }
-}
-
-@Composable
-private fun JoinGroupContent(
-    onJoinGroup: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier,
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        OutlinedTextField(
-            value = "",
-            onValueChange = { },
-            label = { Text("Group Code") },
-            placeholder = { Text("Enter group code") },
-            modifier = Modifier.fillMaxWidth()
-        )
-
-        Text(
-            text = "Ask your friends for the group code to join their group",
-            fontSize = 14.sp,
-            color = TextSecondary,
-            modifier = Modifier.padding(vertical = 8.dp)
-        )
-
-        ModernButton(
-            text = "Join Group",
-            onClick = onJoinGroup,
-            modifier = Modifier.fillMaxWidth(),
-            icon = Icons.Default.PersonAdd
-        )
     }
 }
 
@@ -516,12 +405,15 @@ fun SettingsTabContent(
                             color = TextSecondary
                         )
                     }
-                    ModernButton(
-                        text = "Edit Profile",
+                    Button(
                         onClick = { /* Navigate to edit profile */ },
-                        backgroundColor = Primary.copy(alpha = 0.1f),
-                        textColor = Primary
-                    )
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Primary.copy(alpha = 0.1f),
+                            contentColor = Primary
+                        )
+                    ) {
+                        Text("Edit Profile")
+                    }
                 }
             }
         }
@@ -674,6 +566,85 @@ fun ModernGroupCard(
     }
 }
 
+@Composable
+fun ModernStatsCard(
+    title: String,
+    value: String,
+    icon: ImageVector,
+    changeValue: String,
+    modifier: Modifier = Modifier
+) {
+    ModernCard(
+        modifier = modifier
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Icon(
+                    imageVector = icon,
+                    contentDescription = null,
+                    tint = Primary,
+                    modifier = Modifier.size(24.dp)
+                )
+                Text(
+                    text = title,
+                    fontSize = 14.sp,
+                    color = TextSecondary
+                )
+            }
+            
+            Text(
+                text = value,
+                fontSize = 24.sp,
+                fontWeight = FontWeight.Bold,
+                color = TextPrimary
+            )
+            
+            Text(
+                text = changeValue,
+                fontSize = 12.sp,
+                color = TextSecondary
+            )
+        }
+    }
+}
+
+@Composable
+fun ModernButton(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    icon: ImageVector? = null,
+    enabled: Boolean = true
+) {
+    Button(
+        onClick = onClick,
+        modifier = modifier,
+        enabled = enabled,
+        colors = ButtonDefaults.buttonColors(
+            containerColor = Primary,
+            contentColor = TextOnDark,
+            disabledContainerColor = Primary.copy(alpha = 0.5f),
+            disabledContentColor = TextOnDark.copy(alpha = 0.5f)
+        )
+    ) {
+        if (icon != null) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+        }
+        Text(text)
+    }
+}
+
 // Data class for group items
 data class GroupItem(
     val id: String,
@@ -690,3 +661,4 @@ fun HomeScreenPreview() {
         HomeScreen()
     }
 }
+

@@ -1,4 +1,4 @@
-# FairShare - Development Roadmap
+# Fairr - Development Roadmap
 
 ## Phase 1: Project Setup & Foundation (1-2 days)
 
@@ -194,7 +194,7 @@
 
 ## 🚀 **READY FOR PRODUCTION**
 
-The FairShare app now includes all essential features for a comprehensive expense sharing solution:
+The Fairr app now includes all essential features for a comprehensive expense sharing solution:
 
 - **Complete user journey** from onboarding to expense settlement
 - **Smart receipt processing** with OCR and auto-fill

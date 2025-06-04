@@ -114,7 +114,7 @@ fun PhotoCaptureScreen(
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = PureWhite
+                    containerColor = NeutralWhite
                 )
             )
         }
@@ -168,7 +168,7 @@ fun PhotoCaptureScreen(
                             .padding(16.dp)
                             .shadow(2.dp, RoundedCornerShape(16.dp)),
                         shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = PureWhite)
+                        colors = CardDefaults.cardColors(containerColor = NeutralWhite)
                     ) {
                         Column(
                             modifier = Modifier.padding(20.dp),
@@ -250,7 +250,7 @@ fun PhotoCaptureScreen(
                             text = "Captured Photos (${capturedPhotos.size})",
                             fontSize = 18.sp,
                             fontWeight = FontWeight.SemiBold,
-                            color = PureWhite,
+                            color = NeutralWhite,
                             modifier = Modifier.padding(horizontal = 16.dp)
                         )
                         
@@ -294,7 +294,7 @@ fun PhotoCaptureScreen(
                                 text = "No Photos Captured",
                                 fontSize = 18.sp,
                                 fontWeight = FontWeight.Medium,
-                                color = PureWhite
+                                color = NeutralWhite
                             )
                             
                             Text(
@@ -350,7 +350,7 @@ fun PhotoCaptureScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     Card(
-                        colors = CardDefaults.cardColors(containerColor = PureWhite)
+                        colors = CardDefaults.cardColors(containerColor = NeutralWhite)
                     ) {
                         Column(
                             modifier = Modifier.padding(24.dp),
@@ -390,7 +390,7 @@ fun PhotoCard(
             .height(160.dp)
             .shadow(2.dp, RoundedCornerShape(12.dp)),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = PureWhite)
+        colors = CardDefaults.cardColors(containerColor = NeutralWhite)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             // Photo
@@ -413,7 +413,7 @@ fun PhotoCard(
                 Icon(
                     Icons.Default.Close,
                     contentDescription = "Remove",
-                    tint = PureWhite,
+                    tint = NeutralWhite,
                     modifier = Modifier.size(16.dp)
                 )
             }
@@ -430,7 +430,7 @@ fun PhotoCard(
                     Text(
                         text = "OCR",
                         fontSize = 10.sp,
-                        color = PureWhite,
+                        color = NeutralWhite,
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -446,7 +446,7 @@ fun PhotoCard(
                     Icon(
                         Icons.Default.Visibility,
                         contentDescription = "View OCR",
-                        tint = PureWhite,
+                        tint = NeutralWhite,
                         modifier = Modifier.size(14.dp)
                     )
                 }
@@ -524,7 +524,7 @@ fun SimplifiedCameraPreview(
                 .align(Alignment.BottomCenter)
                 .padding(bottom = 32.dp)
                 .size(72.dp),
-            containerColor = PureWhite,
+            containerColor = NeutralWhite,
             contentColor = DarkGreen,
             shape = CircleShape
         ) {

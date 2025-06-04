@@ -52,7 +52,7 @@ fun SplashScreen(
                 .size(120.dp)
                 .scale(scale)
                 .background(
-                    color = PureWhite,
+                    color = NeutralWhite,
                     shape = RoundedCornerShape(24.dp)
                 ),
             contentAlignment = Alignment.Center
@@ -71,10 +71,10 @@ fun SplashScreen(
             modifier = Modifier.offset(y = 100.dp)
         ) {
             Text(
-                text = "FairShare",
+                text = "Fairr",
                 fontSize = 28.sp,
                 fontWeight = FontWeight.Bold,
-                color = PureWhite
+                color = NeutralWhite
             )
             Text(
                 text = "Split expenses fairly",
@@ -94,3 +94,4 @@ fun SplashScreenPreview() {
         SplashScreen(onTimeout = {})
     }
 }
+

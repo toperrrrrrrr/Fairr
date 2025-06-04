@@ -97,8 +97,8 @@ fun ModernHomeScreen(
                                 title = stat.title,
                                 value = stat.value,
                                 icon = stat.icon,
-                                change = stat.change,
-                                isPositive = stat.isPositive,
+                                changeValue = stat.change,
+                                changePositive = stat.isPositive,
                                 modifier = Modifier.weight(1f)
                             )
                         }
@@ -113,8 +113,8 @@ fun ModernHomeScreen(
                                 title = stat.title,
                                 value = stat.value,
                                 icon = stat.icon,
-                                change = stat.change,
-                                isPositive = stat.isPositive,
+                                changeValue = stat.change,
+                                changePositive = stat.isPositive,
                                 modifier = Modifier.weight(1f)
                             )
                         }

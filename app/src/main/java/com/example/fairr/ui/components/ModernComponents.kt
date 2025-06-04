@@ -6,8 +6,11 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
+import androidx.compose.material.icons.automirrored.filled.TrendingDown
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -18,6 +21,9 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.PasswordVisualTransformation
+import androidx.compose.ui.text.input.VisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
@@ -31,6 +37,7 @@ import com.example.fairr.ui.theme.*
 @Composable
 fun ModernCard(
     modifier: Modifier = Modifier,
+    onClick: (() -> Unit)? = null,
     backgroundColor: Color = CardBackground,
     shadowElevation: Int = 2,
     cornerRadius: Int = 16,
@@ -44,7 +51,8 @@ fun ModernCard(
                 shape = RoundedCornerShape(cornerRadius.dp),
                 ambientColor = Color.Black.copy(alpha = 0.1f),
                 spotColor = Color.Black.copy(alpha = 0.1f)
-            ),
+            )
+            .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier),
         shape = RoundedCornerShape(cornerRadius.dp),
         colors = CardDefaults.cardColors(containerColor = backgroundColor),
         elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
@@ -64,16 +72,20 @@ fun ModernItemCard(
     title: String,
     subtitle: String? = null,
     icon: ImageVector,
-    progress: Float? = null,
+    iconBackgroundColor: Color = LightGray,
+    iconTint: Color = IconTint,
     badge: String? = null,
+    progress: Float? = null,
     onClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     ModernCard(
-        modifier = modifier.clickable { onClick() }
+        modifier = modifier,
+        onClick = onClick
     ) {
         Row(
             modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
             // Icon Container
@@ -81,23 +93,24 @@ fun ModernItemCard(
                 modifier = Modifier
                     .size(48.dp)
                     .background(
-                        color = LightGray,
+                        color = iconBackgroundColor,
                         shape = RoundedCornerShape(12.dp)
                     ),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = icon,
-                    contentDescription = title,
-                    tint = IconTint,
+                    contentDescription = null,
+                    tint = iconTint,
                     modifier = Modifier.size(24.dp)
                 )
             }
             
-            Spacer(modifier = Modifier.width(16.dp))
-            
             // Content
-            Column(modifier = Modifier.weight(1f)) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.SpaceBetween,
@@ -114,7 +127,18 @@ fun ModernItemCard(
                     )
                     
                     badge?.let {
-                        ModernBadge(text = it)
+                        Text(
+                            text = it,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = AccentBlue,
+                            modifier = Modifier
+                                .background(
+                                    color = AccentBlue.copy(alpha = 0.1f),
+                                    shape = RoundedCornerShape(6.dp)
+                                )
+                                .padding(horizontal = 8.dp, vertical = 4.dp)
+                        )
                     }
                 }
                 
@@ -123,13 +147,31 @@ fun ModernItemCard(
                         text = it,
                         fontSize = 14.sp,
                         color = TextSecondary,
-                        modifier = Modifier.padding(top = 4.dp)
+                        maxLines = 1,
+                        overflow = TextOverflow.Ellipsis
                     )
                 }
                 
-                progress?.let {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    ModernProgressBar(progress = it)
+                progress?.let { progressValue ->
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(4.dp)
+                            .background(
+                                color = LightGray,
+                                shape = RoundedCornerShape(2.dp)
+                            )
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .fillMaxWidth(progressValue)
+                                .height(4.dp)
+                                .background(
+                                    color = AccentGreen,
+                                    shape = RoundedCornerShape(2.dp)
+                                )
+                        )
+                    }
                 }
             }
         }
@@ -203,42 +245,29 @@ fun ModernButton(
     text: String,
     onClick: () -> Unit,
     modifier: Modifier = Modifier,
-    enabled: Boolean = true,
-    backgroundColor: Color = ButtonBackground,
-    textColor: Color = ButtonText,
-    icon: ImageVector? = null
+    icon: ImageVector? = null,
+    enabled: Boolean = true
 ) {
     Button(
         onClick = onClick,
-        modifier = modifier.height(52.dp),
+        modifier = modifier,
         enabled = enabled,
         colors = ButtonDefaults.buttonColors(
-            containerColor = backgroundColor,
-            contentColor = textColor,
-            disabledContainerColor = MediumGray,
-            disabledContentColor = TextSecondary
-        ),
-        shape = RoundedCornerShape(16.dp),
-        elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp)
+            containerColor = Primary,
+            contentColor = TextOnDark,
+            disabledContainerColor = Primary.copy(alpha = 0.5f),
+            disabledContentColor = TextOnDark.copy(alpha = 0.5f)
+        )
     ) {
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            horizontalArrangement = Arrangement.Center
-        ) {
-            icon?.let {
-                Icon(
-                    imageVector = it,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-            }
-            Text(
-                text = text,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold
+        if (icon != null) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                modifier = Modifier.size(20.dp)
             )
+            Spacer(modifier = Modifier.width(8.dp))
         }
+        Text(text)
     }
 }
 
@@ -249,9 +278,9 @@ fun ModernButton(
 fun ModernStatsCard(
     title: String,
     value: String,
+    changeValue: String? = null,
+    changePositive: Boolean = true,
     icon: ImageVector,
-    change: String? = null,
-    isPositive: Boolean = true,
     modifier: Modifier = Modifier
 ) {
     ModernCard(modifier = modifier) {
@@ -260,15 +289,16 @@ fun ModernStatsCard(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.Top
         ) {
-            Column(modifier = Modifier.weight(1f)) {
+            Column(
+                modifier = Modifier.weight(1f),
+                verticalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
                 Text(
                     text = title,
                     fontSize = 14.sp,
                     color = TextSecondary,
                     fontWeight = FontWeight.Medium
                 )
-                
-                Spacer(modifier = Modifier.height(8.dp))
                 
                 Text(
                     text = value,
@@ -277,13 +307,12 @@ fun ModernStatsCard(
                     color = TextPrimary
                 )
                 
-                change?.let {
-                    Spacer(modifier = Modifier.height(4.dp))
+                changeValue?.let {
                     Text(
                         text = it,
                         fontSize = 12.sp,
-                        color = if (isPositive) SuccessGreen else ErrorRed,
-                        fontWeight = FontWeight.Medium
+                        fontWeight = FontWeight.Medium,
+                        color = if (changePositive) AccentGreen else AccentRed
                     )
                 }
             }
@@ -292,15 +321,15 @@ fun ModernStatsCard(
                 modifier = Modifier
                     .size(40.dp)
                     .background(
-                        color = Primary.copy(alpha = 0.1f),
+                        color = AccentBlue.copy(alpha = 0.1f),
                         shape = RoundedCornerShape(10.dp)
                     ),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = icon,
-                    contentDescription = title,
-                    tint = Primary,
+                    contentDescription = null,
+                    tint = AccentBlue,
                     modifier = Modifier.size(20.dp)
                 )
             }
@@ -319,50 +348,57 @@ fun ModernTextField(
     modifier: Modifier = Modifier,
     leadingIcon: ImageVector? = null,
     trailingIcon: ImageVector? = null,
-    onTrailingIconClick: () -> Unit = {},
-    isError: Boolean = false,
-    errorMessage: String? = null
+    onTrailingIconClick: (() -> Unit)? = null,
+    isPassword: Boolean = false,
+    keyboardType: KeyboardType = KeyboardType.Text,
+    errorMessage: String? = null,
+    enabled: Boolean = true
 ) {
+    var passwordVisible by remember { mutableStateOf(false) }
+    
     Column(modifier = modifier) {
         OutlinedTextField(
             value = value,
             onValueChange = onValueChange,
             label = { Text(label) },
             modifier = Modifier.fillMaxWidth(),
-            leadingIcon = leadingIcon?.let {
-                {
-                    Icon(
-                        imageVector = it,
-                        contentDescription = null,
-                        tint = IconTint
-                    )
-                }
+            leadingIcon = leadingIcon?.let { 
+                { Icon(imageVector = it, contentDescription = null) } 
             },
-            trailingIcon = trailingIcon?.let {
+            trailingIcon = if (isPassword) {
                 {
-                    IconButton(onClick = onTrailingIconClick) {
+                    IconButton(onClick = { passwordVisible = !passwordVisible }) {
                         Icon(
-                            imageVector = it,
-                            contentDescription = null,
-                            tint = IconTint
+                            imageVector = if (passwordVisible) Icons.Filled.Visibility else Icons.Filled.VisibilityOff,
+                            contentDescription = if (passwordVisible) "Hide password" else "Show password"
                         )
                     }
                 }
+            } else trailingIcon?.let { icon ->
+                {
+                    IconButton(onClick = { onTrailingIconClick?.invoke() }) {
+                        Icon(imageVector = icon, contentDescription = null)
+                    }
+                }
             },
-            isError = isError,
+            visualTransformation = if (isPassword && !passwordVisible) PasswordVisualTransformation() else VisualTransformation.None,
+            keyboardOptions = KeyboardOptions(keyboardType = keyboardType),
+            shape = RoundedCornerShape(12.dp),
             colors = OutlinedTextFieldDefaults.colors(
-                focusedBorderColor = Primary,
-                focusedLabelColor = Primary,
-                cursorColor = Primary,
+                focusedBorderColor = InputFocused,
+                unfocusedBorderColor = InputBorder,
+                focusedContainerColor = InputBackground,
+                unfocusedContainerColor = InputBackground,
                 errorBorderColor = ErrorRed,
-                errorLabelColor = ErrorRed
+                errorContainerColor = InputBackground
             ),
-            shape = RoundedCornerShape(12.dp)
+            enabled = enabled,
+            isError = errorMessage != null
         )
         
-        if (isError && errorMessage != null) {
+        errorMessage?.let {
             Text(
-                text = errorMessage,
+                text = it,
                 color = ErrorRed,
                 fontSize = 12.sp,
                 modifier = Modifier.padding(start = 16.dp, top = 4.dp)
@@ -464,6 +500,60 @@ fun ModernListItem(
     }
 }
 
+/**
+ * Modern Section Header
+ * Clean typography with consistent spacing
+ */
+@Composable
+fun ModernSectionHeader(
+    title: String,
+    subtitle: String? = null,
+    action: @Composable (() -> Unit)? = null,
+    modifier: Modifier = Modifier
+) {
+    Row(
+        modifier = modifier.fillMaxWidth(),
+        horizontalArrangement = Arrangement.SpaceBetween,
+        verticalAlignment = Alignment.CenterVertically
+    ) {
+        Column(modifier = Modifier.weight(1f)) {
+            Text(
+                text = title,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = TextPrimary
+            )
+            subtitle?.let {
+                Text(
+                    text = it,
+                    fontSize = 14.sp,
+                    color = TextSecondary,
+                    modifier = Modifier.padding(top = 2.dp)
+                )
+            }
+        }
+        
+        action?.invoke()
+    }
+}
+
+/**
+ * Modern Divider
+ * Subtle dividers with proper spacing
+ */
+@Composable
+fun ModernDivider(
+    modifier: Modifier = Modifier,
+    thickness: Int = 1,
+    color: Color = DividerColor
+) {
+    HorizontalDivider(
+        modifier = modifier,
+        thickness = thickness.dp,
+        color = color
+    )
+}
+
 // Preview Components
 @Preview(showBackground = true)
 @Composable
@@ -476,45 +566,32 @@ fun ModernComponentsPreview() {
                 .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            ModernHeader(
-                title = "Modern Design",
-                subtitle = "Clean and minimal interface"
+            ModernSectionHeader(
+                title = "Modern Components",
+                subtitle = "Preview of design system"
+            )
+            
+            ModernStatsCard(
+                title = "Total Expenses",
+                value = "$1,234.56",
+                changeValue = "+12.3%",
+                changePositive = true,
+                icon = Icons.AutoMirrored.Filled.TrendingUp
             )
             
             ModernItemCard(
-                title = "UI/UX Design Course",
-                subtitle = "12 lessons • 4.5 ⭐",
-                icon = Icons.Default.School,
-                progress = 0.65f,
-                badge = "$70"
+                title = "Coffee with Team",
+                subtitle = "Split between 4 people",
+                icon = Icons.Default.Coffee,
+                badge = "New"
             )
             
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                ModernStatsCard(
-                    title = "Total Expenses",
-                    value = "$1,234",
-                    icon = Icons.Default.Receipt,
-                    change = "+12%",
-                    modifier = Modifier.weight(1f)
-                )
-                
-                ModernStatsCard(
-                    title = "Groups",
-                    value = "8",
-                    icon = Icons.Default.Group,
-                    change = "+2",
-                    modifier = Modifier.weight(1f)
-                )
-            }
-            
             ModernButton(
-                text = "Get Started",
+                text = "Continue",
                 onClick = {},
                 icon = Icons.AutoMirrored.Filled.ArrowForward
             )
         }
     }
 } 
+

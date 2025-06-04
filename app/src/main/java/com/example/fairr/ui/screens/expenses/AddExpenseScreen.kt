@@ -120,12 +120,8 @@ fun AddExpenseScreen(
                     ModernButton(
                         text = "Add Photo",
                         onClick = { 
-                            navController.navigate("photo_capture") {
-                                // In a real implementation, you'd handle the result
-                            }
+                            navController.navigate("photo_capture")
                         },
-                        backgroundColor = Primary.copy(alpha = 0.1f),
-                        textColor = Primary,
                         icon = Icons.Default.PhotoCamera,
                         modifier = Modifier.height(40.dp)
                     )
@@ -431,7 +427,7 @@ fun ReceiptPhotoCard(
             .size(80.dp)
             .shadow(1.dp, RoundedCornerShape(8.dp)),
         shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = PureWhite)
+        colors = CardDefaults.cardColors(containerColor = NeutralWhite)
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             // Photo
@@ -454,7 +450,7 @@ fun ReceiptPhotoCard(
                 Icon(
                     Icons.Default.Close,
                     contentDescription = "Remove",
-                    tint = PureWhite,
+                    tint = NeutralWhite,
                     modifier = Modifier.size(12.dp)
                 )
             }
@@ -471,7 +467,7 @@ fun ReceiptPhotoCard(
                     Text(
                         text = "OCR",
                         fontSize = 8.sp,
-                        color = PureWhite,
+                        color = NeutralWhite,
                         fontWeight = FontWeight.Bold
                     )
                 }
@@ -479,3 +475,4 @@ fun ReceiptPhotoCard(
         }
     }
 } 
+

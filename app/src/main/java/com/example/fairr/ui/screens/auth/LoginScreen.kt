@@ -109,7 +109,7 @@ fun LoginScreen(
                 modifier = Modifier
                     .size(80.dp)
                     .background(
-                        color = PureWhite,
+                        color = NeutralWhite,
                         shape = RoundedCornerShape(16.dp)
                     ),
                 contentAlignment = Alignment.Center
@@ -303,10 +303,10 @@ fun LoginScreen(
                     .fillMaxWidth()
                     .height(56.dp),
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = PureBlack,
-                    contentColor = PureWhite,
+                    containerColor = NeutralBlack,
+                    contentColor = NeutralWhite,
                     disabledContainerColor = PlaceholderText,
-                    disabledContentColor = PureWhite
+                    disabledContentColor = NeutralWhite
                 ),
                 shape = RoundedCornerShape(12.dp)
             ) {
@@ -316,7 +316,7 @@ fun LoginScreen(
                         horizontalArrangement = Arrangement.Center
                     ) {
                         CircularProgressIndicator(
-                            color = PureWhite,
+                            color = NeutralWhite,
                             strokeWidth = 2.dp,
                             modifier = Modifier.size(20.dp)
                         )
@@ -394,7 +394,7 @@ fun LoginScreen(
                             text = "G",
                             fontSize = 14.sp,
                             fontWeight = FontWeight.Bold,
-                            color = AccentBlue
+                            color = Primary
                         )
                     }
                     Spacer(modifier = Modifier.width(12.dp))
@@ -433,3 +433,6 @@ fun LoginScreenPreview() {
         )
     }
 }
+
+
+

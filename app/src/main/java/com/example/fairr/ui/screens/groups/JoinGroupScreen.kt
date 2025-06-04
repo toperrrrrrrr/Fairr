@@ -36,25 +36,19 @@ fun JoinGroupScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { 
-                    Text(
-                        "Join Group",
-                        fontWeight = FontWeight.SemiBold,
-                        color = TextPrimary
-                    ) 
-                },
+                title = { Text("Join Group") },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
+                    IconButton(
+                        onClick = { navController.navigateUp() },
+                        modifier = Modifier.padding(8.dp)
+                    ) {
                         Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
-                            tint = TextPrimary
+                            tint = MaterialTheme.colorScheme.onSurface
                         )
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = PureWhite
-                )
+                }
             )
         }
     ) { padding ->
@@ -67,12 +61,11 @@ fun JoinGroupScreen(
         ) {
             Spacer(modifier = Modifier.height(60.dp))
             
-            // Header illustration
             Box(
                 modifier = Modifier
                     .size(120.dp)
                     .background(
-                        DarkGreen.copy(alpha = 0.1f),
+                        ComponentColors.IconBackgroundSuccess,
                         RoundedCornerShape(24.dp)
                     ),
                 contentAlignment = Alignment.Center
@@ -80,7 +73,7 @@ fun JoinGroupScreen(
                 Icon(
                     Icons.Default.Group,
                     contentDescription = "Join Group",
-                    tint = DarkGreen,
+                    tint = ComponentColors.Success,
                     modifier = Modifier.size(60.dp)
                 )
             }
@@ -89,15 +82,14 @@ fun JoinGroupScreen(
             
             Text(
                 text = "Join a Group",
-                fontSize = 24.sp,
-                fontWeight = FontWeight.Bold,
+                style = MaterialTheme.typography.headlineMedium,
                 color = TextPrimary,
                 textAlign = TextAlign.Center
             )
             
             Text(
                 text = "Enter the invite code shared by your friend to join their group",
-                fontSize = 16.sp,
+                style = MaterialTheme.typography.bodyLarge,
                 color = TextSecondary,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 32.dp, vertical = 8.dp)
@@ -105,54 +97,39 @@ fun JoinGroupScreen(
             
             Spacer(modifier = Modifier.height(40.dp))
             
-            // Invite Code Card
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(horizontal = 24.dp)
-                    .shadow(2.dp, RoundedCornerShape(16.dp)),
-                shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = PureWhite)
+                    .shadow(1.dp, RoundedCornerShape(12.dp)),
+                shape = RoundedCornerShape(12.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = ComponentColors.CardBackgroundElevated
+                )
             ) {
                 Column(
-                    modifier = Modifier.padding(24.dp),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(24.dp),
                     horizontalAlignment = Alignment.CenterHorizontally
                 ) {
                     OutlinedTextField(
                         value = inviteCode,
-                        onValueChange = { 
+                        onValueChange = {
                             inviteCode = it.uppercase()
                             errorMessage = ""
                         },
-                        label = { 
-                            Text(
-                                "Invite Code",
-                                color = PlaceholderText,
-                                fontSize = 14.sp
-                            ) 
-                        },
-                        placeholder = {
-                            Text(
-                                "e.g., ABC123",
-                                color = PlaceholderText,
-                                fontSize = 14.sp
-                            )
-                        },
-                        leadingIcon = {
-                            Icon(
-                                Icons.Default.Key,
-                                contentDescription = "Invite code",
-                                tint = PlaceholderText
-                            )
-                        },
-                        modifier = Modifier.fillMaxWidth(),
+                        label = { Text("Invite Code") },
                         singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Text),
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        shape = RoundedCornerShape(8.dp),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = DarkGreen,
-                            unfocusedBorderColor = PlaceholderText.copy(alpha = 0.3f),
-                            focusedLabelColor = DarkGreen,
-                            errorBorderColor = ErrorRed
+                            focusedBorderColor = ComponentColors.TextFieldBorderFocused,
+                            unfocusedBorderColor = ComponentColors.TextFieldBorderUnfocused,
+                            focusedLabelColor = ComponentColors.TextFieldLabelFocused,
+                            errorBorderColor = ComponentColors.TextFieldError
                         ),
                         isError = errorMessage.isNotEmpty()
                     )
@@ -161,8 +138,8 @@ fun JoinGroupScreen(
                         Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = errorMessage,
-                            color = ErrorRed,
-                            fontSize = 12.sp,
+                            style = MaterialTheme.typography.labelSmall,
+                            color = ComponentColors.Error,
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
@@ -170,39 +147,29 @@ fun JoinGroupScreen(
                     Spacer(modifier = Modifier.height(24.dp))
                     
                     Button(
-                        onClick = { 
-                            if (inviteCode.length < 6) {
-                                errorMessage = "Invite code must be at least 6 characters"
-                                return@Button
+                        onClick = {
+                            if (inviteCode.isBlank()) {
+                                errorMessage = "Please enter an invite code"
+                            } else {
+                                isLoading = true
+                                // TODO: Implement group joining logic
+                                // Simulate API call
+                                onGroupJoined()
                             }
-                            
-                            isLoading = true
-                            // TODO: Implement group joining logic
-                            // Simulate API call
-                            onGroupJoined()
                         },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .height(56.dp),
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = DarkGreen,
-                            contentColor = PureWhite
-                        ),
-                        shape = RoundedCornerShape(12.dp),
-                        enabled = inviteCode.isNotBlank() && !isLoading
+                            .height(48.dp),
+                        shape = RoundedCornerShape(8.dp)
                     ) {
                         if (isLoading) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(20.dp),
-                                color = PureWhite,
+                                color = NeutralWhite,
                                 strokeWidth = 2.dp
                             )
                         } else {
-                            Text(
-                                text = "Join Group",
-                                fontSize = 16.sp,
-                                fontWeight = FontWeight.Medium
-                            )
+                            Text("Join Group")
                         }
                     }
                 }
@@ -210,7 +177,6 @@ fun JoinGroupScreen(
             
             Spacer(modifier = Modifier.height(32.dp))
             
-            // Help text
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
@@ -218,7 +184,7 @@ fun JoinGroupScreen(
                     .shadow(1.dp, RoundedCornerShape(12.dp)),
                 shape = RoundedCornerShape(12.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = DarkGreen.copy(alpha = 0.05f)
+                    containerColor = ComponentColors.IconBackgroundInfo
                 )
             ) {
                 Column(
@@ -226,14 +192,13 @@ fun JoinGroupScreen(
                 ) {
                     Text(
                         text = "💡 How it works",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold,
+                        style = MaterialTheme.typography.titleSmall,
                         color = TextPrimary
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = "Ask a group member to share their invite code from the group settings. The code is usually 6-8 characters long.",
-                        fontSize = 12.sp,
+                        style = MaterialTheme.typography.bodySmall,
                         color = TextSecondary,
                         lineHeight = 16.sp
                     )
