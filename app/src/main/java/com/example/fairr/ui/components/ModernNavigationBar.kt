@@ -26,7 +26,7 @@ fun ModernNavigationBar(
 ) {
     val navItems = listOf(
         NavigationItem("Home", Icons.Filled.Home, Icons.Outlined.Home),
-        NavigationItem("History", Icons.Filled.History, Icons.Outlined.History),
+        NavigationItem("Groups", Icons.Filled.Groups, Icons.Outlined.Groups),
         NavigationItem("Notifications", Icons.Filled.Notifications, Icons.Outlined.Notifications),
         NavigationItem("Settings", Icons.Filled.Settings, Icons.Outlined.Settings)
     )

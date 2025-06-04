@@ -34,8 +34,6 @@ fun SettingsScreen(
     onSignOut: () -> Unit,
     modifier: Modifier = Modifier
 ) {
-    var selectedTab by remember { mutableStateOf(0) }
-    val settingsTabs = listOf("Profile", "Preferences", "Support")
     var notificationsEnabled by remember { mutableStateOf(true) }
     var soundEnabled by remember { mutableStateOf(true) }
     var isDarkMode by remember { mutableStateOf(false) }
@@ -46,12 +44,7 @@ fun SettingsScreen(
             TopAppBar(
                 title = {
                     Text(
-                        text = when (selectedTab) {
-                            0 -> "Profile"
-                            1 -> "Preferences"
-                            2 -> "Support"
-                            else -> "Settings"
-                        },
+                        text = "Settings",
                         fontWeight = FontWeight.Bold,
                         color = TextPrimary
                     )
@@ -60,311 +53,248 @@ fun SettingsScreen(
                     containerColor = BackgroundPrimary
                 )
             )
-        },
-        bottomBar = {
-            NavigationBar(
-                containerColor = PureWhite,
-                tonalElevation = 8.dp
-            ) {
-                // Home Tab
-                NavigationBarItem(
-                    icon = { Icon(Icons.Filled.Home, contentDescription = "Home") },
-                    label = { Text("Home") },
-                    selected = false,
-                    onClick = { navController.navigate("home") },
-                    colors = NavigationBarItemDefaults.colors(
-                        unselectedIconColor = IconTint,
-                        unselectedTextColor = IconTint
-                    )
-                )
-                
-                // Groups Tab
-                NavigationBarItem(
-                    icon = { Icon(Icons.Filled.Group, contentDescription = "Groups") },
-                    label = { Text("Groups") },
-                    selected = false,
-                    onClick = { navController.navigate("groups") },
-                    colors = NavigationBarItemDefaults.colors(
-                        unselectedIconColor = IconTint,
-                        unselectedTextColor = IconTint
-                    )
-                )
-                
-                // Settings Tab
-                NavigationBarItem(
-                    icon = { Icon(Icons.Filled.Settings, contentDescription = "Settings") },
-                    label = { Text("Settings") },
-                    selected = true,
-                    onClick = { },
-                    colors = NavigationBarItemDefaults.colors(
-                        selectedIconColor = Primary,
-                        selectedTextColor = Primary,
-                        unselectedIconColor = IconTint,
-                        unselectedTextColor = IconTint
-                    )
-                )
-            }
         }
     ) { padding ->
-        Column(
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
                 .background(BackgroundSecondary)
                 .padding(padding)
+                .padding(horizontal = 16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            // Settings Tabs
-            TabRow(
-                selectedTabIndex = selectedTab,
-                containerColor = PureWhite,
-                contentColor = Primary,
-                indicator = { tabPositions ->
-                    TabRowDefaults.Indicator(
-                        modifier = Modifier.tabIndicatorOffset(tabPositions[selectedTab]),
-                        color = Primary
-                    )
-                }
-            ) {
-                settingsTabs.forEachIndexed { index, title ->
-                    Tab(
-                        selected = selectedTab == index,
-                        onClick = { selectedTab = index },
-                        text = { 
-                            Text(
-                                text = title,
-                                fontSize = 14.sp,
-                                fontWeight = if (selectedTab == index) FontWeight.Medium else FontWeight.Normal
-                            )
-                        },
-                        selectedContentColor = Primary,
-                        unselectedContentColor = TextSecondary
-                    )
+            // Profile Section
+            item {
+                Text(
+                    text = "Profile",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+                
+                ModernCard {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Column {
+                                Text(
+                                    text = "John Doe",
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = TextPrimary
+                                )
+                                Text(
+                                    text = "john.doe@example.com",
+                                    fontSize = 14.sp,
+                                    color = TextSecondary
+                                )
+                            }
+                            Button(
+                                onClick = { navController.navigate("edit_profile") },
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Primary.copy(alpha = 0.1f),
+                                    contentColor = Primary
+                                )
+                            ) {
+                                Text("Edit Profile")
+                            }
+                        }
+                    }
                 }
             }
 
-            // Tab Content
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(16.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                when (selectedTab) {
-                    0 -> {
-                        // Profile Section
-                        item {
-                            ModernCard {
-                                Column(
-                                    modifier = Modifier.padding(16.dp),
-                                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                                ) {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Column {
-                                            Text(
-                                                text = "John Doe",
-                                                fontSize = 20.sp,
-                                                fontWeight = FontWeight.Bold,
-                                                color = TextPrimary
-                                            )
-                                            Text(
-                                                text = "john.doe@example.com",
-                                                fontSize = 14.sp,
-                                                color = TextSecondary
-                                            )
-                                        }
-                                        Button(
-                                            onClick = { },
-                                            colors = ButtonDefaults.buttonColors(
-                                                containerColor = Primary.copy(alpha = 0.1f),
-                                                contentColor = Primary
-                                            )
-                                        ) {
-                                            Text("Edit Profile")
-                                        }
-                                    }
-                                }
-                            }
-
-                            ModernCard {
-                                Column {
-                                    ListItem(
-                                        headlineContent = { Text("Personal Information") },
-                                        leadingContent = { 
-                                            Icon(
-                                                Icons.Default.Person,
-                                                contentDescription = null,
-                                                tint = Primary
-                                            )
-                                        }
-                                    )
-                                    ListItem(
-                                        headlineContent = { Text("Payment Methods") },
-                                        leadingContent = { 
-                                            Icon(
-                                                Icons.Default.Payment,
-                                                contentDescription = null,
-                                                tint = Primary
-                                            )
-                                        }
-                                    )
-                                    ListItem(
-                                        headlineContent = { Text("Account Security") },
-                                        leadingContent = { 
-                                            Icon(
-                                                Icons.Default.Security,
-                                                contentDescription = null,
-                                                tint = Primary
-                                            )
-                                        }
-                                    )
-                                }
-                            }
-                        }
-                    }
-                    1 -> {
-                        // Preferences Section
-                        item {
-                            ModernCard {
-                                Column {
-                                    ListItem(
-                                        headlineContent = { Text("Dark Mode") },
-                                        supportingContent = { Text("Use dark theme") },
-                                        leadingContent = { 
-                                            Icon(
-                                                Icons.Default.DarkMode,
-                                                contentDescription = null,
-                                                tint = Primary
-                                            )
-                                        },
-                                        trailingContent = {
-                                            Switch(
-                                                checked = isDarkMode,
-                                                onCheckedChange = { isDarkMode = it }
-                                            )
-                                        }
-                                    )
-                                    ListItem(
-                                        headlineContent = { Text("Notifications") },
-                                        supportingContent = { Text("Enable push notifications") },
-                                        leadingContent = { 
-                                            Icon(
-                                                Icons.Default.Notifications,
-                                                contentDescription = null,
-                                                tint = Primary
-                                            )
-                                        },
-                                        trailingContent = {
-                                            Switch(
-                                                checked = notificationsEnabled,
-                                                onCheckedChange = { notificationsEnabled = it }
-                                            )
-                                        }
-                                    )
-                                    ListItem(
-                                        headlineContent = { Text("Sound") },
-                                        supportingContent = { Text("Enable notification sounds") },
-                                        leadingContent = { 
-                                            Icon(
-                                                Icons.AutoMirrored.Filled.VolumeUp,
-                                                contentDescription = null,
-                                                tint = Primary
-                                            )
-                                        },
-                                        trailingContent = {
-                                            Switch(
-                                                checked = soundEnabled,
-                                                onCheckedChange = { soundEnabled = it }
-                                            )
-                                        }
-                                    )
-                                }
-                            }
-                        }
-                    }
-                    2 -> {
-                        // Support Section
-                        item {
-                            ModernCard {
-                                Column {
-                                    ListItem(
-                                        headlineContent = { Text("Help Center") },
-                                        leadingContent = { 
-                                            Icon(
-                                                Icons.AutoMirrored.Filled.Help,
-                                                contentDescription = null,
-                                                tint = Primary
-                                            )
-                                        }
-                                    )
-                                    ListItem(
-                                        headlineContent = { Text("Contact Support") },
-                                        leadingContent = { 
-                                            Icon(
-                                                Icons.Default.SupportAgent,
-                                                contentDescription = null,
-                                                tint = Primary
-                                            )
-                                        }
-                                    )
-                                    ListItem(
-                                        headlineContent = { Text("Privacy Policy") },
-                                        leadingContent = { 
-                                            Icon(
-                                                Icons.Default.Policy,
-                                                contentDescription = null,
-                                                tint = Primary
-                                            )
-                                        }
-                                    )
-                                    ListItem(
-                                        headlineContent = { Text("Terms of Service") },
-                                        leadingContent = { 
-                                            Icon(
-                                                Icons.Default.Description,
-                                                contentDescription = null,
-                                                tint = Primary
-                                            )
-                                        }
-                                    )
-                                    ListItem(
-                                        headlineContent = { Text("About") },
-                                        supportingContent = { Text("Version 1.0.0") },
-                                        leadingContent = { 
-                                            Icon(
-                                                Icons.Default.Info,
-                                                contentDescription = null,
-                                                tint = Primary
-                                            )
-                                        }
-                                    )
-                                }
-                            }
-                        }
-
-                        // Sign Out Button
-                        item {
-                            Button(
-                                onClick = onSignOut,
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = ErrorRed,
-                                    contentColor = TextOnDark
-                                ),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
+            // Account Section
+            item {
+                Text(
+                    text = "Account",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+                
+                ModernCard {
+                    Column {
+                        ListItem(
+                            headlineContent = { Text("Personal Information") },
+                            leadingContent = { 
                                 Icon(
-                                    Icons.AutoMirrored.Filled.ExitToApp,
+                                    Icons.Default.Person,
                                     contentDescription = null,
-                                    modifier = Modifier.size(20.dp)
+                                    tint = Primary
                                 )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text("Sign Out")
-                            }
-                        }
+                            },
+                            modifier = Modifier.clickable { }
+                        )
+                        ListItem(
+                            headlineContent = { Text("Payment Methods") },
+                            leadingContent = { 
+                                Icon(
+                                    Icons.Default.Payment,
+                                    contentDescription = null,
+                                    tint = Primary
+                                )
+                            },
+                            modifier = Modifier.clickable { }
+                        )
+                        ListItem(
+                            headlineContent = { Text("Account Security") },
+                            leadingContent = { 
+                                Icon(
+                                    Icons.Default.Security,
+                                    contentDescription = null,
+                                    tint = Primary
+                                )
+                            },
+                            modifier = Modifier.clickable { }
+                        )
                     }
                 }
+            }
+
+            // Preferences Section
+            item {
+                Text(
+                    text = "Preferences",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+                
+                ModernCard {
+                    Column {
+                        ListItem(
+                            headlineContent = { Text("Dark Mode") },
+                            supportingContent = { Text("Use dark theme") },
+                            leadingContent = { 
+                                Icon(
+                                    Icons.Default.DarkMode,
+                                    contentDescription = null,
+                                    tint = Primary
+                                )
+                            },
+                            trailingContent = {
+                                Switch(
+                                    checked = isDarkMode,
+                                    onCheckedChange = { isDarkMode = it }
+                                )
+                            }
+                        )
+                        ListItem(
+                            headlineContent = { Text("Notifications") },
+                            supportingContent = { Text("Enable push notifications") },
+                            leadingContent = { 
+                                Icon(
+                                    Icons.Default.Notifications,
+                                    contentDescription = null,
+                                    tint = Primary
+                                )
+                            },
+                            trailingContent = {
+                                Switch(
+                                    checked = notificationsEnabled,
+                                    onCheckedChange = { notificationsEnabled = it }
+                                )
+                            }
+                        )
+                        ListItem(
+                            headlineContent = { Text("Sound") },
+                            supportingContent = { Text("Enable sound effects") },
+                            leadingContent = { 
+                                Icon(
+                                    Icons.Default.VolumeUp,
+                                    contentDescription = null,
+                                    tint = Primary
+                                )
+                            },
+                            trailingContent = {
+                                Switch(
+                                    checked = soundEnabled,
+                                    onCheckedChange = { soundEnabled = it }
+                                )
+                            }
+                        )
+                    }
+                }
+            }
+
+            // Support Section
+            item {
+                Text(
+                    text = "Support",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+                
+                ModernCard {
+                    Column {
+                        ListItem(
+                            headlineContent = { Text("Help Center") },
+                            leadingContent = { 
+                                Icon(
+                                    Icons.AutoMirrored.Filled.Help,
+                                    contentDescription = null,
+                                    tint = Primary
+                                )
+                            },
+                            modifier = Modifier.clickable { navController.navigate("help_support") }
+                        )
+                        ListItem(
+                            headlineContent = { Text("Contact Support") },
+                            leadingContent = { 
+                                Icon(
+                                    Icons.AutoMirrored.Filled.Chat,
+                                    contentDescription = null,
+                                    tint = Primary
+                                )
+                            },
+                            modifier = Modifier.clickable { }
+                        )
+                        ListItem(
+                            headlineContent = { Text("Privacy Policy") },
+                            leadingContent = { 
+                                Icon(
+                                    Icons.Default.PrivacyTip,
+                                    contentDescription = null,
+                                    tint = Primary
+                                )
+                            },
+                            modifier = Modifier.clickable { }
+                        )
+                    }
+                }
+            }
+
+            // Sign Out Button
+            item {
+                Spacer(modifier = Modifier.height(8.dp))
+                Button(
+                    onClick = onSignOut,
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = ErrorRed,
+                        contentColor = PureWhite
+                    )
+                ) {
+                    Icon(
+                        Icons.AutoMirrored.Filled.ExitToApp,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Sign Out")
+                }
+                Spacer(modifier = Modifier.height(16.dp))
             }
         }
     }

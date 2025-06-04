@@ -64,6 +64,7 @@ fun MainScreen(
                 paddingValues = paddingValues,
                 onNavigateToCreateGroup = onNavigateToCreateGroup,
                 onNavigateToGroupDetail = onNavigateToGroupDetail,
+                onNavigateToJoinGroup = onNavigateToJoinGroup,
                 modifier = Modifier
             )
             2 -> NotificationsScreen(
@@ -108,6 +109,7 @@ private fun GroupsTabContent(
     paddingValues: PaddingValues,
     onNavigateToCreateGroup: () -> Unit,
     onNavigateToGroupDetail: (String) -> Unit,
+    onNavigateToJoinGroup: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -124,36 +126,77 @@ private fun GroupsTabContent(
             color = MaterialTheme.colorScheme.onBackground
         )
         
-        // Quick create group action
-        Card(
-            onClick = onNavigateToCreateGroup,
+        // Group actions
+        Row(
             modifier = Modifier.fillMaxWidth(),
-            shape = MaterialTheme.shapes.medium,
-            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp),
-                horizontalArrangement = Arrangement.spacedBy(16.dp),
-                verticalAlignment = Alignment.CenterVertically
+            // Create group card
+            Card(
+                onClick = onNavigateToCreateGroup,
+                modifier = Modifier.weight(1f),
+                shape = MaterialTheme.shapes.medium,
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Create Group",
-                    tint = MaterialTheme.colorScheme.primary
-                )
-                Column {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Create Group",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(32.dp)
+                    )
                     Text(
-                        text = "Create New Group",
+                        text = "Create Group",
                         style = MaterialTheme.typography.titleMedium,
                         fontWeight = FontWeight.SemiBold,
                         color = MaterialTheme.colorScheme.onSurface
                     )
                     Text(
-                        text = "Start splitting expenses with friends",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                        text = "Start a new group",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    )
+                }
+            }
+            
+            // Join group card
+            Card(
+                onClick = onNavigateToJoinGroup,
+                modifier = Modifier.weight(1f),
+                shape = MaterialTheme.shapes.medium,
+                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.GroupAdd,
+                        contentDescription = "Join Group",
+                        tint = MaterialTheme.colorScheme.primary,
+                        modifier = Modifier.size(32.dp)
+                    )
+                    Text(
+                        text = "Join Group",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    Text(
+                        text = "Join existing group",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = androidx.compose.ui.text.style.TextAlign.Center
                     )
                 }
             }
@@ -171,7 +214,7 @@ private fun GroupsTabContent(
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
                 Icon(
-                    imageVector = Icons.Default.Group,
+                    imageVector = Icons.Default.Groups,
                     contentDescription = null,
                     modifier = Modifier.size(48.dp),
                     tint = MaterialTheme.colorScheme.onSurfaceVariant
@@ -182,10 +225,11 @@ private fun GroupsTabContent(
                     color = MaterialTheme.colorScheme.onSurface
                 )
                 Text(
-                    text = "Create or join a group to start sharing expenses with friends",
+                    text = "Create a new group or join an existing one to start sharing expenses",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
+                    modifier = Modifier.padding(horizontal = 32.dp)
                 )
             }
         }
