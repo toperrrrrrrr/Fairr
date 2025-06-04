@@ -2,6 +2,7 @@ package com.example.fairr.ui.screens.onboarding
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.ExperimentalFoundationApi
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -26,6 +27,7 @@ import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.graphics.luminance
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -255,74 +257,81 @@ fun ModernOnboardingPageContent(
     page: OnboardingPage,
     modifier: Modifier = Modifier
 ) {
-    Column(
-        modifier = modifier.padding(horizontal = 16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
+    Card(
+        modifier = modifier
+            .padding(horizontal = 16.dp, vertical = 8.dp)
+            .fillMaxWidth()
+            .aspectRatio(0.85f),
+        shape = RoundedCornerShape(32.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface,
+        ),
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 2.dp
+        )
     ) {
-        // Modern icon container
-        Box(
+        Column(
             modifier = Modifier
-                .size(120.dp)
-                .background(
-                    brush = Brush.radialGradient(
-                        colors = listOf(
-                            page.accentColor.copy(alpha = 0.15f),
-                            page.accentColor.copy(alpha = 0.05f)
-                        )
-                    ),
-                    shape = CircleShape
-                ),
-            contentAlignment = Alignment.Center
+                .fillMaxSize()
+                .padding(24.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
+            // Modern illustration container
             Box(
                 modifier = Modifier
-                    .size(80.dp)
+                    .weight(1f)
+                    .fillMaxWidth()
                     .background(
-                        color = page.accentColor.copy(alpha = 0.1f),
-                        shape = CircleShape
+                        brush = Brush.radialGradient(
+                            colors = listOf(
+                                MaterialTheme.colorScheme.primary.copy(alpha = 0.08f),
+                                MaterialTheme.colorScheme.surface
+                            )
+                        ),
+                        shape = RoundedCornerShape(24.dp)
                     ),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     imageVector = page.icon,
                     contentDescription = page.title,
-                    modifier = Modifier.size(36.dp),
-                    tint = page.accentColor
+                    modifier = Modifier.size(80.dp),
+                    tint = MaterialTheme.colorScheme.primary
+                )
+            }
+            
+            // Modern typography with better spacing
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = page.title,
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = MaterialTheme.colorScheme.onSurface,
+                    textAlign = TextAlign.Center
+                )
+                
+                Text(
+                    text = page.subtitle,
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = MaterialTheme.colorScheme.primary,
+                    textAlign = TextAlign.Center
+                )
+                
+                Text(
+                    text = page.description,
+                    fontSize = 16.sp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f),
+                    textAlign = TextAlign.Center,
+                    lineHeight = 24.sp,
+                    modifier = Modifier.padding(top = 8.dp)
                 )
             }
         }
-        
-        Spacer(modifier = Modifier.height(48.dp))
-        
-        // Modern typography
-        Text(
-            text = page.title,
-            fontSize = 32.sp,
-            fontWeight = FontWeight.Bold,
-            color = TextPrimary,
-            textAlign = TextAlign.Center
-        )
-        
-        Text(
-            text = page.subtitle,
-            fontSize = 32.sp,
-            fontWeight = FontWeight.Bold,
-            color = page.accentColor,
-            textAlign = TextAlign.Center,
-            modifier = Modifier.padding(top = 4.dp)
-        )
-        
-        Spacer(modifier = Modifier.height(24.dp))
-        
-        Text(
-            text = page.description,
-            fontSize = 16.sp,
-            color = TextSecondary,
-            textAlign = TextAlign.Center,
-            lineHeight = 24.sp,
-            modifier = Modifier.padding(horizontal = 16.dp)
-        )
     }
 }
 
@@ -333,24 +342,26 @@ fun ModernPageIndicators(
     modifier: Modifier = Modifier
 ) {
     Row(
-        horizontalArrangement = Arrangement.spacedBy(8.dp),
-        modifier = modifier
+        horizontalArrangement = Arrangement.Center,
+        modifier = modifier.fillMaxWidth()
     ) {
         repeat(pageCount) { index ->
+            val width = if (index == currentPage) 32.dp else 12.dp
+            
             Box(
                 modifier = Modifier
+                    .padding(horizontal = 4.dp)
                     .size(
-                        width = if (index == currentPage) 24.dp else 8.dp,
-                        height = 8.dp
+                        width = width,
+                        height = 12.dp
                     )
-                    .clip(RoundedCornerShape(4.dp))
+                    .clip(RoundedCornerShape(6.dp))
                     .background(
-                        if (index == currentPage) Primary 
-                        else Primary.copy(alpha = 0.2f)
+                        if (index == currentPage) 
+                            MaterialTheme.colorScheme.primary
+                        else 
+                            MaterialTheme.colorScheme.primary.copy(alpha = 0.2f)
                     )
-                    .clickable {
-                        // Allow manual page selection
-                    }
             )
         }
     }
@@ -372,16 +383,18 @@ fun AnimatedNavigationButtons(
     
     // Animation values for center expansion
     val buttonWidth by animateDpAsState(
-        targetValue = if (isLastPage) 260.dp else 56.dp,
+        targetValue = if (isLastPage) 280.dp else 56.dp,
         animationSpec = tween(
-            durationMillis = 350,
-            easing = EaseInOutCubic
+            durationMillis = 300,
+            easing = FastOutSlowInEasing
         ),
         label = "buttonWidth"
     )
     
     Box(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(horizontal = 16.dp),
         contentAlignment = Alignment.Center
     ) {
         if (!isLastPage) {
@@ -394,36 +407,24 @@ fun AnimatedNavigationButtons(
                 // Previous button with fade animation
                 AnimatedVisibility(
                     visible = showPrevious,
-                    enter = fadeIn(
-                        animationSpec = tween(200)
-                    ) + scaleIn(
-                        animationSpec = tween(200),
-                        initialScale = 0.8f
-                    ),
-                    exit = fadeOut(
-                        animationSpec = tween(200)
-                    ) + scaleOut(
-                        animationSpec = tween(200),
-                        targetScale = 0.8f
-                    )
+                    enter = fadeIn() + expandHorizontally(),
+                    exit = fadeOut() + shrinkHorizontally()
                 ) {
                     OutlinedButton(
                         onClick = onPrevious,
                         modifier = Modifier.size(56.dp),
-                        shape = CircleShape,
-                        border = androidx.compose.foundation.BorderStroke(1.dp, BorderColor),
+                        shape = RoundedCornerShape(28.dp),
+                        border = BorderStroke(1.dp, MaterialTheme.colorScheme.outline),
                         colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = TextSecondary
+                            contentColor = MaterialTheme.colorScheme.onBackground
                         )
                     ) {
                         Icon(
                             Icons.AutoMirrored.Filled.ArrowForward,
                             contentDescription = "Previous",
                             modifier = Modifier
-                                .size(20.dp)
-                                .graphicsLayer {
-                                    rotationZ = 180f
-                                }
+                                .size(24.dp)
+                                .graphicsLayer { rotationZ = 180f }
                         )
                     }
                 }
@@ -432,33 +433,54 @@ fun AnimatedNavigationButtons(
                     Spacer(modifier = Modifier.size(56.dp))
                 }
                 
-                // Centered Next button
-                FloatingActionButton(
+                // Next button
+                Button(
                     onClick = onNext,
-                    containerColor = Primary,
-                    contentColor = TextOnDark,
-                    modifier = Modifier.size(56.dp)
+                    modifier = Modifier.size(56.dp),
+                    shape = RoundedCornerShape(28.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary
+                    )
                 ) {
                     Icon(
                         Icons.AutoMirrored.Filled.ArrowForward,
                         contentDescription = "Next",
-                        modifier = Modifier.size(20.dp)
+                        modifier = Modifier.size(24.dp)
                     )
                 }
                 
-                // Invisible spacer for balance
                 Spacer(modifier = Modifier.size(56.dp))
             }
         } else {
-            // Get Started button that grows from center
-            ModernButton(
-                text = "Get Started",
+            // Get Started button
+            Button(
                 onClick = onGetStarted,
                 modifier = Modifier
                     .width(buttonWidth)
                     .height(56.dp),
-                icon = Icons.AutoMirrored.Filled.ArrowForward
-            )
+                shape = RoundedCornerShape(28.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                )
+            ) {
+                Row(
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Text(
+                        text = "Get Started",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Icon(
+                        Icons.AutoMirrored.Filled.ArrowForward,
+                        contentDescription = null,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
         }
     }
 }
