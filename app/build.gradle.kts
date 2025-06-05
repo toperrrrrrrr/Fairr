@@ -54,6 +54,11 @@ dependencies {
     implementation(composeBom)
     androidTestImplementation(composeBom)
 
+    // Firebase BOM and core dependencies
+    implementation(platform("com.google.firebase:firebase-bom:32.7.4"))
+    implementation("com.google.firebase:firebase-analytics-ktx")
+    implementation("com.google.firebase:firebase-auth-ktx")
+
     implementation("androidx.core:core-ktx:1.12.0")
     implementation("androidx.lifecycle:lifecycle-runtime-ktx:2.7.0")
     implementation("androidx.activity:activity-compose:1.8.2")
@@ -71,4 +76,4 @@ dependencies {
     androidTestImplementation("androidx.compose.ui:ui-test-junit4")
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
-} 
+}
