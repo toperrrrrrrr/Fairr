@@ -1,6 +1,8 @@
 package com.example.fairr.ui.screens
 
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
@@ -19,20 +21,30 @@ import com.example.fairr.ui.screens.notifications.NotificationsScreen
 import com.example.fairr.ui.screens.settings.SettingsScreen
 import com.example.fairr.ui.theme.*
 
+// Data class for group items
+private data class GroupItem(
+    val id: String,
+    val name: String,
+    val memberCount: Int,
+    val balance: Double,
+    val currency: String
+)
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
-    navController: NavController = rememberNavController(),
-    onNavigateToAddExpense: () -> Unit = {},
-    onNavigateToCreateGroup: () -> Unit = {},
-    onNavigateToJoinGroup: () -> Unit = {},
-    onNavigateToSearch: () -> Unit = {},
-    onNavigateToNotifications: () -> Unit = {},
-    onNavigateToGroupDetail: (String) -> Unit = {},
-    onNavigateToBudgets: () -> Unit = {},
-    onSignOut: () -> Unit = {}
+    onNavigateToAddExpense: () -> Unit,
+    onNavigateToCreateGroup: () -> Unit,
+    onNavigateToJoinGroup: () -> Unit,
+    onNavigateToSearch: () -> Unit,
+    onNavigateToNotifications: () -> Unit,
+    onNavigateToGroupDetail: (String) -> Unit,
+    onNavigateToBudgets: () -> Unit,
+    onNavigateToSettings: () -> Unit,
+    onSignOut: () -> Unit
 ) {
     var selectedTab by rememberSaveable { mutableStateOf(0) }
+    val navController = rememberNavController()
     
     Scaffold(
         bottomBar = {
@@ -44,11 +56,15 @@ fun MainScreen(
                 modifier = Modifier.fillMaxWidth()
             )
         },
+        floatingActionButton = {
+            if (selectedTab == 0) {
+                ModernFAB(onClick = onNavigateToAddExpense)
+            }
+        },
         contentWindowInsets = WindowInsets(0.dp)
     ) { paddingValues ->
         when (selectedTab) {
             0 -> HomeTabContent(
-                navController = navController,
                 paddingValues = paddingValues,
                 onNavigateToCreateGroup = onNavigateToCreateGroup,
                 onNavigateToJoinGroup = onNavigateToJoinGroup,
@@ -56,9 +72,7 @@ fun MainScreen(
                 onNavigateToNotifications = onNavigateToNotifications,
                 onNavigateToGroupDetail = onNavigateToGroupDetail,
                 onNavigateToBudgets = onNavigateToBudgets,
-                onNavigateToSettings = {
-                    selectedTab = 3 // Switch to settings tab
-                }
+                onNavigateToSettings = onNavigateToSettings
             )
             1 -> GroupsTabContent(
                 paddingValues = paddingValues,
@@ -82,7 +96,6 @@ fun MainScreen(
 
 @Composable
 private fun HomeTabContent(
-    navController: NavController,
     paddingValues: PaddingValues,
     onNavigateToCreateGroup: () -> Unit,
     onNavigateToJoinGroup: () -> Unit,
@@ -92,13 +105,30 @@ private fun HomeTabContent(
     onNavigateToBudgets: () -> Unit,
     onNavigateToSettings: () -> Unit
 ) {
-    HomeScreen(
-        onNavigateToCreateGroup = onNavigateToCreateGroup,
-        onNavigateToJoinGroup = onNavigateToJoinGroup,
-        onNavigateToSearch = onNavigateToSearch,
-        onNavigateToGroupDetail = onNavigateToGroupDetail,
-        onNavigateToBudgets = onNavigateToBudgets
-    )
+    Box(modifier = Modifier.padding(paddingValues)) {
+        HomeScreen(
+            onNavigateToCreateGroup = onNavigateToCreateGroup,
+            onNavigateToJoinGroup = onNavigateToJoinGroup,
+            onNavigateToSearch = onNavigateToSearch,
+            onNavigateToNotifications = onNavigateToNotifications,
+            onNavigateToGroupDetail = onNavigateToGroupDetail,
+            onNavigateToBudgets = onNavigateToBudgets
+        )
+        
+        // Settings button in the top bar
+        IconButton(
+            onClick = onNavigateToSettings,
+            modifier = Modifier
+                .align(Alignment.TopEnd)
+                .padding(top = 8.dp, end = 8.dp)
+        ) {
+            Icon(
+                imageVector = Icons.Default.Settings,
+                contentDescription = "Settings",
+                tint = MaterialTheme.colorScheme.onBackground
+            )
+        }
+    }
 }
 
 @Composable
@@ -199,35 +229,51 @@ private fun GroupsTabContent(
             }
         }
         
-        // Empty state
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f),
-            contentAlignment = Alignment.Center
+        // Sample groups list
+        val sampleGroups = listOf(
+            GroupItem("1", "Weekend Trip", 4, -125.75, "$"),
+            GroupItem("2", "Apartment Rent", 3, 150.25, "$"),
+            GroupItem("3", "Dinner Party", 6, 0.00, "$")
+        )
+        
+        // Groups list
+        LazyColumn(
+            modifier = Modifier.weight(1f),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Groups,
-                    contentDescription = null,
-                    modifier = Modifier.size(48.dp),
-                    tint = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-                Text(
-                    text = "No Groups Yet",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = MaterialTheme.colorScheme.onSurface
-                )
-                Text(
-                    text = "Create a new group or join an existing one to start sharing expenses",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                    textAlign = androidx.compose.ui.text.style.TextAlign.Center,
-                    modifier = Modifier.padding(horizontal = 32.dp)
-                )
+            items(sampleGroups) { group ->
+                Card(
+                    onClick = { onNavigateToGroupDetail(group.id) },
+                    modifier = Modifier.fillMaxWidth(),
+                    shape = MaterialTheme.shapes.medium,
+                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column {
+                            Text(
+                                text = group.name,
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                text = "${group.memberCount} members",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
+                        Icon(
+                            imageVector = Icons.Default.ChevronRight,
+                            contentDescription = "View Details",
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
             }
         }
     }

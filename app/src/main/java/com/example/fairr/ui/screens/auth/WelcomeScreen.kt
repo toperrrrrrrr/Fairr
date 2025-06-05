@@ -17,8 +17,6 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
 import com.example.fairr.R
 import com.example.fairr.ui.components.*
 import com.example.fairr.ui.theme.*
@@ -26,7 +24,6 @@ import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
 @Composable
 fun WelcomeScreen(
-    navController: NavController,
     onNavigateToLogin: () -> Unit,
     onNavigateToSignUp: () -> Unit
 ) {
@@ -200,7 +197,6 @@ fun WelcomeScreen(
 fun WelcomeScreenPreview() {
     FairrTheme {
         WelcomeScreen(
-            navController = rememberNavController(),
             onNavigateToLogin = {},
             onNavigateToSignUp = {}
         )

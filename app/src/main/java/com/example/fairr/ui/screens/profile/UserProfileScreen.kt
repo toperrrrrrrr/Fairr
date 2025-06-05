@@ -53,7 +53,8 @@ data class UserProfile(
 @Composable
 fun UserProfileScreen(
     navController: NavController,
-    userId: String = "sample_user"
+    userId: String? = null,
+    onProfileUpdated: () -> Unit = {}
 ) {
     var isEditing by remember { mutableStateOf(false) }
     var showChangePasswordDialog by remember { mutableStateOf(false) }
@@ -61,11 +62,11 @@ fun UserProfileScreen(
     var showSuccessMessage by remember { mutableStateOf(false) }
     var successMessage by remember { mutableStateOf("") }
     
-    // Sample user data
+    // Sample user data - in a real app, this would be fetched using userId
     var userProfile by remember {
         mutableStateOf(
             UserProfile(
-                id = "1",
+                id = userId ?: "1",
                 fullName = "Alex Johnson",
                 email = "alex.johnson@email.com",
                 profileImageUrl = null,
@@ -120,6 +121,7 @@ fun UserProfileScreen(
                                 isEditing = false
                                 successMessage = "Profile updated successfully"
                                 showSuccessMessage = true
+                                onProfileUpdated() // Call the callback when profile is updated
                             }
                         ) {
                             Text("Save", color = DarkGreen, fontWeight = FontWeight.Medium)
@@ -266,6 +268,18 @@ fun ProfileHeaderCard(
     var editedName by remember { mutableStateOf(userProfile.fullName) }
     var editedPhone by remember { mutableStateOf(userProfile.phoneNumber ?: "") }
     
+    // Effect to update the profile when editing is finished
+    LaunchedEffect(isEditing) {
+        if (!isEditing && (editedName != userProfile.fullName || editedPhone != userProfile.phoneNumber)) {
+            onProfileUpdated(
+                userProfile.copy(
+                    fullName = editedName,
+                    phoneNumber = editedPhone.takeIf { it.isNotBlank() }
+                )
+            )
+        }
+    }
+
     Card(
         modifier = Modifier
             .fillMaxWidth()

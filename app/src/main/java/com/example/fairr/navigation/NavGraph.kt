@@ -109,7 +109,6 @@ fun FairrNavGraph(
         
         composable(Screen.Welcome.route) {
             WelcomeScreen(
-                navController = navController,
                 onNavigateToLogin = {
                     navController.navigate(Screen.MobileLogin.route)
                 },
@@ -186,7 +185,6 @@ fun FairrNavGraph(
         
         composable(Screen.Home.route) {
             MainScreen(
-                navController = navController,
                 onNavigateToAddExpense = {
                     navController.navigate(Screen.AddExpense.createRoute("default_group"))
                 },
@@ -208,8 +206,10 @@ fun FairrNavGraph(
                 onNavigateToBudgets = {
                     navController.navigate(Screen.Budgets.route)
                 },
+                onNavigateToSettings = {
+                    navController.navigate(Screen.Settings.route)
+                },
                 onSignOut = {
-                    // Handle sign out
                     navController.navigate(Screen.Welcome.route) {
                         popUpTo(0) { inclusive = true }
                     }
@@ -221,7 +221,6 @@ fun FairrNavGraph(
             SettingsScreenWrapper(
                 navController = navController,
                 onSignOut = {
-                    // Handle sign out
                     navController.navigate(Screen.Welcome.route) {
                         popUpTo(0) { inclusive = true }
                     }

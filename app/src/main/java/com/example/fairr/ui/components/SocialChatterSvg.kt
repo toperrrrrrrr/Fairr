@@ -14,9 +14,7 @@ import com.example.fairr.ui.theme.*
 @Composable
 fun SocialChatterSvg(
     modifier: Modifier = Modifier,
-    primaryColor: Color = Primary,
-    secondaryColor: Color = LightGray,
-    accentColor: Color = LightGray
+    color: Color = Color.Black
 ) {
     Canvas(
         modifier = modifier.size(240.dp)
@@ -35,7 +33,7 @@ fun SocialChatterSvg(
         
         translate(offsetX, offsetY) {
             scale(scaleValue, scaleValue, pivot = center) {
-                drawAnalyticsIllustration(primaryColor, secondaryColor, accentColor)
+                drawAnalyticsIllustration(color, LightGray, LightGray)
             }
         }
     }
@@ -188,21 +186,21 @@ private fun DrawScope.drawTextIndicator(centerX: Float, centerY: Float, color: C
     
     drawPath(
         path = path,
-        color = Color.White
+        color = color
     )
 }
 
 private fun DrawScope.drawConnectedCircles(centerX: Float, centerY: Float, primary: Color, accent: Color) {
     // Left circle
     drawCircle(
-        color = accent,
+        color = primary,
         radius = 20.832f,
         center = androidx.compose.ui.geometry.Offset(centerX - 11.583f, centerY + 18.321f)
     )
     
     // Right circle
     drawCircle(
-        color = accent,
+        color = primary,
         radius = 20.832f,
         center = androidx.compose.ui.geometry.Offset(centerX + 31.082f, centerY + 18.321f)
     )
@@ -213,4 +211,32 @@ private fun DrawScope.drawConnectedCircles(centerX: Float, centerY: Float, prima
         topLeft = androidx.compose.ui.geometry.Offset(centerX, centerY),
         size = androidx.compose.ui.geometry.Size(40.714f, 50.892f)
     )
+}
+
+@Composable
+fun SocialChatterAnimated(
+    modifier: Modifier = Modifier,
+    primary: Color = Color.Black
+) {
+    Canvas(
+        modifier = modifier.size(240.dp)
+    ) {
+        val canvasWidth = size.width
+        val canvasHeight = size.height
+        
+        // Scale factor to fit the original SVG (584x659) into our canvas
+        val scaleX = canvasWidth / 584f
+        val scaleY = canvasHeight / 659f
+        val scaleValue = minOf(scaleX, scaleY)
+        
+        // Center the drawing
+        val offsetX = (canvasWidth - 584f * scaleValue) / 2f
+        val offsetY = (canvasHeight - 659f * scaleValue) / 2f
+        
+        translate(offsetX, offsetY) {
+            scale(scaleValue, scaleValue, pivot = center) {
+                drawAnalyticsIllustration(primary, LightGray, LightGray)
+            }
+        }
+    }
 } 

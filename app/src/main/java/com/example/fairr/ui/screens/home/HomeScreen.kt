@@ -23,15 +23,18 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fairr.ui.theme.*
+import androidx.navigation.NavController
+import androidx.navigation.compose.rememberNavController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
-    onNavigateToCreateGroup: () -> Unit = {},
-    onNavigateToJoinGroup: () -> Unit = {},
-    onNavigateToSearch: () -> Unit = {},
-    onNavigateToGroupDetail: (String) -> Unit = {},
-    onNavigateToBudgets: () -> Unit = {}
+    onNavigateToCreateGroup: () -> Unit,
+    onNavigateToJoinGroup: () -> Unit,
+    onNavigateToSearch: () -> Unit,
+    onNavigateToNotifications: () -> Unit,
+    onNavigateToGroupDetail: (String) -> Unit,
+    onNavigateToBudgets: () -> Unit
 ) {
     val groups = remember {
         listOf(
@@ -53,10 +56,19 @@ fun HomeScreen(
                     ) 
                 },
                 actions = {
+                    // Search action
                     IconButton(onClick = onNavigateToSearch) {
                         Icon(
                             Icons.Default.Search,
                             contentDescription = "Search",
+                            tint = MaterialTheme.colorScheme.onBackground
+                        )
+                    }
+                    // Notifications action
+                    IconButton(onClick = onNavigateToNotifications) {
+                        Icon(
+                            Icons.Default.Notifications,
+                            contentDescription = "Notifications",
                             tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
@@ -139,8 +151,8 @@ fun HomeScreen(
                         style = MaterialTheme.typography.titleLarge,
                         fontWeight = FontWeight.Bold
                     )
-                    TextButton(onClick = { /* View all groups */ }) {
-                        Text("View All")
+                    TextButton(onClick = onNavigateToCreateGroup) {
+                        Text("Create New")
                     }
                 }
             }
@@ -150,6 +162,29 @@ fun HomeScreen(
                     group = group,
                     onClick = { onNavigateToGroupDetail(group.id) }
                 )
+            }
+
+            item {
+                // Quick Actions
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
+                    horizontalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = onNavigateToJoinGroup,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("Join Group")
+                    }
+                    OutlinedButton(
+                        onClick = onNavigateToBudgets,
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text("View Budgets")
+                    }
+                }
             }
         }
     }
@@ -301,7 +336,14 @@ data class GroupItem(
 @Composable
 fun HomeScreenPreview() {
     FairrTheme {
-        HomeScreen()
+        HomeScreen(
+            onNavigateToCreateGroup = {},
+            onNavigateToJoinGroup = {},
+            onNavigateToSearch = {},
+            onNavigateToNotifications = {},
+            onNavigateToGroupDetail = {},
+            onNavigateToBudgets = {}
+        )
     }
 }
 
