@@ -50,7 +50,7 @@ fun CreateGroupScreen(
                 .fillMaxWidth()
                 .height(200.dp)
                 .background(
-                    color = DarkBackground,
+                    color = MaterialTheme.colorScheme.primary,
                     shape = RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp)
                 )
         ) {
@@ -64,7 +64,7 @@ fun CreateGroupScreen(
                 Icon(
                     Icons.AutoMirrored.Filled.ArrowBack,
                     contentDescription = "Back",
-                    tint = NeutralWhite
+                    tint = MaterialTheme.colorScheme.onPrimary
                 )
             }
             
@@ -77,7 +77,7 @@ fun CreateGroupScreen(
                     modifier = Modifier
                         .size(60.dp)
                         .background(
-                            color = DarkGreen,
+                            color = MaterialTheme.colorScheme.primaryContainer,
                             shape = RoundedCornerShape(12.dp)
                         ),
                     contentAlignment = Alignment.Center
@@ -85,7 +85,7 @@ fun CreateGroupScreen(
                     Icon(
                         Icons.Default.Group,
                         contentDescription = "Group",
-                        tint = NeutralWhite,
+                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
                         modifier = Modifier.size(30.dp)
                     )
                 }
@@ -96,18 +96,16 @@ fun CreateGroupScreen(
                     text = "Create Group",
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
-                    color = NeutralWhite
+                    color = MaterialTheme.colorScheme.onPrimary
                 )
             }
         }
 
-        // White form section with scroll
+        // Form content
         LazyColumn(
             modifier = Modifier
-                .fillMaxWidth()
-                .weight(1f)
-                .background(MaterialTheme.colorScheme.background)
-                .padding(24.dp),
+                .fillMaxSize()
+                .padding(16.dp),
             verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             // Group name field
@@ -115,144 +113,95 @@ fun CreateGroupScreen(
                 OutlinedTextField(
                     value = groupData.name,
                     onValueChange = { groupData = groupData.copy(name = it) },
-                    label = { 
-                        Text(
-                            "Group Name",
-                            color = PlaceholderText,
-                            fontSize = 14.sp
-                        ) 
-                    },
-                    placeholder = {
-                        Text(
-                            "e.g., Weekend Trip, Apartment Expenses",
-                            color = PlaceholderText,
-                            fontSize = 14.sp
-                        )
-                    },
-                    leadingIcon = {
-                        Icon(
-                            Icons.Default.Group,
-                            contentDescription = "Group name",
-                            tint = PlaceholderText
-                        )
-                    },
+                    label = { Text("Group Name") },
                     modifier = Modifier.fillMaxWidth(),
-                    singleLine = true,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = DarkGreen,
-                        unfocusedBorderColor = PlaceholderText,
-                        focusedLabelColor = DarkGreen
-                    ),
-                    isError = errorMessage != null && groupData.name.isBlank()
+                    singleLine = true
                 )
             }
 
-            // Group description field
+            // Description field
             item {
                 OutlinedTextField(
                     value = groupData.description,
                     onValueChange = { groupData = groupData.copy(description = it) },
-                    label = { 
-                        Text(
-                            "Description (Optional)",
-                            color = PlaceholderText,
-                            fontSize = 14.sp
-                        ) 
-                    },
-                    placeholder = {
-                        Text(
-                            "What's this group for?",
-                            color = PlaceholderText,
-                            fontSize = 14.sp
-                        )
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(100.dp),
-                    maxLines = 3,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = DarkGreen,
-                        unfocusedBorderColor = PlaceholderText,
-                        focusedLabelColor = DarkGreen
-                    )
+                    label = { Text("Description (Optional)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 3,
+                    maxLines = 5
                 )
             }
 
-            // Currency selection
+            // Currency field
             item {
-                Text(
-                    text = "Currency",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = TextPrimary,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(bottom = 8.dp)
-                )
-
-                // Currency options
-                val currencies = listOf("USD", "EUR", "GBP", "CAD", "AUD")
-                Row(
+                OutlinedTextField(
+                    value = groupData.currency,
+                    onValueChange = { groupData = groupData.copy(currency = it) },
+                    label = { Text("Currency") },
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    currencies.forEach { currency ->
-                        FilterChip(
-                            onClick = { groupData = groupData.copy(currency = currency) },
-                            label = { Text(currency) },
-                            selected = groupData.currency == currency,
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = DarkGreen,
-                                selectedLabelColor = NeutralWhite
-                            )
-                        )
-                    }
-                }
+                    singleLine = true
+                )
             }
 
             // Members section
             item {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                Text(
+                    text = "Members",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
+
+            // Add member button
+            item {
+                OutlinedButton(
+                    onClick = { showAddMemberDialog = true },
+                    modifier = Modifier.fillMaxWidth()
                 ) {
-                    Text(
-                        text = "Members",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.Medium,
-                        color = TextPrimary
+                    Icon(
+                        Icons.Default.PersonAdd,
+                        contentDescription = "Add Member",
+                        modifier = Modifier.size(20.dp)
                     )
-                    
-                    TextButton(
-                        onClick = { showAddMemberDialog = true }
-                    ) {
-                        Icon(
-                            Icons.Default.PersonAdd,
-                            contentDescription = "Add Member",
-                            tint = DarkGreen
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            "Add Member",
-                            color = DarkGreen,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Add Member")
                 }
             }
 
             // Members list
             items(groupData.members) { member ->
-                MemberCard(
-                    email = member.email,
-                    isAdmin = member.isAdmin,
-                    onRemove = {
-                        groupData = groupData.copy(
-                            members = groupData.members.filter { it.email != member.email }
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.surface
+                    )
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = member.email,
+                            style = MaterialTheme.typography.bodyLarge
                         )
+                        IconButton(
+                            onClick = {
+                                groupData = groupData.copy(
+                                    members = groupData.members.filter { it != member }
+                                )
+                            }
+                        ) {
+                            Icon(
+                                Icons.Default.Close,
+                                contentDescription = "Remove Member",
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        }
                     }
-                )
+                }
             }
 
             // Create group button
@@ -272,17 +221,13 @@ fun CreateGroupScreen(
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(56.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = DarkGreen,
-                        contentColor = NeutralWhite
-                    ),
                     shape = RoundedCornerShape(12.dp),
                     enabled = !isLoading
                 ) {
                     if (isLoading) {
                         CircularProgressIndicator(
                             modifier = Modifier.size(20.dp),
-                            color = NeutralWhite,
+                            color = MaterialTheme.colorScheme.onPrimary,
                             strokeWidth = 2.dp
                         )
                     } else {
@@ -298,7 +243,7 @@ fun CreateGroupScreen(
                 errorMessage?.let { error ->
                     Text(
                         text = error,
-                        color = ErrorRed,
+                        color = MaterialTheme.colorScheme.error,
                         fontSize = 14.sp,
                         modifier = Modifier.padding(top = 8.dp)
                     )
@@ -307,7 +252,6 @@ fun CreateGroupScreen(
         }
     }
 
-    // Add Member Dialog
     if (showAddMemberDialog) {
         AlertDialog(
             onDismissRequest = { showAddMemberDialog = false },
@@ -316,30 +260,21 @@ fun CreateGroupScreen(
                 OutlinedTextField(
                     value = newMemberEmail,
                     onValueChange = { newMemberEmail = it },
-                    label = { Text("Email Address") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                    label = { Text("Email") },
                     singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = ComponentColors.TextFieldBorderFocused,
-                        unfocusedBorderColor = ComponentColors.TextFieldBorderUnfocused,
-                        focusedLabelColor = ComponentColors.TextFieldLabelFocused
-                    )
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
                 )
             },
             confirmButton = {
-                Button(
+                TextButton(
                     onClick = {
-                        if (isValidEmail(newMemberEmail)) {
-                            val newMember = GroupMember(
-                                id = "temp_${System.currentTimeMillis()}",
-                                name = newMemberEmail.substringBefore("@"),
-                                email = newMemberEmail,
-                                isAdmin = false,
-                                isCurrentUser = false
-                            )
+                        if (newMemberEmail.isNotBlank()) {
                             groupData = groupData.copy(
-                                members = groupData.members + newMember
+                                members = groupData.members + GroupMember(
+                                    id = "temp_${System.currentTimeMillis()}",
+                                    name = newMemberEmail.substringBefore("@"),
+                                    email = newMemberEmail
+                                )
                             )
                             newMemberEmail = ""
                             showAddMemberDialog = false
@@ -358,94 +293,8 @@ fun CreateGroupScreen(
     }
 }
 
-@Composable
-private fun MemberCard(
-    email: String,
-    isAdmin: Boolean,
-    onRemove: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(vertical = 4.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = ComponentColors.CardBackgroundElevated
-        )
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(12.dp),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(32.dp)
-                        .background(
-                            if (isAdmin) ComponentColors.IconBackgroundSuccess
-                            else ComponentColors.AvatarBackground,
-                            CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        Icons.Default.Person,
-                        contentDescription = null,
-                        tint = if (isAdmin) ComponentColors.Success else TextSecondary,
-                        modifier = Modifier.size(16.dp)
-                    )
-                }
-                Column {
-                    Text(
-                        text = email,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = TextPrimary
-                    )
-                    if (isAdmin) {
-                        Text(
-                            text = "Admin",
-                            style = MaterialTheme.typography.labelSmall,
-                            color = ComponentColors.Success,
-                            modifier = Modifier
-                                .background(
-                                    ComponentColors.IconBackgroundSuccess,
-                                    RoundedCornerShape(4.dp)
-                                )
-                                .padding(horizontal = 6.dp, vertical = 2.dp)
-                        )
-                    }
-                }
-            }
-            
-            IconButton(
-                onClick = onRemove,
-                enabled = !isAdmin,
-                modifier = Modifier.size(48.dp)
-            ) {
-                Icon(
-                    Icons.Default.Close,
-                    contentDescription = "Remove member",
-                    tint = if (isAdmin) 
-                        TextSecondary.copy(alpha = 0.5f) 
-                    else 
-                        ComponentColors.Error
-                )
-            }
-        }
-    }
-}
-
-private fun validateGroup(group: CreateGroupData): Boolean {
-    return group.name.isNotBlank()
-}
-
-private fun isValidEmail(email: String): Boolean {
-    return android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()
+private fun validateGroup(data: CreateGroupData): Boolean {
+    return data.name.isNotBlank() && data.currency.isNotBlank() && data.members.isNotEmpty()
 }
 
 @Preview(showBackground = true)

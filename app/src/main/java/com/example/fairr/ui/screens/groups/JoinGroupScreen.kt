@@ -27,7 +27,7 @@ import com.example.fairr.ui.theme.*
 @Composable
 fun JoinGroupScreen(
     navController: NavController,
-    onGroupJoined: () -> Unit = {}
+    onJoinSuccess: () -> Unit = {}
 ) {
     var inviteCode by remember { mutableStateOf("") }
     var isLoading by remember { mutableStateOf(false) }
@@ -36,26 +36,30 @@ fun JoinGroupScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Join Group") },
+                title = { 
+                    Text(
+                        "Join Group",
+                        fontWeight = FontWeight.SemiBold
+                    )
+                },
                 navigationIcon = {
-                    IconButton(
-                        onClick = { navController.navigateUp() },
-                        modifier = Modifier.padding(8.dp)
-                    ) {
+                    IconButton(onClick = { navController.navigateUp() }) {
                         Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = MaterialTheme.colorScheme.onSurface
+                            Icons.AutoMirrored.Filled.ArrowBack,
+                            contentDescription = "Back"
                         )
                     }
-                }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.background
+                )
             )
         }
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(LightBackground)
+                .background(MaterialTheme.colorScheme.background)
                 .padding(padding),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
@@ -65,7 +69,7 @@ fun JoinGroupScreen(
                 modifier = Modifier
                     .size(120.dp)
                     .background(
-                        ComponentColors.IconBackgroundSuccess,
+                        MaterialTheme.colorScheme.primary,
                         RoundedCornerShape(24.dp)
                     ),
                 contentAlignment = Alignment.Center
@@ -73,7 +77,7 @@ fun JoinGroupScreen(
                 Icon(
                     Icons.Default.Group,
                     contentDescription = "Join Group",
-                    tint = ComponentColors.Success,
+                    tint = MaterialTheme.colorScheme.onPrimary,
                     modifier = Modifier.size(60.dp)
                 )
             }
@@ -83,14 +87,13 @@ fun JoinGroupScreen(
             Text(
                 text = "Join a Group",
                 style = MaterialTheme.typography.headlineMedium,
-                color = TextPrimary,
-                textAlign = TextAlign.Center
+                fontWeight = FontWeight.Bold
             )
             
             Text(
                 text = "Enter the invite code shared by your friend to join their group",
                 style = MaterialTheme.typography.bodyLarge,
-                color = TextSecondary,
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
                 textAlign = TextAlign.Center,
                 modifier = Modifier.padding(horizontal = 32.dp, vertical = 8.dp)
             )
@@ -100,12 +103,8 @@ fun JoinGroupScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
-                    .shadow(1.dp, RoundedCornerShape(12.dp)),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = ComponentColors.CardBackgroundElevated
-                )
+                    .padding(horizontal = 24.dp),
+                shape = RoundedCornerShape(12.dp)
             ) {
                 Column(
                     modifier = Modifier
@@ -125,13 +124,13 @@ fun JoinGroupScreen(
                             .fillMaxWidth()
                             .height(56.dp),
                         shape = RoundedCornerShape(8.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = ComponentColors.TextFieldBorderFocused,
-                            unfocusedBorderColor = ComponentColors.TextFieldBorderUnfocused,
-                            focusedLabelColor = ComponentColors.TextFieldLabelFocused,
-                            errorBorderColor = ComponentColors.TextFieldError
-                        ),
-                        isError = errorMessage.isNotEmpty()
+                        isError = errorMessage.isNotEmpty(),
+                        leadingIcon = {
+                            Icon(
+                                Icons.Default.Key,
+                                contentDescription = "Invite Code"
+                            )
+                        }
                     )
                     
                     if (errorMessage.isNotEmpty()) {
@@ -139,7 +138,7 @@ fun JoinGroupScreen(
                         Text(
                             text = errorMessage,
                             style = MaterialTheme.typography.labelSmall,
-                            color = ComponentColors.Error,
+                            color = MaterialTheme.colorScheme.error,
                             modifier = Modifier.fillMaxWidth()
                         )
                     }
@@ -153,19 +152,19 @@ fun JoinGroupScreen(
                             } else {
                                 isLoading = true
                                 // TODO: Implement group joining logic
-                                // Simulate API call
-                                onGroupJoined()
+                                onJoinSuccess()
                             }
                         },
                         modifier = Modifier
                             .fillMaxWidth()
                             .height(48.dp),
-                        shape = RoundedCornerShape(8.dp)
+                        shape = RoundedCornerShape(8.dp),
+                        enabled = !isLoading
                     ) {
                         if (isLoading) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(20.dp),
-                                color = NeutralWhite,
+                                color = MaterialTheme.colorScheme.onPrimary,
                                 strokeWidth = 2.dp
                             )
                         } else {
@@ -180,11 +179,10 @@ fun JoinGroupScreen(
             Card(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp)
-                    .shadow(1.dp, RoundedCornerShape(12.dp)),
+                    .padding(horizontal = 24.dp),
                 shape = RoundedCornerShape(12.dp),
                 colors = CardDefaults.cardColors(
-                    containerColor = ComponentColors.IconBackgroundInfo
+                    containerColor = MaterialTheme.colorScheme.surfaceVariant
                 )
             ) {
                 Column(
@@ -193,19 +191,16 @@ fun JoinGroupScreen(
                     Text(
                         text = "💡 How it works",
                         style = MaterialTheme.typography.titleSmall,
-                        color = TextPrimary
+                        fontWeight = FontWeight.SemiBold
                     )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
                         text = "Ask a group member to share their invite code from the group settings. The code is usually 6-8 characters long.",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = TextSecondary,
-                        lineHeight = 16.sp
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                 }
             }
-            
-            Spacer(modifier = Modifier.weight(1f))
         }
     }
 }

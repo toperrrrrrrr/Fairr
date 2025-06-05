@@ -21,6 +21,8 @@ import com.example.fairr.ui.screens.auth.MobileSignUpScreen
 import com.example.fairr.ui.screens.auth.WelcomeScreen
 import com.example.fairr.ui.screens.home.HomeScreen
 import com.example.fairr.ui.screens.onboarding.OnboardingScreen
+import com.example.fairr.ui.screens.groups.CreateGroupScreen
+import com.example.fairr.ui.screens.groups.JoinGroupScreen
 import com.example.fairr.ui.viewmodels.StartupViewModel
 
 sealed class Screen(val route: String) {
@@ -165,6 +167,24 @@ fun FairrNavGraph() {
                     navController.navigate(Screen.Welcome.route) {
                         popUpTo(0) { inclusive = true }
                     }
+                }
+            )
+        }
+
+        composable(Screen.CreateGroup.route) {
+            CreateGroupScreen(
+                navController = navController,
+                onGroupCreated = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(Screen.JoinGroup.route) {
+            JoinGroupScreen(
+                navController = navController,
+                onJoinSuccess = {
+                    navController.popBackStack()
                 }
             )
         }

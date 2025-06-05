@@ -27,6 +27,8 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.fairr.ui.theme.*
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.compose.ui.platform.LocalFocusManager
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 
 @Composable
 fun MobileLoginScreen(
@@ -42,6 +44,10 @@ fun MobileLoginScreen(
     var isPasswordVisible by remember { mutableStateOf(false) }
     val state = viewModel.state
     val snackbarHostState = remember { SnackbarHostState() }
+    
+    // Add keyboard controller
+    val keyboardController = LocalSoftwareKeyboardController.current
+    val focusManager = LocalFocusManager.current
 
     // Collect UI events
     LaunchedEffect(key1 = true) {
@@ -149,6 +155,9 @@ fun MobileLoginScreen(
                 // Login Button
                 Button(
                     onClick = {
+                        // Hide keyboard and clear focus
+                        keyboardController?.hide()
+                        focusManager.clearFocus()
                         viewModel.signIn(email, password)
                     },
                     modifier = Modifier
