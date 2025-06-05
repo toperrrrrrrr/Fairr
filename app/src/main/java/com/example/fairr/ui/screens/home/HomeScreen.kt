@@ -64,14 +64,6 @@ fun HomeScreen(
                             tint = MaterialTheme.colorScheme.onBackground
                         )
                     }
-                    // Notifications action
-                    IconButton(onClick = onNavigateToNotifications) {
-                        Icon(
-                            Icons.Default.Notifications,
-                            contentDescription = "Notifications",
-                            tint = MaterialTheme.colorScheme.onBackground
-                        )
-                    }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
                     containerColor = MaterialTheme.colorScheme.background

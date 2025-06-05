@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.fairr.ui.theme.*
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun MobileLoginScreen(
@@ -33,12 +34,26 @@ fun MobileLoginScreen(
     onNavigateBack: () -> Unit,
     onLoginSuccess: () -> Unit,
     onNavigateToSignUp: () -> Unit,
-    onNavigateToForgotPassword: () -> Unit
+    onNavigateToForgotPassword: () -> Unit,
+    viewModel: LoginViewModel = viewModel()
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var isPasswordVisible by remember { mutableStateOf(false) }
-    var isLoading by remember { mutableStateOf(false) }
+    val state = viewModel.state
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Collect UI events
+    LaunchedEffect(key1 = true) {
+        viewModel.uiEvent.collect { event ->
+            when (event) {
+                is LoginUiEvent.ShowError -> {
+                    snackbarHostState.showSnackbar(event.message)
+                }
+                LoginUiEvent.NavigateToHome -> onLoginSuccess()
+            }
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -98,7 +113,8 @@ fun MobileLoginScreen(
                     onValueChange = { email = it },
                     placeholder = "Email Id",
                     leadingIcon = Icons.Default.Email,
-                    keyboardType = KeyboardType.Email
+                    keyboardType = KeyboardType.Email,
+                    enabled = !state.isLoading
                 )
                 
                 // Password Field
@@ -109,7 +125,8 @@ fun MobileLoginScreen(
                     leadingIcon = Icons.Default.Lock,
                     trailingIcon = if (isPasswordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
                     onTrailingIconClick = { isPasswordVisible = !isPasswordVisible },
-                    visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation()
+                    visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    enabled = !state.isLoading
                 )
                 
                 // Forgot Password
@@ -121,8 +138,8 @@ fun MobileLoginScreen(
                         text = "Forget password?",
                         color = TextOnDark.copy(alpha = 0.7f),
                         fontSize = 14.sp,
-                        modifier = Modifier.clickable {
-                            onNavigateToForgotPassword()
+                        modifier = Modifier.clickable(enabled = !state.isLoading) {
+                            viewModel.resetPassword(email)
                         }
                     )
                 }
@@ -132,11 +149,7 @@ fun MobileLoginScreen(
                 // Login Button
                 Button(
                     onClick = {
-                        if (email.isNotBlank() && password.isNotBlank()) {
-                            isLoading = true
-                            // Simulate login
-                            onLoginSuccess()
-                        }
+                        viewModel.signIn(email, password)
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -146,13 +159,20 @@ fun MobileLoginScreen(
                         contentColor = Primary
                     ),
                     shape = RoundedCornerShape(28.dp),
-                    enabled = !isLoading
+                    enabled = !state.isLoading
                 ) {
-                    Text(
-                        text = if (isLoading) "Logging in..." else "Login",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
+                    if (state.isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = Primary
+                        )
+                    } else {
+                        Text(
+                            text = "Login",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
                 }
                 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -240,6 +260,14 @@ fun MobileLoginScreen(
                 Spacer(modifier = Modifier.height(24.dp))
             }
         }
+
+        // Snackbar host
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(16.dp)
+        )
     }
 }
 
@@ -252,7 +280,8 @@ private fun MobileTextField(
     trailingIcon: androidx.compose.ui.graphics.vector.ImageVector? = null,
     onTrailingIconClick: (() -> Unit)? = null,
     visualTransformation: VisualTransformation = VisualTransformation.None,
-    keyboardType: KeyboardType = KeyboardType.Text
+    keyboardType: KeyboardType = KeyboardType.Text,
+    enabled: Boolean = true
 ) {
     OutlinedTextField(
         value = value,
@@ -277,7 +306,8 @@ private fun MobileTextField(
         trailingIcon = trailingIcon?.let { icon ->
             {
                 IconButton(
-                    onClick = { onTrailingIconClick?.invoke() }
+                    onClick = { onTrailingIconClick?.invoke() },
+                    enabled = enabled
                 ) {
                     Icon(
                         imageVector = icon,

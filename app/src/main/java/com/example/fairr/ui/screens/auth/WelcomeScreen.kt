@@ -14,11 +14,9 @@ import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fairr.R
-import com.example.fairr.ui.components.*
 import com.example.fairr.ui.theme.*
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
 
@@ -189,16 +187,5 @@ fun WelcomeScreen(
             
             Spacer(modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars))
         }
-    }
-}
-
-@Preview(showBackground = true)
-@Composable
-fun WelcomeScreenPreview() {
-    FairrTheme {
-        WelcomeScreen(
-            onNavigateToLogin = {},
-            onNavigateToSignUp = {}
-        )
     }
 } 

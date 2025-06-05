@@ -56,11 +56,6 @@ fun MainScreen(
                 modifier = Modifier.fillMaxWidth()
             )
         },
-        floatingActionButton = {
-            if (selectedTab == 0) {
-                ModernFAB(onClick = onNavigateToAddExpense)
-            }
-        },
         contentWindowInsets = WindowInsets(0.dp)
     ) { paddingValues ->
         when (selectedTab) {
@@ -114,20 +109,6 @@ private fun HomeTabContent(
             onNavigateToGroupDetail = onNavigateToGroupDetail,
             onNavigateToBudgets = onNavigateToBudgets
         )
-        
-        // Settings button in the top bar
-        IconButton(
-            onClick = onNavigateToSettings,
-            modifier = Modifier
-                .align(Alignment.TopEnd)
-                .padding(top = 8.dp, end = 8.dp)
-        ) {
-            Icon(
-                imageVector = Icons.Default.Settings,
-                contentDescription = "Settings",
-                tint = MaterialTheme.colorScheme.onBackground
-            )
-        }
     }
 }
 

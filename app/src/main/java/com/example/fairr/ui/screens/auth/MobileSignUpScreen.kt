@@ -26,20 +26,35 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.fairr.ui.theme.*
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun MobileSignUpScreen(
     navController: NavController,
     onNavigateBack: () -> Unit,
     onSignUpSuccess: () -> Unit,
-    onNavigateToLogin: () -> Unit
+    onNavigateToLogin: () -> Unit,
+    viewModel: SignUpViewModel = viewModel()
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
     var confirmPassword by remember { mutableStateOf("") }
     var isPasswordVisible by remember { mutableStateOf(false) }
     var isConfirmPasswordVisible by remember { mutableStateOf(false) }
-    var isLoading by remember { mutableStateOf(false) }
+    val state = viewModel.state
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Collect UI events
+    LaunchedEffect(key1 = true) {
+        viewModel.uiEvent.collect { event ->
+            when (event) {
+                is SignUpUiEvent.ShowError -> {
+                    snackbarHostState.showSnackbar(event.message)
+                }
+                SignUpUiEvent.NavigateToHome -> onSignUpSuccess()
+            }
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -105,7 +120,8 @@ fun MobileSignUpScreen(
                     onValueChange = { email = it },
                     placeholder = "Email Id",
                     leadingIcon = Icons.Default.Email,
-                    keyboardType = KeyboardType.Email
+                    keyboardType = KeyboardType.Email,
+                    enabled = !state.isLoading
                 )
                 
                 // Password Field
@@ -116,7 +132,8 @@ fun MobileSignUpScreen(
                     leadingIcon = Icons.Default.Lock,
                     trailingIcon = if (isPasswordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
                     onTrailingIconClick = { isPasswordVisible = !isPasswordVisible },
-                    visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation()
+                    visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    enabled = !state.isLoading
                 )
                 
                 // Confirm Password Field
@@ -127,7 +144,8 @@ fun MobileSignUpScreen(
                     leadingIcon = Icons.Default.Lock,
                     trailingIcon = if (isConfirmPasswordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
                     onTrailingIconClick = { isConfirmPasswordVisible = !isConfirmPasswordVisible },
-                    visualTransformation = if (isConfirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation()
+                    visualTransformation = if (isConfirmPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
+                    enabled = !state.isLoading
                 )
                 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -135,11 +153,7 @@ fun MobileSignUpScreen(
                 // Sign Up Button
                 Button(
                     onClick = {
-                        if (email.isNotBlank() && password.isNotBlank() && password == confirmPassword) {
-                            isLoading = true
-                            // Simulate sign up
-                            onSignUpSuccess()
-                        }
+                        viewModel.signUp(email, password, confirmPassword)
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -149,13 +163,20 @@ fun MobileSignUpScreen(
                         contentColor = Primary
                     ),
                     shape = RoundedCornerShape(28.dp),
-                    enabled = !isLoading
+                    enabled = !state.isLoading
                 ) {
-                    Text(
-                        text = if (isLoading) "Creating account..." else "Sign up",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
+                    if (state.isLoading) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = Primary
+                        )
+                    } else {
+                        Text(
+                            text = "Sign up",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
                 }
                 
                 Spacer(modifier = Modifier.height(24.dp))
@@ -243,6 +264,14 @@ fun MobileSignUpScreen(
                 Spacer(modifier = Modifier.height(32.dp))
             }
         }
+
+        // Snackbar host
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(16.dp)
+        )
     }
 }
 
@@ -255,7 +284,8 @@ private fun MobileTextField(
     trailingIcon: androidx.compose.ui.graphics.vector.ImageVector? = null,
     onTrailingIconClick: (() -> Unit)? = null,
     visualTransformation: VisualTransformation = VisualTransformation.None,
-    keyboardType: KeyboardType = KeyboardType.Text
+    keyboardType: KeyboardType = KeyboardType.Text,
+    enabled: Boolean = true
 ) {
     OutlinedTextField(
         value = value,
@@ -280,7 +310,8 @@ private fun MobileTextField(
         trailingIcon = trailingIcon?.let { icon ->
             {
                 IconButton(
-                    onClick = { onTrailingIconClick?.invoke() }
+                    onClick = { onTrailingIconClick?.invoke() },
+                    enabled = enabled
                 ) {
                     Icon(
                         imageVector = icon,
