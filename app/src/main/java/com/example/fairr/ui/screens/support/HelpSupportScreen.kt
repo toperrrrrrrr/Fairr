@@ -13,6 +13,7 @@ import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.Help
 import androidx.compose.material.icons.automirrored.filled.List
 import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.automirrored.filled.ReceiptLong
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -193,12 +194,12 @@ fun HelpSupportScreen(
                             onClick = { selectedCategory = category },
                             label = category,
                             leadingIcon = when (category) {
-                                "All" -> Icons.Default.List
-                                "Getting Started" -> Icons.Default.Help
-                                "Expenses" -> Icons.Default.Receipt
-                                "Groups" -> Icons.Default.Group
-                                "Payments" -> Icons.Default.Payment
-                                "Account" -> Icons.Default.Person
+                                "All" -> Icons.AutoMirrored.Filled.List
+                                "Getting Started" -> Icons.AutoMirrored.Filled.Help
+                                "Expenses" -> Icons.AutoMirrored.Filled.ReceiptLong
+                                "Groups" -> Icons.Default.Groups
+                                "Payments" -> Icons.Default.Payments
+                                "Account" -> Icons.Default.AccountCircle
                                 else -> null
                             }
                         )
@@ -264,7 +265,7 @@ fun QuickActionsSection() {
             )
             
             QuickActionCard(
-                icon = Icons.Default.Chat,
+                icon = Icons.AutoMirrored.Filled.Chat,
                 title = "Live Chat",
                 description = "Chat with our support team",
                 modifier = Modifier.weight(1f),
@@ -459,7 +460,7 @@ fun ContactSupportSection() {
                         )
                     ) {
                         Icon(
-                            Icons.Default.Chat,
+                            Icons.AutoMirrored.Filled.Chat,
                             contentDescription = "Chat",
                             modifier = Modifier.size(16.dp),
                             tint = NeutralWhite
@@ -498,7 +499,7 @@ private fun getHelpCategories(): List<HelpCategory> {
         HelpCategory(
             id = "expenses",
             title = "Expenses",
-            icon = Icons.Default.Receipt,
+            icon = Icons.AutoMirrored.Filled.ReceiptLong,
             description = "Managing expenses and receipts",
             articles = listOf(
                 HelpArticle(
@@ -522,7 +523,7 @@ private fun getHelpCategories(): List<HelpCategory> {
         HelpCategory(
             id = "groups",
             title = "Groups",
-            icon = Icons.Default.Group,
+            icon = Icons.Default.Groups,
             description = "Group management and settings",
             articles = listOf(
                 HelpArticle(
@@ -540,7 +541,7 @@ private fun getHelpCategories(): List<HelpCategory> {
         HelpCategory(
             id = "payments",
             title = "Payments",
-            icon = Icons.Default.Payment,
+            icon = Icons.Default.Payments,
             description = "Settling up and payments",
             articles = listOf(
                 HelpArticle(
@@ -559,7 +560,7 @@ private fun getHelpCategories(): List<HelpCategory> {
         HelpCategory(
             id = "account",
             title = "Account",
-            icon = Icons.Default.Person,
+            icon = Icons.Default.AccountCircle,
             description = "Account settings and security",
             articles = listOf(
                 HelpArticle(

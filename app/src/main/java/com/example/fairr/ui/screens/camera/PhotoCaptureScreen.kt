@@ -53,7 +53,6 @@ fun PhotoCaptureScreen(
     onPhotosSelected: (List<ReceiptPhoto>) -> Unit = {}
 ) {
     val context = LocalContext.current
-    val lifecycleOwner = LocalLifecycleOwner.current
     val coroutineScope = rememberCoroutineScope()
     
     var capturedPhotos by remember { mutableStateOf<List<ReceiptPhoto>>(emptyList()) }
@@ -543,11 +542,8 @@ private suspend fun processImageFromUri(
     onPhotoProcessed: (ReceiptPhoto) -> Unit
 ) {
     try {
-        val bitmap = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.P) {
-            ImageDecoder.decodeBitmap(ImageDecoder.createSource(context.contentResolver, uri))
-        } else {
-            MediaStore.Images.Media.getBitmap(context.contentResolver, uri)
-        }
+        val source = ImageDecoder.createSource(context.contentResolver, uri)
+        val bitmap = ImageDecoder.decodeBitmap(source)
         
         val compressedBitmap = PhotoUtils.compressImage(bitmap)
         val filename = "receipt_${System.currentTimeMillis()}.jpg"

@@ -276,7 +276,7 @@ fun FairrNavGraph(
         composable(Screen.PhotoCapture.route) {
             PhotoCaptureScreen(
                 navController = navController,
-                onPhotosSelected = { photos ->
+                onPhotosSelected = { _ ->
                     // Handle selected photos - in real implementation would pass back to expense screen
                     navController.popBackStack()
                 }

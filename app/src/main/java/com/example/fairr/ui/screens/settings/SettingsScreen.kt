@@ -210,9 +210,9 @@ fun SettingsScreen(
                             supportingContent = { Text("Enable sound effects") },
                             leadingContent = { 
                                 Icon(
-                                    Icons.Default.VolumeUp,
-                                    contentDescription = null,
-                                    tint = Primary
+                                    Icons.AutoMirrored.Filled.VolumeUp,
+                                    contentDescription = "Volume",
+                                    tint = MaterialTheme.colorScheme.onSurface
                                 )
                             },
                             trailingContent = {

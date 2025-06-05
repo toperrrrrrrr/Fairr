@@ -7,6 +7,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Backspace
+import androidx.compose.material.icons.automirrored.filled.Backspace
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -37,8 +38,8 @@ fun Calculator(
     
     fun formatNumber(number: String): String {
         return try {
-            val value = number.toDouble()
-            df.format(value)
+            val numberValue = number.toDouble()
+            df.format(numberValue)
         } catch (e: Exception) {
             number
         }
@@ -160,7 +161,7 @@ fun Calculator(
                     modifier = Modifier.weight(1f)
                 ) { handleOperation("×") }
                 CalcButton(
-                    icon = Icons.Filled.Backspace,
+                    icon = Icons.AutoMirrored.Filled.Backspace,
                     isOperation = true,
                     color = DarkBlue,
                     modifier = Modifier.weight(1f)

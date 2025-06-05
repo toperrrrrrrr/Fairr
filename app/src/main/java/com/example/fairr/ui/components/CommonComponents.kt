@@ -16,8 +16,10 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
@@ -239,20 +241,28 @@ fun FairrSkeletonLoader(
     )
 
     val transition = rememberInfiniteTransition(label = "shimmer")
-    val translateAnim = transition.animateFloat(
+    val translateAnim by transition.animateFloat(
         initialValue = 0f,
         targetValue = 1000f,
         animationSpec = infiniteRepeatable(
-            animation = tween(1200, easing = FastOutSlowInEasing),
+            animation = tween(
+                durationMillis = 1000,
+                easing = FastOutSlowInEasing
+            ),
             repeatMode = RepeatMode.Restart
-        ), label = "shimmer_translate"
+        ),
+        label = "shimmer"
     )
 
     Box(
         modifier = modifier
             .height(height.dp)
             .background(
-                shimmerColors[0],
+                brush = Brush.linearGradient(
+                    colors = shimmerColors,
+                    start = Offset(translateAnim - 1000f, 0f),
+                    end = Offset(translateAnim, 0f)
+                ),
                 shape = RoundedCornerShape(cornerRadius.dp)
             )
     )
