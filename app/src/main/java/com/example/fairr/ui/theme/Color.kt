@@ -31,24 +31,24 @@ val SurfaceVariant = LightGray
 
 // Text Colors (WCAG 2.1 AA Compliant)
 val TextPrimary = PureBlack
-val TextSecondary = Color(0xFF666666) // Adjusted for better contrast
-val TextTertiary = Color(0xFF757575)  // Adjusted for better contrast
+val TextSecondary = CharcoalGray
+val TextTertiary = MediumGray
 val TextOnDark = PureWhite
 
 // Status Colors (With Semantic Variations)
-val SuccessGreen = AccentGreen
+val SuccessGreen = Color(0xFF00A94C)
 val SuccessGreenLight = Color(0xFFE8F5E9)
 val SuccessGreenDark = Color(0xFF00843D)
 
-val ErrorRed = AccentRed
+val ErrorRed = Color(0xFFE53935)
 val ErrorRedLight = Color(0xFFFFEBEE)
 val ErrorRedDark = Color(0xFFC62828)
 
-val WarningOrange = AccentOrange
+val WarningOrange = Color(0xFFE65100)
 val WarningOrangeLight = Color(0xFFFFF3E0)
 val WarningOrangeDark = Color(0xFFE65100)
 
-val InfoBlue = AccentBlue
+val InfoBlue = Color(0xFF0066CC)
 val InfoBlueLight = Color(0xFFE3F2FD)
 val InfoBlueDark = Color(0xFF0D47A1)
 
@@ -166,34 +166,34 @@ object ComponentColors {
     val InfoDark = InfoBlueDark
     
     // Avatar and icon backgrounds
-    val AvatarBackground = Primary.copy(alpha = 0.1f)
+    val AvatarBackground = PureBlack.copy(alpha = 0.1f)
     val IconBackgroundSuccess = Success.copy(alpha = 0.1f)
     val IconBackgroundError = Error.copy(alpha = 0.1f)
     val IconBackgroundInfo = Info.copy(alpha = 0.1f)
     val IconBackgroundWarning = Warning.copy(alpha = 0.1f)
     
     // Progress indicators
-    val ProgressDefault = Success
+    val ProgressDefault = PureBlack
     val ProgressWarning = Warning
     val ProgressError = Error
     val ProgressTrack = TextSecondary.copy(alpha = 0.1f)
     
     // Card colors
     val CardBorderDefault = LightGray
-    val CardBorderFocused = Primary
-    val CardBackgroundElevated = Surface
-    val CardBackgroundPressed = Surface.copy(alpha = 0.9f)
+    val CardBorderFocused = PureBlack
+    val CardBackgroundElevated = PureWhite
+    val CardBackgroundPressed = PureWhite.copy(alpha = 0.9f)
     
     // Input fields
     val InputBorderDefault = LightGray
-    val InputBorderFocused = Primary
+    val InputBorderFocused = PureBlack
     val InputBorderError = Error
     val InputBackground = BackgroundSecondary
     
     // Text field colors
-    val TextFieldBorderFocused = Primary
+    val TextFieldBorderFocused = PureBlack
     val TextFieldBorderUnfocused = TextSecondary.copy(alpha = 0.3f)
-    val TextFieldLabelFocused = Primary
+    val TextFieldLabelFocused = PureBlack
     val TextFieldError = Error
     
     // Interactive states
