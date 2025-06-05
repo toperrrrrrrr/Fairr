@@ -1,0 +1,35 @@
+rules_version = '2';
+
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // Connection test collection rules
+    match /connection_tests/{testId} {
+      allow create: if 
+        // Ensure the document structure is correct
+        request.resource.data.keys().hasAll(['id', 'timestamp', 'status', 'deviceInfo']) &&
+        // Ensure required fields are strings
+        request.resource.data.id is string &&
+        request.resource.data.timestamp is string &&
+        request.resource.data.status == 'connected' &&
+        request.resource.data.deviceInfo is string &&
+        // Ensure the document ID matches the id field
+        request.resource.data.id == testId &&
+        // Limit the document lifetime
+        request.time.toMillis() - request.resource.data.timestamp.toMillis() < 300000; // 5 minutes
+
+      allow read: if 
+        // Only allow reading documents created in the last 5 minutes
+        resource.data.timestamp.toMillis() > (request.time.toMillis() - 300000);
+
+      allow delete: if
+        // Only allow deleting documents that exist and were created in the last 5 minutes
+        resource != null &&
+        resource.data.timestamp.toMillis() > (request.time.toMillis() - 300000);
+    }
+
+    // Default rule - deny everything else
+    match /{document=**} {
+      allow read, write: if false;
+    }
+  }
+} 

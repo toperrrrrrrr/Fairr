@@ -1,21 +1,21 @@
 {
   "project_info": {
-    "project_number": "716896848191",
-    "project_id": "hari-8892a",
-    "storage_bucket": "hari-8892a.firebasestorage.app"
+    "project_number": "670995472503",
+    "project_id": "fairr-c71bb",
+    "storage_bucket": "fairr-c71bb.firebasestorage.app"
   },
   "client": [
     {
       "client_info": {
-        "mobilesdk_app_id": "1:716896848191:android:6437b6c9da5cbba9dfab8a",
+        "mobilesdk_app_id": "1:670995472503:android:4b214130216d7ada652672",
         "android_client_info": {
-          "package_name": "com.fairshare"
+          "package_name": "com.example.fairr"
         }
       },
       "oauth_client": [],
       "api_key": [
         {
-          "current_key": "AIzaSyAXBjy9zLNl6VfnjUV6iY9hxidemyhaQk8"
+          "current_key": "AIzaSyBW78VffucYlkQWiW8OzdKl025UU5k3T3w"
         }
       ],
       "services": {
