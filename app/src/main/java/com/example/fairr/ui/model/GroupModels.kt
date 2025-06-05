@@ -23,8 +23,18 @@ data class GroupSettingsData(
 )
 
 data class CreateGroupData(
-    val name: String = "",
-    val description: String = "",
-    val currency: String = "USD",
+    val name: String,
+    val description: String,
+    val currency: String,
     val members: List<GroupMember> = emptyList()
+)
+
+data class Group(
+    val id: String,
+    val name: String,
+    val description: String,
+    val currency: String,
+    val createdBy: String,
+    val members: List<GroupMember>,
+    val inviteCode: String
 ) 

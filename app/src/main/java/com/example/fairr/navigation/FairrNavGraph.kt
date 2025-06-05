@@ -9,10 +9,12 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.navigation.NavDestination.Companion.hierarchy
 import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
 import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
+import androidx.navigation.navArgument
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fairr.ui.screens.MainScreen
 import com.example.fairr.ui.screens.SplashScreen
@@ -23,6 +25,7 @@ import com.example.fairr.ui.screens.home.HomeScreen
 import com.example.fairr.ui.screens.onboarding.OnboardingScreen
 import com.example.fairr.ui.screens.groups.CreateGroupScreen
 import com.example.fairr.ui.screens.groups.JoinGroupScreen
+import com.example.fairr.ui.screens.groups.GroupDetailScreen
 import com.example.fairr.ui.viewmodels.StartupViewModel
 
 sealed class Screen(val route: String) {
@@ -173,10 +176,7 @@ fun FairrNavGraph() {
 
         composable(Screen.CreateGroup.route) {
             CreateGroupScreen(
-                navController = navController,
-                onGroupCreated = {
-                    navController.popBackStack()
-                }
+                navController = navController
             )
         }
 
@@ -186,6 +186,20 @@ fun FairrNavGraph() {
                 onJoinSuccess = {
                     navController.popBackStack()
                 }
+            )
+        }
+
+        composable(
+            route = Screen.GroupDetail.route,
+            arguments = listOf(
+                navArgument("groupId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val groupId = backStackEntry.arguments?.getString("groupId")
+                ?: return@composable
+            GroupDetailScreen(
+                groupId = groupId,
+                navController = navController
             )
         }
     }
