@@ -1,4 +1,0 @@
-This is an instruction on how to run the app using cursor. 
-
-
-$env:JAVA_HOME = $null; ./gradlew clean assembleDebug --no-daemon; if ($LASTEXITCODE -eq 0) { & "$env:LOCALAPPDATA\Android\Sdk\platform-tools\adb.exe" install -r "app\build\outputs\apk\debug\app-debug.apk" } else { Write-Host "Build failed!" }

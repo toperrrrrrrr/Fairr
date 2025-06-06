@@ -32,7 +32,7 @@ class CreateGroupViewModel : ViewModel() {
     var groupDescription by mutableStateOf("")
         private set
 
-    var groupCurrency by mutableStateOf("USD")
+    var groupCurrency by mutableStateOf("PHP")
         private set
 
     private val _members = mutableStateOf<List<GroupMember>>(emptyList())
@@ -93,7 +93,7 @@ class CreateGroupViewModel : ViewModel() {
         uiState = CreateGroupUiState.Initial
         groupName = ""
         groupDescription = ""
-        groupCurrency = "USD"
+        groupCurrency = "PHP"
         _members.value = emptyList()
     }
 } 

@@ -26,6 +26,8 @@ import com.example.fairr.ui.screens.onboarding.OnboardingScreen
 import com.example.fairr.ui.screens.groups.CreateGroupScreen
 import com.example.fairr.ui.screens.groups.JoinGroupScreen
 import com.example.fairr.ui.screens.groups.GroupDetailScreen
+import com.example.fairr.ui.screens.settings.SettingsScreen
+import com.example.fairr.ui.screens.settings.CurrencySelectionScreen
 import com.example.fairr.ui.viewmodels.StartupViewModel
 
 sealed class Screen(val route: String) {
@@ -44,6 +46,7 @@ sealed class Screen(val route: String) {
     }
     object Budgets : Screen("budgets")
     object Settings : Screen("settings")
+    object CurrencySelection : Screen("currency_selection")
     object AddExpense : Screen("add_expense/{groupId}") {
         fun createRoute(groupId: String) = "add_expense/$groupId"
     }
@@ -142,8 +145,9 @@ fun FairrNavGraph() {
 
         composable(Screen.Main.route) {
             MainScreen(
-                onNavigateToAddExpense = {
-                    navController.navigate(Screen.AddExpense.createRoute("default_group"))
+                navController = navController,
+                onNavigateToAddExpense = { groupId: String ->
+                    navController.navigate(Screen.AddExpense.createRoute(groupId))
                 },
                 onNavigateToCreateGroup = {
                     navController.navigate(Screen.CreateGroup.route)
@@ -157,7 +161,7 @@ fun FairrNavGraph() {
                 onNavigateToNotifications = {
                     navController.navigate(Screen.Notifications.route)
                 },
-                onNavigateToGroupDetail = { groupId ->
+                onNavigateToGroupDetail = { groupId: String ->
                     navController.navigate(Screen.GroupDetail.createRoute(groupId))
                 },
                 onNavigateToBudgets = {
@@ -168,7 +172,7 @@ fun FairrNavGraph() {
                 },
                 onSignOut = {
                     navController.navigate(Screen.Welcome.route) {
-                        popUpTo(0) { inclusive = true }
+                        popUpTo(Screen.Main.route) { inclusive = true }
                     }
                 }
             )
@@ -199,6 +203,23 @@ fun FairrNavGraph() {
                 ?: return@composable
             GroupDetailScreen(
                 groupId = groupId,
+                navController = navController
+            )
+        }
+
+        composable(Screen.Settings.route) {
+            SettingsScreen(
+                navController = navController,
+                onSignOut = {
+                    navController.navigate(Screen.Welcome.route) {
+                        popUpTo(Screen.Main.route) { inclusive = true }
+                    }
+                }
+            )
+        }
+
+        composable(Screen.CurrencySelection.route) {
+            CurrencySelectionScreen(
                 navController = navController
             )
         }

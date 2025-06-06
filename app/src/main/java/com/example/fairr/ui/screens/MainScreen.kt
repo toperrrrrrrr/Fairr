@@ -19,7 +19,13 @@ import com.example.fairr.ui.components.*
 import com.example.fairr.ui.screens.home.HomeScreen
 import com.example.fairr.ui.screens.notifications.NotificationsScreen
 import com.example.fairr.ui.screens.settings.SettingsScreen
+import com.example.fairr.ui.screens.groups.GroupListScreen
 import com.example.fairr.ui.theme.*
+import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.fairr.ui.screens.groups.GroupListViewModel
+import com.example.fairr.ui.screens.groups.GroupListUiState
+import com.example.fairr.ui.model.Group
+import androidx.hilt.navigation.compose.hiltViewModel
 
 // Data class for group items
 private data class GroupItem(
@@ -33,7 +39,8 @@ private data class GroupItem(
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MainScreen(
-    onNavigateToAddExpense: () -> Unit,
+    navController: NavController,
+    onNavigateToAddExpense: (String) -> Unit,
     onNavigateToCreateGroup: () -> Unit,
     onNavigateToJoinGroup: () -> Unit,
     onNavigateToSearch: () -> Unit,
@@ -44,8 +51,7 @@ fun MainScreen(
     onSignOut: () -> Unit
 ) {
     var selectedTab by rememberSaveable { mutableStateOf(0) }
-    val navController = rememberNavController()
-    
+
     Scaffold(
         bottomBar = {
             ModernNavigationBar(
@@ -80,10 +86,10 @@ fun MainScreen(
                 navController = navController,
                 modifier = Modifier.padding(paddingValues)
             )
-            3 -> SettingsTabContent(
-                paddingValues = paddingValues,
+            3 -> SettingsScreen(
                 navController = navController,
-                onSignOut = onSignOut
+                onSignOut = onSignOut,
+                modifier = Modifier.padding(paddingValues)
             )
         }
     }
@@ -118,7 +124,8 @@ private fun GroupsTabContent(
     onNavigateToCreateGroup: () -> Unit,
     onNavigateToGroupDetail: (String) -> Unit,
     onNavigateToJoinGroup: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: GroupListViewModel = hiltViewModel()
 ) {
     Column(
         modifier = modifier
@@ -209,69 +216,135 @@ private fun GroupsTabContent(
                 }
             }
         }
-        
-        // Sample groups list
-        val sampleGroups = listOf(
-            GroupItem("1", "Weekend Trip", 4, -125.75, "$"),
-            GroupItem("2", "Apartment Rent", 3, 150.25, "$"),
-            GroupItem("3", "Dinner Party", 6, 0.00, "$")
-        )
-        
-        // Groups list
-        LazyColumn(
-            modifier = Modifier.weight(1f),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            items(sampleGroups) { group ->
-                Card(
-                    onClick = { onNavigateToGroupDetail(group.id) },
-                    modifier = Modifier.fillMaxWidth(),
-                    shape = MaterialTheme.shapes.medium,
-                    elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
-                ) {
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Column {
-                            Text(
-                                text = group.name,
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.SemiBold
-                            )
-                            Text(
-                                text = "${group.memberCount} members",
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                        Icon(
-                            imageVector = Icons.Default.ChevronRight,
-                            contentDescription = "View Details",
-                            tint = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
+
+        // Group list
+        when (val state = viewModel.uiState) {
+            is GroupListUiState.Loading -> {
+                CircularProgressIndicator(
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                )
+            }
+            is GroupListUiState.Success -> {
+                if (state.groups.isEmpty()) {
+                    EmptyGroupsMessage()
+                } else {
+                    GroupList(
+                        groups = state.groups,
+                        onGroupClick = onNavigateToGroupDetail
+                    )
                 }
+            }
+            is GroupListUiState.Error -> {
+                Text(
+                    text = state.message,
+                    color = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.align(Alignment.CenterHorizontally)
+                )
             }
         }
     }
 }
 
 @Composable
-private fun SettingsTabContent(
-    paddingValues: PaddingValues,
-    navController: NavController,
-    onSignOut: () -> Unit,
-    modifier: Modifier = Modifier
+private fun GroupList(
+    groups: List<Group>,
+    onGroupClick: (String) -> Unit
 ) {
-    SettingsScreen(
-        navController = navController,
-        onSignOut = onSignOut,
-        modifier = modifier.padding(paddingValues)
-    )
+    LazyColumn(
+        verticalArrangement = Arrangement.spacedBy(12.dp)
+    ) {
+        items(groups) { group ->
+            GroupCard(
+                name = group.name,
+                memberCount = group.members.size,
+                balance = 0.0, // TODO: Implement balance calculation
+                currency = group.currency,
+                onClick = { onGroupClick(group.id) }
+            )
+        }
+    }
+}
+
+@Composable
+private fun GroupCard(
+    name: String,
+    memberCount: Int,
+    balance: Double,
+    currency: String,
+    onClick: () -> Unit
+) {
+    Card(
+        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        shape = MaterialTheme.shapes.medium,
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = name,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    text = "$memberCount members",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Your balance",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = "$currency ${String.format("%.2f", balance)}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.Medium,
+                    color = when {
+                        balance > 0 -> SuccessGreen
+                        balance < 0 -> ErrorRed
+                        else -> MaterialTheme.colorScheme.onSurface
+                    }
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun EmptyGroupsMessage() {
+    Column(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        Text(
+            text = "No groups yet",
+            style = MaterialTheme.typography.titleMedium,
+            fontWeight = FontWeight.SemiBold
+        )
+        Text(
+            text = "Create or join a group to get started",
+            style = MaterialTheme.typography.bodyMedium,
+            color = MaterialTheme.colorScheme.onSurfaceVariant
+        )
+    }
 }
 
 /**

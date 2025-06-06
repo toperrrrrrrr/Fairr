@@ -26,13 +26,15 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.fairr.ui.components.*
 import com.example.fairr.ui.theme.*
+import androidx.hilt.navigation.compose.hiltViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettingsScreen(
     navController: NavController,
     onSignOut: () -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: SettingsViewModel = hiltViewModel()
 ) {
     var notificationsEnabled by remember { mutableStateOf(true) }
     var soundEnabled by remember { mutableStateOf(true) }
@@ -159,10 +161,10 @@ fun SettingsScreen(
                 }
             }
 
-            // Preferences Section
+            // App Settings Section
             item {
                 Text(
-                    text = "Preferences",
+                    text = "App Settings",
                     fontSize = 18.sp,
                     fontWeight = FontWeight.Bold,
                     color = TextPrimary,
@@ -186,6 +188,20 @@ fun SettingsScreen(
                                     checked = isDarkMode,
                                     onCheckedChange = { isDarkMode = it }
                                 )
+                            }
+                        )
+                        ListItem(
+                            headlineContent = { Text("Default Currency") },
+                            supportingContent = { Text(viewModel.selectedCurrency) },
+                            leadingContent = { 
+                                Icon(
+                                    Icons.Default.CurrencyExchange,
+                                    contentDescription = null,
+                                    tint = Primary
+                                )
+                            },
+                            modifier = Modifier.clickable {
+                                navController.navigate("currency_selection")
                             }
                         )
                         ListItem(

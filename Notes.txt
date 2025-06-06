@@ -1,0 +1,2 @@
+Currency selected should be saved as profile settings in the firebase user record 
+Ask the user to update their name and details in the settings. 

@@ -14,7 +14,9 @@ import com.example.fairr.ui.theme.FairrTheme
 import com.example.fairr.ui.theme.LocalThemeManager
 import com.example.fairr.ui.theme.ProvideThemeManager
 import com.example.fairr.ui.theme.ThemeManager
+import dagger.hilt.android.AndroidEntryPoint
 
+@AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)

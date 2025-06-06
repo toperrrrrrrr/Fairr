@@ -32,9 +32,10 @@ data class CreateGroupData(
 data class Group(
     val id: String,
     val name: String,
-    val description: String,
-    val currency: String,
+    val description: String = "",
+    val currency: String = "PHP",
     val createdBy: String,
-    val members: List<GroupMember>,
-    val inviteCode: String
+    val members: List<GroupMember> = emptyList(),
+    val inviteCode: String = "",
+    val createdAt: Long = System.currentTimeMillis()
 ) 
