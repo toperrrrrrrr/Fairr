@@ -24,8 +24,8 @@ sealed class Screen(val route: String) {
     object Splash : Screen("splash")
     object Onboarding : Screen("onboarding")
     object Welcome : Screen("welcome")
-    object MobileLogin : Screen("mobile_login")
-    object MobileSignUp : Screen("mobile_signup")
+    object Login : Screen("login")
+    object SignUp : Screen("signup")
     object Main : Screen("main?tab={tab}") {
         fun createRoute(tab: Int = 0) = "main?tab=$tab"
     }
@@ -85,38 +85,32 @@ fun FairrNavGraph() {
         composable(Screen.Welcome.route) {
             WelcomeScreen(
                 onNavigateToLogin = {
-                    navController.navigate(Screen.MobileLogin.route)
+                    navController.navigate(Screen.Login.route)
                 },
                 onNavigateToSignUp = {
-                    navController.navigate(Screen.MobileSignUp.route)
+                    navController.navigate(Screen.SignUp.route)
                 }
             )
         }
 
-        composable(Screen.MobileLogin.route) {
-            MobileLoginScreen(
+        composable(Screen.Login.route) {
+            ModernLoginScreen(
                 navController = navController,
-                onNavigateBack = {
-                    navController.popBackStack()
-                },
                 onLoginSuccess = {
                     navController.navigate(Screen.Main.route) {
                         popUpTo(Screen.Welcome.route) { inclusive = true }
                     }
                 },
-                onNavigateToSignUp = {
-                    navController.navigate(Screen.MobileSignUp.route) {
-                        popUpTo(Screen.MobileLogin.route) { inclusive = true }
+                onNavigateToRegister = {
+                    navController.navigate(Screen.SignUp.route) {
+                        popUpTo(Screen.Login.route) { inclusive = true }
                     }
-                },
-                onNavigateToForgotPassword = {
-                    // TODO: Implement forgot password navigation
                 }
             )
         }
 
-        composable(Screen.MobileSignUp.route) {
-            MobileSignUpScreen(
+        composable(Screen.SignUp.route) {
+            ModernSignUpScreen(
                 navController = navController,
                 onNavigateBack = {
                     navController.popBackStack()
@@ -127,8 +121,8 @@ fun FairrNavGraph() {
                     }
                 },
                 onNavigateToLogin = {
-                    navController.navigate(Screen.MobileLogin.route) {
-                        popUpTo(Screen.MobileSignUp.route) { inclusive = true }
+                    navController.navigate(Screen.Login.route) {
+                        popUpTo(Screen.SignUp.route) { inclusive = true }
                     }
                 }
             )

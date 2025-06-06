@@ -117,7 +117,7 @@ fun WelcomeScreen(
             
             // Description
             Text(
-                text = "Track expenses, split bills with friends,\nand manage your budget effortlessly\nwith our clean, modern interface.",
+                text = "Track expenses, split bills with friends,\nand manage your budget effortlessly",
                 fontSize = 16.sp,
                 color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f),
                 textAlign = TextAlign.Center,
@@ -131,7 +131,7 @@ fun WelcomeScreen(
                 modifier = Modifier.fillMaxWidth(),
                 verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Primary Login Button
+                // Sign In Button
                 Button(
                     onClick = onNavigateToLogin,
                     modifier = Modifier
@@ -141,8 +141,7 @@ fun WelcomeScreen(
                         containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = MaterialTheme.colorScheme.onPrimary
                     ),
-                    shape = RoundedCornerShape(16.dp),
-                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 2.dp)
+                    shape = RoundedCornerShape(16.dp)
                 ) {
                     Text(
                         text = "Sign In",
@@ -151,19 +150,14 @@ fun WelcomeScreen(
                     )
                 }
                 
-                // Secondary Sign Up Button
+                // Create Account Button
                 OutlinedButton(
                     onClick = onNavigateToSignUp,
                     modifier = Modifier
                         .fillMaxWidth()
                         .height(52.dp),
                     colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.onBackground,
-                        containerColor = Color.Transparent
-                    ),
-                    border = androidx.compose.foundation.BorderStroke(
-                        1.dp,
-                        MaterialTheme.colorScheme.outline
+                        contentColor = MaterialTheme.colorScheme.onBackground
                     ),
                     shape = RoundedCornerShape(16.dp)
                 ) {

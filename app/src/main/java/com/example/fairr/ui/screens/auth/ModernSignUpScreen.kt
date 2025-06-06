@@ -8,6 +8,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -31,14 +32,16 @@ import androidx.lifecycle.viewmodel.compose.viewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun ModernLoginScreen(
+fun ModernSignUpScreen(
     navController: NavController,
-    onLoginSuccess: () -> Unit = {},
-    onNavigateToRegister: () -> Unit = {},
-    viewModel: AuthViewModel = viewModel()
+    onNavigateBack: () -> Unit,
+    onSignUpSuccess: () -> Unit,
+    onNavigateToLogin: () -> Unit,
+    viewModel: SignUpViewModel = viewModel()
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
+    var confirmPassword by remember { mutableStateOf("") }
     val state = viewModel.state
     val snackbarHostState = remember { SnackbarHostState() }
 
@@ -46,10 +49,10 @@ fun ModernLoginScreen(
     LaunchedEffect(key1 = true) {
         viewModel.uiEvent.collect { event ->
             when (event) {
-                is AuthUiEvent.ShowMessage -> {
+                is SignUpUiEvent.ShowError -> {
                     snackbarHostState.showSnackbar(event.message)
                 }
-                AuthUiEvent.NavigateToHome -> onLoginSuccess()
+                SignUpUiEvent.NavigateToHome -> onSignUpSuccess()
             }
         }
     }
@@ -68,31 +71,48 @@ fun ModernLoginScreen(
                 .background(
                     color = Primary,
                     shape = RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp)
-                ),
-            contentAlignment = Alignment.Center
+                )
         ) {
+            // Back Button
+            IconButton(
+                onClick = onNavigateBack,
+                modifier = Modifier
+                    .padding(16.dp)
+                    .align(Alignment.TopStart)
+            ) {
+                Icon(
+                    imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                    contentDescription = "Back",
+                    tint = TextOnDark
+                )
+            }
+            
+            // Header Content
             Column(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .padding(horizontal = 32.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                 // App Logo
                 Image(
                     painter = painterResource(id = R.drawable.fairr),
                     contentDescription = "Fairr Logo",
-                    modifier = Modifier.size(80.dp),
+                    modifier = Modifier.size(64.dp),
                     contentScale = ContentScale.Fit
                 )
                 
                 Spacer(modifier = Modifier.height(16.dp))
                 
                 Text(
-                    text = "Welcome Back",
+                    text = "Create Account",
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     color = TextOnDark
                 )
                 
                 Text(
-                    text = "Sign in to continue",
+                    text = "Join our community",
                     fontSize = 14.sp,
                     color = TextOnDark.copy(alpha = 0.8f),
                     modifier = Modifier.padding(top = 4.dp)
@@ -102,7 +122,7 @@ fun ModernLoginScreen(
         
         Spacer(modifier = Modifier.height(32.dp))
         
-        // Login Form
+        // Form Section
         Column(
             modifier = Modifier
                 .fillMaxWidth()
@@ -130,9 +150,24 @@ fun ModernLoginScreen(
                 enabled = !state.isLoading
             )
             
-            // Login Button
+            // Confirm Password Field
+            ModernTextField(
+                value = confirmPassword,
+                onValueChange = { confirmPassword = it },
+                label = "Confirm Password",
+                leadingIcon = Icons.Default.Lock,
+                keyboardType = KeyboardType.Password,
+                isPassword = true,
+                enabled = !state.isLoading
+            )
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            // Sign Up Button
             Button(
-                onClick = { viewModel.signIn(email, password) },
+                onClick = {
+                    viewModel.signUp(email, password, confirmPassword)
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp),
@@ -149,7 +184,11 @@ fun ModernLoginScreen(
                         modifier = Modifier.size(24.dp)
                     )
                 } else {
-                    Text("Sign In", fontSize = 16.sp, fontWeight = FontWeight.SemiBold)
+                    Text(
+                        text = "Create Account",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
                 }
             }
             
@@ -165,7 +204,7 @@ fun ModernLoginScreen(
             
             // Google Sign In Button (Disabled)
             OutlinedButton(
-                onClick = { /* Google login not implemented yet */ },
+                onClick = { /* Google sign up not implemented yet */ },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 border = BorderStroke(1.dp, DividerColor),
@@ -183,13 +222,13 @@ fun ModernLoginScreen(
                 Text("Continue with Google", fontSize = 14.sp)
             }
             
-            // Register link
+            // Login link
             TextButton(
-                onClick = onNavigateToRegister,
+                onClick = onNavigateToLogin,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
-                    text = "Don't have an account? Create one",
+                    text = "Already have an account? Sign in",
                     color = Primary,
                     fontSize = 14.sp,
                     textAlign = TextAlign.Center,
@@ -211,10 +250,13 @@ fun ModernLoginScreen(
 
 @Preview(showBackground = true)
 @Composable
-fun ModernLoginScreenPreview() {
+fun ModernSignUpScreenPreview() {
     FairrTheme {
-        ModernLoginScreen(
-            navController = rememberNavController()
+        ModernSignUpScreen(
+            navController = rememberNavController(),
+            onNavigateBack = {},
+            onSignUpSuccess = {},
+            onNavigateToLogin = {}
         )
     }
 } 

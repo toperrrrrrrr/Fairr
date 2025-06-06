@@ -59,6 +59,7 @@ fun AddExpenseScreen(
     var suggestedData by remember { mutableStateOf<com.example.fairr.utils.ExtractedReceiptData?>(null) }
     
     val splitTypes = listOf("Equal Split", "Percentage", "Custom Amount")
+    val scrollState = rememberScrollState()
 
     // Auto-fill from OCR data when photos are added
     LaunchedEffect(receiptPhotos) {
@@ -98,162 +99,54 @@ fun AddExpenseScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .background(BackgroundSecondary)
-                .padding(padding),
-            verticalArrangement = Arrangement.spacedBy(20.dp)
+                .padding(padding)
+                .verticalScroll(scrollState),
+            verticalArrangement = Arrangement.spacedBy(12.dp)
         ) {
-            Spacer(modifier = Modifier.height(4.dp))
-            
-            // Receipt Photos Section
+            // Description field
             ModernCard(
                 modifier = Modifier.padding(horizontal = 16.dp)
             ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                OutlinedTextField(
+                    value = description,
+                    onValueChange = { description = it },
+                    label = { Text("Description", fontSize = 14.sp) },
+                    placeholder = { Text("What's this expense for?", fontSize = 14.sp) },
+                    singleLine = true,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    textStyle = LocalTextStyle.current.copy(fontSize = 16.sp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Primary,
+                        focusedLabelColor = Primary
+                    )
+                )
+            }
+
+            // Calculator Card
+            ModernCard(
+                modifier = Modifier.padding(horizontal = 16.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     Text(
-                        text = "Receipt Photos",
-                        fontSize = 16.sp,
+                        text = "Amount",
+                        fontSize = 14.sp,
                         fontWeight = FontWeight.SemiBold,
                         color = TextPrimary
                     )
-                    
-                    ModernButton(
-                        text = "Add Photo",
-                        onClick = { 
-                            navController.navigate("photo_capture")
-                        },
-                        icon = Icons.Default.PhotoCamera,
-                        modifier = Modifier.height(40.dp)
+                    CompactCalculator(
+                        value = amount,
+                        onValueChange = { amount = it },
+                        modifier = Modifier.fillMaxWidth()
                     )
-                }
-                
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                if (receiptPhotos.isNotEmpty()) {
-                    LazyRow(
-                        horizontalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        items(receiptPhotos) { photo ->
-                            ReceiptPhotoCard(
-                                photo = photo,
-                                onRemove = { 
-                                    receiptPhotos = receiptPhotos.filter { it.id != photo.id }
-                                }
-                            )
-                        }
-                    }
-                } else {
-                    // Empty state
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable { 
-                                navController.navigate("photo_capture")
-                            }
-                            .background(
-                                Primary.copy(alpha = 0.05f),
-                                RoundedCornerShape(12.dp)
-                            )
-                            .padding(20.dp),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            Icons.Default.PhotoCamera,
-                            contentDescription = "Add Photo",
-                            tint = Primary,
-                            modifier = Modifier.size(24.dp)
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            text = "Tap to add receipt photos",
-                            color = Primary,
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
-                }
-            }
-            
-            // OCR Suggestion Card
-            if (showOcrSuggestion && suggestedData != null) {
-                val currentSuggestedData = suggestedData!! // Create local immutable copy
-                ModernCard(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    backgroundColor = SuccessGreen.copy(alpha = 0.1f)
-                ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.Top
-                    ) {
-                        Column(modifier = Modifier.weight(1f)) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Icon(
-                                    Icons.Default.AutoFixHigh,
-                                    contentDescription = "OCR Suggestion",
-                                    tint = SuccessGreen,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text(
-                                    text = "Detected from receipt",
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = SuccessGreen
-                                )
-                            }
-                            
-                            Spacer(modifier = Modifier.height(8.dp))
-                            
-                            currentSuggestedData.suggestedAmount?.let { suggestedAmount ->
-                                Text(
-                                    text = "Amount: $${String.format("%.2f", suggestedAmount)}",
-                                    fontSize = 13.sp,
-                                    color = TextSecondary
-                                )
-                            }
-                            
-                            currentSuggestedData.suggestedDescription?.let { suggestedDesc ->
-                                Text(
-                                    text = "Description: $suggestedDesc",
-                                    fontSize = 13.sp,
-                                    color = TextSecondary
-                                )
-                            }
-                        }
-                        
-                        Row {
-                            TextButton(
-                                onClick = {
-                                    currentSuggestedData.suggestedDescription?.let { desc -> description = desc }
-                                    currentSuggestedData.suggestedAmount?.let { amt -> amount = amt.toString() }
-                                    showOcrSuggestion = false
-                                }
-                            ) {
-                                Text("Use", color = SuccessGreen, fontWeight = FontWeight.Medium)
-                            }
-                            
-                            IconButton(
-                                onClick = { showOcrSuggestion = false }
-                            ) {
-                                Icon(
-                                    Icons.Default.Close,
-                                    contentDescription = "Dismiss",
-                                    tint = TextSecondary,
-                                    modifier = Modifier.size(18.dp)
-                                )
-                            }
-                        }
-                    }
                 }
             }
 
-            // Expense Details Form
+            // Category and Split Section
             ModernCard(
                 modifier = Modifier.padding(horizontal = 16.dp)
             ) {
@@ -261,38 +154,6 @@ fun AddExpenseScreen(
                     modifier = Modifier.padding(16.dp),
                     verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Text(
-                        text = "Expense Details",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = TextPrimary
-                    )
-                    
-                    OutlinedTextField(
-                        value = description,
-                        onValueChange = { description = it },
-                        label = { Text("Description") },
-                        placeholder = { Text("What's this expense for?") },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Primary,
-                            focusedLabelColor = Primary
-                        )
-                    )
-                    
-                    // Amount Calculator
-                    Calculator(
-                        value = amount,
-                        onValueChange = { amount = it },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .background(
-                                Primary.copy(alpha = 0.05f),
-                                RoundedCornerShape(12.dp)
-                            )
-                    )
-                    
                     // Category Dropdown
                     ExposedDropdownMenuBox(
                         expanded = showCategoryDropdown,
@@ -302,7 +163,7 @@ fun AddExpenseScreen(
                             value = selectedCategory.name,
                             onValueChange = {},
                             readOnly = true,
-                            label = { Text("Category") },
+                            label = { Text("Category", fontSize = 14.sp) },
                             leadingIcon = {
                                 Icon(
                                     selectedCategory.icon,
@@ -349,25 +210,26 @@ fun AddExpenseScreen(
                             }
                         }
                     }
-                    
+
                     // Split Type Selection
                     Column {
                         Text(
                             text = "Split Type",
                             fontSize = 14.sp,
-                            color = TextSecondary,
-                            modifier = Modifier.padding(bottom = 8.dp)
+                            color = TextSecondary
                         )
                         
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp),
                             horizontalArrangement = Arrangement.spacedBy(8.dp)
                         ) {
                             splitTypes.forEach { type ->
                                 FilterChip(
                                     selected = selectedSplitType == type,
                                     onClick = { selectedSplitType = type },
-                                    label = { Text(type) },
+                                    label = { Text(type, fontSize = 14.sp) },
                                     colors = FilterChipDefaults.filterChipColors(
                                         selectedContainerColor = Primary,
                                         selectedLabelColor = PureWhite
@@ -379,23 +241,80 @@ fun AddExpenseScreen(
                 }
             }
 
-            Spacer(modifier = Modifier.height(32.dp))
+            Spacer(modifier = Modifier.weight(1f))
+
+            // Receipt Photos Section (Optional)
+            if (receiptPhotos.isEmpty()) {
+                TextButton(
+                    onClick = { navController.navigate("photo_capture") },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(horizontal = 16.dp)
+                ) {
+                    Icon(
+                        Icons.Default.PhotoCamera,
+                        contentDescription = "Add Photo",
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Add Receipt Photo (Optional)")
+                }
+            } else {
+                ModernCard(
+                    modifier = Modifier.padding(horizontal = 16.dp)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Receipt Photos",
+                                fontSize = 14.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                            TextButton(
+                                onClick = { navController.navigate("photo_capture") }
+                            ) {
+                                Icon(
+                                    Icons.Default.Add,
+                                    contentDescription = "Add More",
+                                    modifier = Modifier.size(16.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Add More", fontSize = 12.sp)
+                            }
+                        }
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            items(receiptPhotos) { photo ->
+                                ReceiptPhotoCard(
+                                    photo = photo,
+                                    onRemove = { 
+                                        receiptPhotos = receiptPhotos.filter { it.id != photo.id }
+                                    }
+                                )
+                            }
+                        }
+                    }
+                }
+            }
 
             // Save Button
             ModernButton(
                 text = "Save Expense",
-                onClick = {
-                    // TODO: Validate and save expense
-                    isLoading = true
-                },
+                onClick = { isLoading = true },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 16.dp)
-                    .height(56.dp),
+                    .padding(16.dp)
+                    .height(48.dp),
                 enabled = description.isNotBlank() && amount.isNotBlank()
             )
-            
-            Spacer(modifier = Modifier.height(16.dp))
         }
     }
     
@@ -405,6 +324,177 @@ fun AddExpenseScreen(
             message = "Saving expense...",
             onDismiss = { isLoading = false }
         )
+    }
+}
+
+@Composable
+fun CompactCalculator(
+    value: String,
+    onValueChange: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    var displayValue by remember { mutableStateOf(value) }
+    var operation by remember { mutableStateOf<String?>(null) }
+    var firstNumber by remember { mutableStateOf<Double?>(null) }
+    var shouldResetInput by remember { mutableStateOf(false) }
+
+    fun performOperation() {
+        if (firstNumber != null && operation != null && displayValue.isNotEmpty()) {
+            val secondNumber = displayValue.toDoubleOrNull() ?: return
+            val result = when (operation) {
+                "+" -> firstNumber!! + secondNumber
+                "-" -> firstNumber!! - secondNumber
+                "×" -> firstNumber!! * secondNumber
+                "÷" -> if (secondNumber != 0.0) firstNumber!! / secondNumber else return
+                else -> return
+            }
+            displayValue = String.format("%.2f", result)
+            onValueChange(displayValue)
+            firstNumber = null
+            operation = null
+            shouldResetInput = true
+        }
+    }
+
+    fun handleOperation(op: String) {
+        if (displayValue.isEmpty()) return
+        if (firstNumber != null) {
+            performOperation()
+        }
+        firstNumber = displayValue.toDoubleOrNull()
+        operation = op
+        shouldResetInput = true
+    }
+
+    Column(
+        modifier = modifier.padding(8.dp),
+        verticalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        // Display
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .background(
+                    Primary.copy(alpha = 0.05f),
+                    RoundedCornerShape(8.dp)
+                )
+                .padding(horizontal = 16.dp, vertical = 12.dp)
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalAlignment = Alignment.End
+            ) {
+                if (firstNumber != null && operation != null) {
+                    Text(
+                        text = "₱${String.format("%.2f", firstNumber)} $operation",
+                        fontSize = 14.sp,
+                        color = TextSecondary,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+                Text(
+                    text = if (displayValue.isNotEmpty()) "₱ $displayValue" else "₱ 0.00",
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary
+                )
+            }
+        }
+
+        // Number pad grid with operations
+        val buttons = listOf(
+            listOf("7", "8", "9", "÷"),
+            listOf("4", "5", "6", "×"),
+            listOf("1", "2", "3", "-"),
+            listOf(".", "0", "⌫", "+")
+        )
+
+        Column(
+            verticalArrangement = Arrangement.spacedBy(4.dp)
+        ) {
+            buttons.forEach { row ->
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    row.forEach { button ->
+                        val isOperation = button in listOf("+", "-", "×", "÷")
+                        val isDelete = button == "⌫"
+                        
+                        TextButton(
+                            onClick = {
+                                when {
+                                    isOperation -> handleOperation(button)
+                                    isDelete -> {
+                                        if (displayValue.isNotEmpty()) {
+                                            displayValue = displayValue.dropLast(1)
+                                            onValueChange(displayValue)
+                                        }
+                                    }
+                                    button == "." -> {
+                                        if (!displayValue.contains(".")) {
+                                            displayValue += button
+                                            onValueChange(displayValue)
+                                        }
+                                    }
+                                    else -> {
+                                        if (shouldResetInput) {
+                                            displayValue = button
+                                            shouldResetInput = false
+                                        } else {
+                                            displayValue += button
+                                        }
+                                        onValueChange(displayValue)
+                                    }
+                                }
+                            },
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(48.dp)
+                                .background(
+                                    when {
+                                        isOperation -> Primary.copy(alpha = 0.1f)
+                                        isDelete -> ErrorRed.copy(alpha = 0.1f)
+                                        else -> MaterialTheme.colorScheme.surface
+                                    },
+                                    RoundedCornerShape(8.dp)
+                                ),
+                            colors = ButtonDefaults.textButtonColors(
+                                contentColor = when {
+                                    isOperation -> Primary
+                                    isDelete -> ErrorRed
+                                    else -> TextPrimary
+                                }
+                            )
+                        ) {
+                            Text(
+                                text = button,
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.Medium
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Equal button
+            TextButton(
+                onClick = { performOperation() },
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(48.dp)
+                    .background(Primary, RoundedCornerShape(8.dp)),
+                colors = ButtonDefaults.textButtonColors(
+                    contentColor = Color.White
+                )
+            ) {
+                Text(
+                    text = "=",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+        }
     }
 }
 
