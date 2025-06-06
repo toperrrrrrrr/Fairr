@@ -47,11 +47,11 @@ fun MainScreen(
     onNavigateToSearch: () -> Unit,
     onNavigateToNotifications: () -> Unit,
     onNavigateToGroupDetail: (String) -> Unit,
-    onNavigateToBudgets: () -> Unit,
     onNavigateToSettings: () -> Unit,
-    onSignOut: () -> Unit
+    onSignOut: () -> Unit,
+    initialTab: Int = 0
 ) {
-    var selectedTab by rememberSaveable { mutableStateOf(0) }
+    var selectedTab by rememberSaveable { mutableStateOf(initialTab) }
 
     Scaffold(
         bottomBar = {
@@ -73,7 +73,6 @@ fun MainScreen(
                 onNavigateToSearch = onNavigateToSearch,
                 onNavigateToNotifications = onNavigateToNotifications,
                 onNavigateToGroupDetail = onNavigateToGroupDetail,
-                onNavigateToBudgets = onNavigateToBudgets,
                 onNavigateToSettings = onNavigateToSettings
             )
             1 -> GroupsTabContent(
@@ -104,7 +103,6 @@ private fun HomeTabContent(
     onNavigateToSearch: () -> Unit,
     onNavigateToNotifications: () -> Unit,
     onNavigateToGroupDetail: (String) -> Unit,
-    onNavigateToBudgets: () -> Unit,
     onNavigateToSettings: () -> Unit
 ) {
     Box(modifier = Modifier.padding(paddingValues)) {
@@ -114,7 +112,7 @@ private fun HomeTabContent(
             onNavigateToSearch = onNavigateToSearch,
             onNavigateToNotifications = onNavigateToNotifications,
             onNavigateToGroupDetail = onNavigateToGroupDetail,
-            onNavigateToBudgets = onNavigateToBudgets
+            onNavigateToSettings = onNavigateToSettings
         )
     }
 }

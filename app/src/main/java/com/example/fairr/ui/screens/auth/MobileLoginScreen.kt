@@ -29,6 +29,8 @@ import com.example.fairr.ui.theme.*
 import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import com.example.fairr.navigation.Screen
+import androidx.compose.material.icons.filled.BugReport
 
 @Composable
 fun MobileLoginScreen(
@@ -267,6 +269,23 @@ fun MobileLoginScreen(
                 }
                 
                 Spacer(modifier = Modifier.height(24.dp))
+
+                // Review Unused Pages Button
+                OutlinedButton(
+                    onClick = { navController.navigate(Screen.UnusedPages.route) },
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = ButtonDefaults.outlinedButtonColors(
+                        contentColor = MaterialTheme.colorScheme.primary
+                    )
+                ) {
+                    Icon(
+                        Icons.Default.BugReport,
+                        contentDescription = null,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Review Unused Pages")
+                }
             }
         }
 

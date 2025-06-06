@@ -28,6 +28,7 @@ import com.example.fairr.ui.screens.groups.JoinGroupScreen
 import com.example.fairr.ui.screens.groups.GroupDetailScreen
 import com.example.fairr.ui.screens.settings.SettingsScreen
 import com.example.fairr.ui.screens.settings.CurrencySelectionScreen
+import com.example.fairr.ui.screens.settings.UnusedPagesScreen
 import com.example.fairr.ui.viewmodels.StartupViewModel
 
 sealed class Screen(val route: String) {
@@ -36,7 +37,9 @@ sealed class Screen(val route: String) {
     object Welcome : Screen("welcome")
     object MobileLogin : Screen("mobile_login")
     object MobileSignUp : Screen("mobile_signup")
-    object Main : Screen("main")
+    object Main : Screen("main?tab={tab}") {
+        fun createRoute(tab: Int = 0) = "main?tab=$tab"
+    }
     object CreateGroup : Screen("create_group")
     object JoinGroup : Screen("join_group")
     object Search : Screen("search")
@@ -44,12 +47,12 @@ sealed class Screen(val route: String) {
     object GroupDetail : Screen("group_detail/{groupId}") {
         fun createRoute(groupId: String) = "group_detail/$groupId"
     }
-    object Budgets : Screen("budgets")
     object Settings : Screen("settings")
     object CurrencySelection : Screen("currency_selection")
     object AddExpense : Screen("add_expense/{groupId}") {
         fun createRoute(groupId: String) = "add_expense/$groupId"
     }
+    object UnusedPages : Screen("unused_pages")
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -143,9 +146,19 @@ fun FairrNavGraph() {
             )
         }
 
-        composable(Screen.Main.route) {
+        composable(
+            route = Screen.Main.route,
+            arguments = listOf(
+                navArgument("tab") {
+                    type = NavType.IntType
+                    defaultValue = 0
+                }
+            )
+        ) { backStackEntry ->
+            val tab = backStackEntry.arguments?.getInt("tab") ?: 0
             MainScreen(
                 navController = navController,
+                initialTab = tab,
                 onNavigateToAddExpense = { groupId: String ->
                     navController.navigate(Screen.AddExpense.createRoute(groupId))
                 },
@@ -163,9 +176,6 @@ fun FairrNavGraph() {
                 },
                 onNavigateToGroupDetail = { groupId: String ->
                     navController.navigate(Screen.GroupDetail.createRoute(groupId))
-                },
-                onNavigateToBudgets = {
-                    navController.navigate(Screen.Budgets.route)
                 },
                 onNavigateToSettings = {
                     navController.navigate(Screen.Settings.route)
@@ -222,6 +232,10 @@ fun FairrNavGraph() {
             CurrencySelectionScreen(
                 navController = navController
             )
+        }
+
+        composable(Screen.UnusedPages.route) {
+            UnusedPagesScreen(navController = navController)
         }
     }
 } 

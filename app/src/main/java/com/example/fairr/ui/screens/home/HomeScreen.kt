@@ -34,7 +34,7 @@ fun HomeScreen(
     onNavigateToSearch: () -> Unit,
     onNavigateToNotifications: () -> Unit,
     onNavigateToGroupDetail: (String) -> Unit,
-    onNavigateToBudgets: () -> Unit
+    onNavigateToSettings: () -> Unit
 ) {
     val groups = remember {
         listOf(
@@ -171,10 +171,10 @@ fun HomeScreen(
                         Text("Join Group")
                     }
                     OutlinedButton(
-                        onClick = onNavigateToBudgets,
+                        onClick = onNavigateToSettings,
                         modifier = Modifier.weight(1f)
                     ) {
-                        Text("View Budgets")
+                        Text("View Settings")
                     }
                 }
             }
@@ -334,7 +334,7 @@ fun HomeScreenPreview() {
             onNavigateToSearch = {},
             onNavigateToNotifications = {},
             onNavigateToGroupDetail = {},
-            onNavigateToBudgets = {}
+            onNavigateToSettings = {}
         )
     }
 }
