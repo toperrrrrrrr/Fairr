@@ -26,6 +26,7 @@ import com.example.fairr.ui.screens.groups.GroupListViewModel
 import com.example.fairr.ui.screens.groups.GroupListUiState
 import com.example.fairr.ui.model.Group
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.fairr.util.CurrencyFormatter
 
 // Data class for group items
 private data class GroupItem(
@@ -313,7 +314,7 @@ private fun GroupCard(
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
                 Text(
-                    text = "$currency ${String.format("%.2f", balance)}",
+                    text = CurrencyFormatter.format(currency, balance),
                     style = MaterialTheme.typography.bodyMedium,
                     fontWeight = FontWeight.Medium,
                     color = when {

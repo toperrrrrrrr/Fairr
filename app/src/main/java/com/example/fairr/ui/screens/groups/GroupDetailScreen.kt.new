@@ -23,6 +23,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.fairr.ui.theme.*
+import com.example.fairr.util.CurrencyFormatter
 
 // Data classes
 data class GroupDetail(
@@ -66,7 +67,7 @@ fun GroupDetailScreen(
             memberCount = 4,
             totalExpenses = 650.0,
             yourBalance = -125.75,
-            currency = "$",
+            currency = "PHP",
             members = listOf(
                 Member("1", "John Doe", -125.75),
                 Member("2", "Jane Smith", 50.25),
@@ -298,7 +299,7 @@ fun GroupSummaryCard(
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
-                        text = "${group.currency}${String.format("%.2f", group.totalExpenses)}",
+                        text = CurrencyFormatter.format(group.currency, group.totalExpenses),
                         fontSize = 12.sp,
                         color = TextSecondary,
                         fontWeight = FontWeight.Medium
@@ -342,7 +343,7 @@ fun BalanceCard(
                     fontWeight = FontWeight.Medium
                 )
                 Text(
-                    text = "$currency${String.format("%.2f", kotlin.math.abs(balance))}",
+                    text = CurrencyFormatter.format(currency, kotlin.math.abs(balance)),
                     fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
                     color = balanceColor
@@ -438,11 +439,7 @@ fun MemberCard(
                 }
                 
                 Text(
-                    text = when {
-                        member.balance > 0 -> "+$currency${String.format("%.2f", member.balance)}"
-                        member.balance < 0 -> "-$currency${String.format("%.2f", kotlin.math.abs(member.balance))}"
-                        else -> "$currency${String.format("%.2f", 0.0)}"
-                    },
+                    text = CurrencyFormatter.format(currency, member.balance, showPositiveSign = true),
                     fontSize = 14.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = balanceColor
@@ -486,7 +483,7 @@ fun ExpenseCard(
             }
             
             Text(
-                text = "$currency${String.format("%.2f", expense.amount)}",
+                text = CurrencyFormatter.format(currency, expense.amount),
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = TextPrimary

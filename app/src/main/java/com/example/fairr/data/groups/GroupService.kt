@@ -34,7 +34,7 @@ class GroupService @Inject constructor() {
         Log.d(TAG, "Fetching groups for user: ${currentUser.uid}")
 
         val subscription = groupsCollection
-            .whereNotEqualTo("members.${currentUser.uid}", null)
+            .whereNotEqualTo("members." + currentUser.uid, null)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     Log.e(TAG, "Error fetching groups", error)
@@ -51,35 +51,89 @@ class GroupService @Inject constructor() {
                 Log.d(TAG, "Number of documents: ${snapshot.documents.size}")
                 
                 val groups = snapshot.documents.mapNotNull { doc ->
-                    val data = doc.data ?: return@mapNotNull null
-                    Log.d(TAG, "Processing group document: ${doc.id}")
-                    Log.d(TAG, "Group data: $data")
-                    
+                    try {
+                        val data = doc.data ?: return@mapNotNull null
+                        Log.d(TAG, "Processing group document: ${doc.id}")
+                        Log.d(TAG, "Group data: $data")
+                        
+                        val membersMap = data["members"] as? Map<String, Map<String, Any>> ?: emptyMap()
+                        val members = membersMap.map { (userId, memberData) ->
+                            GroupMember(
+                                id = userId,
+                                name = memberData["name"] as? String ?: "Unknown",
+                                email = memberData["email"] as? String ?: "",
+                                isAdmin = memberData["isAdmin"] as? Boolean ?: false,
+                                isCurrentUser = userId == currentUser.uid
+                            )
+                        }
+
+                        Group(
+                            id = doc.id,
+                            name = data["name"] as? String ?: "",
+                            description = data["description"] as? String ?: "",
+                            currency = data["currency"] as? String ?: "PHP",
+                            createdBy = data["createdBy"] as? String ?: "",
+                            members = members,
+                            inviteCode = data["inviteCode"] as? String ?: "",
+                            createdAt = data["createdAt"] as? Long ?: System.currentTimeMillis()
+                        )
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error parsing group document", e)
+                        null
+                    }
+                }
+                Log.d(TAG, "Processed ${groups.size} groups")
+                trySend(groups)
+            }
+
+        awaitClose { subscription.remove() }
+    }
+
+    fun getGroupById(groupId: String): Flow<Group> = callbackFlow {
+        val currentUser = auth.currentUser
+            ?: throw IllegalStateException("User not authenticated")
+
+        val subscription = groupsCollection.document(groupId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+
+                if (snapshot == null || !snapshot.exists()) {
+                    close(IllegalStateException("Group not found"))
+                    return@addSnapshotListener
+                }
+
+                try {
+                    val data = snapshot.data ?: throw IllegalStateException("Group data is null")
                     val membersMap = data["members"] as? Map<String, Map<String, Any>> ?: emptyMap()
                     val members = membersMap.map { (userId, memberData) ->
                         GroupMember(
                             id = userId,
-                            name = memberData["name"] as? String ?: "",
+                            name = memberData["name"] as? String ?: "Unknown",
                             email = memberData["email"] as? String ?: "",
                             isAdmin = memberData["isAdmin"] as? Boolean ?: false,
                             isCurrentUser = userId == currentUser.uid
                         )
                     }
 
-                    Group(
-                        id = doc.id,
+                    val group = Group(
+                        id = snapshot.id,
                         name = data["name"] as? String ?: "",
                         description = data["description"] as? String ?: "",
-                        currency = data["currency"] as? String ?: "USD",
-                        members = members,
+                        currency = data["currency"] as? String ?: "PHP",
                         createdBy = data["createdBy"] as? String ?: "",
+                        members = members,
                         inviteCode = data["inviteCode"] as? String ?: "",
-                        createdAt = (data["createdAt"] as? com.google.firebase.Timestamp)?.toDate()?.time
-                            ?: System.currentTimeMillis()
+                        createdAt = data["createdAt"] as? Long ?: System.currentTimeMillis()
                     )
+
+                    trySend(group)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error parsing group document", e)
+                    close(e)
                 }
-                Log.d(TAG, "Processed ${groups.size} groups")
-                trySend(groups)
             }
 
         awaitClose { subscription.remove() }

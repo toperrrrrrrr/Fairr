@@ -25,6 +25,7 @@ import com.example.fairr.ui.model.Group
 import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import com.google.firebase.auth.FirebaseAuth
+import com.example.fairr.util.CurrencyFormatter
 
 private const val TAG = "GroupListScreen"
 
@@ -200,7 +201,7 @@ private fun GroupCard(
                         modifier = Modifier.size(16.dp)
                     )
                     Text(
-                        text = group.currency,
+                        text = CurrencyFormatter.getSymbol(group.currency),
                         style = MaterialTheme.typography.labelMedium
                     )
                 }

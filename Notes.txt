@@ -1,2 +1,12 @@
 Currency selected should be saved as profile settings in the firebase user record 
 Ask the user to update their name and details in the settings. 
+
+
+
+Track logs, who logged in and actions 
+
+There are some pages that are still using USD as default. Please change that to PHP 
+
+Add expense is not working/not opening the next page
+
+Login button does show 
