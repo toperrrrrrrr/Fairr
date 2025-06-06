@@ -12,7 +12,12 @@
           "package_name": "com.example.fairr"
         }
       },
-      "oauth_client": [],
+      "oauth_client": [
+        {
+          "client_id": "670995472503-mtt69kbdep2jhesjtem9dip37qngc1i5.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
       "api_key": [
         {
           "current_key": "AIzaSyBW78VffucYlkQWiW8OzdKl025UU5k3T3w"
@@ -20,7 +25,12 @@
       ],
       "services": {
         "appinvite_service": {
-          "other_platform_oauth_client": []
+          "other_platform_oauth_client": [
+            {
+              "client_id": "670995472503-mtt69kbdep2jhesjtem9dip37qngc1i5.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
         }
       }
     }

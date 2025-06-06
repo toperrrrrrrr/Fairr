@@ -83,17 +83,20 @@ fun FairrNavGraph() {
         }
 
         composable(Screen.Welcome.route) {
+            val authViewModel: AuthViewModel = hiltViewModel()
             WelcomeScreen(
                 onNavigateToLogin = {
                     navController.navigate(Screen.Login.route)
                 },
                 onNavigateToSignUp = {
                     navController.navigate(Screen.SignUp.route)
-                }
+                },
+                viewModel = authViewModel
             )
         }
 
         composable(Screen.Login.route) {
+            val authViewModel: AuthViewModel = hiltViewModel()
             ModernLoginScreen(
                 navController = navController,
                 onLoginSuccess = {
@@ -105,11 +108,13 @@ fun FairrNavGraph() {
                     navController.navigate(Screen.SignUp.route) {
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
-                }
+                },
+                viewModel = authViewModel
             )
         }
 
         composable(Screen.SignUp.route) {
+            val authViewModel: AuthViewModel = hiltViewModel()
             ModernSignUpScreen(
                 navController = navController,
                 onNavigateBack = {
@@ -124,7 +129,8 @@ fun FairrNavGraph() {
                     navController.navigate(Screen.Login.route) {
                         popUpTo(Screen.SignUp.route) { inclusive = true }
                     }
-                }
+                },
+                viewModel = authViewModel
             )
         }
 

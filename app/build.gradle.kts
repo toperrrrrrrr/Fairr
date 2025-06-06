@@ -72,6 +72,9 @@ dependencies {
     implementation("com.google.firebase:firebase-database")
     implementation("com.google.firebase:firebase-firestore-ktx")
 
+    // Google Sign In
+    implementation("com.google.android.gms:play-services-auth:20.7.0")
+
     // DataStore
     implementation("androidx.datastore:datastore-preferences:1.0.0")
 

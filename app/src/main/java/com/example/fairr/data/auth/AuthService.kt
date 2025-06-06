@@ -4,15 +4,18 @@ import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.FirebaseUser
 import kotlinx.coroutines.tasks.await
 import kotlin.coroutines.cancellation.CancellationException
+import javax.inject.Inject
+import javax.inject.Singleton
 
 sealed class AuthResult {
     data class Success(val user: FirebaseUser) : AuthResult()
     data class Error(val message: String) : AuthResult()
 }
 
-class AuthService {
-    private val auth: FirebaseAuth = FirebaseAuth.getInstance()
-
+@Singleton
+class AuthService @Inject constructor(
+    private val auth: FirebaseAuth
+) {
     val currentUser: FirebaseUser?
         get() = auth.currentUser
 

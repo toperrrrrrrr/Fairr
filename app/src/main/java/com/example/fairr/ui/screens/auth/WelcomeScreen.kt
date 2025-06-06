@@ -19,14 +19,31 @@ import androidx.compose.ui.unit.sp
 import com.example.fairr.R
 import com.example.fairr.ui.theme.*
 import com.google.accompanist.systemuicontroller.rememberSystemUiController
+import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.lifecycle.compose.collectAsStateWithLifecycle
 
 @Composable
 fun WelcomeScreen(
     onNavigateToLogin: () -> Unit,
-    onNavigateToSignUp: () -> Unit
+    onNavigateToSignUp: () -> Unit,
+    viewModel: AuthViewModel = viewModel()
 ) {
     val systemUiController = rememberSystemUiController()
     val useDarkIcons = MaterialTheme.colorScheme.background.luminance() > 0.5f
+    val state by viewModel.state.collectAsStateWithLifecycle()
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Collect UI events
+    LaunchedEffect(key1 = true) {
+        viewModel.uiEvent.collect { event ->
+            when (event) {
+                is AuthUiEvent.ShowMessage -> {
+                    snackbarHostState.showSnackbar(event.message)
+                }
+                else -> {} // Handle other events if needed
+            }
+        }
+    }
 
     DisposableEffect(systemUiController, useDarkIcons) {
         systemUiController.setSystemBarsColor(
@@ -141,13 +158,21 @@ fun WelcomeScreen(
                         containerColor = MaterialTheme.colorScheme.primary,
                         contentColor = MaterialTheme.colorScheme.onPrimary
                     ),
-                    shape = RoundedCornerShape(16.dp)
+                    shape = RoundedCornerShape(16.dp),
+                    enabled = !state.isLoading
                 ) {
-                    Text(
-                        text = "Sign In",
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
+                    if (state.isLoading) {
+                        CircularProgressIndicator(
+                            color = MaterialTheme.colorScheme.onPrimary,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    } else {
+                        Text(
+                            text = "Sign In",
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
                 }
                 
                 // Create Account Button
@@ -159,7 +184,8 @@ fun WelcomeScreen(
                     colors = ButtonDefaults.outlinedButtonColors(
                         contentColor = MaterialTheme.colorScheme.onBackground
                     ),
-                    shape = RoundedCornerShape(16.dp)
+                    shape = RoundedCornerShape(16.dp),
+                    enabled = !state.isLoading
                 ) {
                     Text(
                         text = "Create Account",
@@ -181,5 +207,13 @@ fun WelcomeScreen(
             
             Spacer(modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars))
         }
+
+        // Snackbar host
+        SnackbarHost(
+            hostState = snackbarHostState,
+            modifier = Modifier
+                .align(Alignment.BottomCenter)
+                .padding(16.dp)
+        )
     }
 } 

@@ -28,6 +28,9 @@ import com.example.fairr.R
 import com.example.fairr.ui.components.*
 import com.example.fairr.ui.theme.*
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import com.google.android.gms.common.SignInButton
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -39,8 +42,14 @@ fun ModernLoginScreen(
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
-    val state = viewModel.state
+    val state = viewModel.state.collectAsState().value
     val snackbarHostState = remember { SnackbarHostState() }
+
+    val googleSignInLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.StartActivityForResult()
+    ) { result ->
+        viewModel.handleGoogleSignInResult(result.data)
+    }
 
     // Collect UI events
     LaunchedEffect(key1 = true) {
@@ -50,6 +59,9 @@ fun ModernLoginScreen(
                     snackbarHostState.showSnackbar(event.message)
                 }
                 AuthUiEvent.NavigateToHome -> onLoginSuccess()
+                is AuthUiEvent.LaunchGoogleSignIn -> {
+                    googleSignInLauncher.launch(event.intent)
+                }
             }
         }
     }
@@ -163,19 +175,19 @@ fun ModernLoginScreen(
                     .padding(vertical = 8.dp)
             )
             
-            // Google Sign In Button (Disabled)
+            // Google Sign In Button
             OutlinedButton(
-                onClick = { /* Google login not implemented yet */ },
+                onClick = { viewModel.signInWithGoogle() },
                 modifier = Modifier.fillMaxWidth(),
                 shape = RoundedCornerShape(12.dp),
                 border = BorderStroke(1.dp, DividerColor),
                 colors = ButtonDefaults.outlinedButtonColors(
                     contentColor = TextPrimary
                 ),
-                enabled = false
+                enabled = !state.isLoading
             ) {
-                Icon(
-                    imageVector = Icons.Default.Person,  // Using Person icon as placeholder for Google
+                Image(
+                    painter = painterResource(id = R.drawable.ic_google),
                     contentDescription = "Google",
                     modifier = Modifier.size(20.dp)
                 )
