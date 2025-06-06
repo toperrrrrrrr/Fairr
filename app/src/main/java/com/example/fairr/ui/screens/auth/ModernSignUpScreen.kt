@@ -29,6 +29,7 @@ import com.example.fairr.R
 import com.example.fairr.ui.components.*
 import com.example.fairr.ui.theme.*
 import androidx.lifecycle.viewmodel.compose.viewModel
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -37,7 +38,7 @@ fun ModernSignUpScreen(
     onNavigateBack: () -> Unit,
     onSignUpSuccess: () -> Unit,
     onNavigateToLogin: () -> Unit,
-    viewModel: SignUpViewModel = viewModel()
+    viewModel: AuthViewModel = viewModel()
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }
@@ -49,10 +50,10 @@ fun ModernSignUpScreen(
     LaunchedEffect(key1 = true) {
         viewModel.uiEvent.collect { event ->
             when (event) {
-                is SignUpUiEvent.ShowError -> {
+                is AuthUiEvent.ShowMessage -> {
                     snackbarHostState.showSnackbar(event.message)
                 }
-                SignUpUiEvent.NavigateToHome -> onSignUpSuccess()
+                AuthUiEvent.NavigateToHome -> onSignUpSuccess()
             }
         }
     }
@@ -166,7 +167,11 @@ fun ModernSignUpScreen(
             // Sign Up Button
             Button(
                 onClick = {
-                    viewModel.signUp(email, password, confirmPassword)
+                    if (password != confirmPassword) {
+                        viewModel.showMessage("Passwords do not match")
+                        return@Button
+                    }
+                    viewModel.signUp(email, password)
                 },
                 modifier = Modifier
                     .fillMaxWidth()

@@ -38,6 +38,7 @@ import com.example.fairr.utils.ReceiptPhoto
 import com.example.fairr.util.CurrencyFormatter
 import java.io.File
 import java.util.*
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -45,18 +46,21 @@ import java.util.*
 fun AddExpenseScreen(
     groupId: String,
     navController: NavController,
-    onExpenseAdded: () -> Unit = {}
+    onExpenseAdded: () -> Unit = {},
+    viewModel: AddExpenseViewModel = hiltViewModel()
 ) {
     var description by remember { mutableStateOf("") }
     var amount by remember { mutableStateOf("") }
     val categories = remember { getDefaultCategories() }
     var selectedCategory by remember { mutableStateOf(categories.first()) }
     var selectedSplitType by remember { mutableStateOf("Equal Split") }
-    var isLoading by remember { mutableStateOf(false) }
     var showCategoryDropdown by remember { mutableStateOf(false) }
     var receiptPhotos by remember { mutableStateOf<List<ReceiptPhoto>>(emptyList()) }
     var showOcrSuggestion by remember { mutableStateOf(false) }
     var suggestedData by remember { mutableStateOf<com.example.fairr.utils.ExtractedReceiptData?>(null) }
+    val state = viewModel.state
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
     
     val splitTypes = listOf("Equal Split", "Percentage", "Custom Amount")
     val scrollState = rememberScrollState()
@@ -67,6 +71,20 @@ fun AddExpenseScreen(
         if (latestPhotoWithOcr?.extractedData != null && description.isBlank() && amount.isBlank()) {
             suggestedData = latestPhotoWithOcr.extractedData
             showOcrSuggestion = true
+        }
+    }
+
+    // Handle events
+    LaunchedEffect(true) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is AddExpenseEvent.ShowError -> {
+                    snackbarHostState.showSnackbar(event.message)
+                }
+                AddExpenseEvent.ExpenseSaved -> {
+                    onExpenseAdded()
+                }
+            }
         }
     }
 
@@ -308,23 +326,49 @@ fun AddExpenseScreen(
             // Save Button
             ModernButton(
                 text = "Save Expense",
-                onClick = { isLoading = true },
+                onClick = {
+                    val amountValue = amount.replace(viewModel.getCurrencySymbol(), "")
+                        .replace(",", "")
+                        .trim()
+                        .toDoubleOrNull()
+                    
+                    if (amountValue == null) {
+                        scope.launch {
+                            snackbarHostState.showSnackbar("Please enter a valid amount")
+                        }
+                        return@ModernButton
+                    }
+                    
+                    viewModel.addExpense(
+                        groupId = groupId,
+                        description = description,
+                        amount = amountValue,
+                        date = Date()
+                    )
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp)
                     .height(48.dp),
-                enabled = description.isNotBlank() && amount.isNotBlank()
+                enabled = description.isNotBlank() && amount.isNotBlank() && !state.isLoading
             )
         }
     }
     
-    if (isLoading) {
+    if (state.isLoading) {
         FairrLoadingDialog(
             isVisible = true,
             message = "Saving expense...",
-            onDismiss = { isLoading = false }
+            onDismiss = { /* Do nothing, let the ViewModel control this */ }
         )
     }
+    
+    // Snackbar host
+    SnackbarHost(
+        hostState = snackbarHostState,
+        modifier = Modifier
+            .padding(16.dp)
+    )
 }
 
 @Composable

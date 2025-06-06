@@ -31,6 +31,7 @@ object AppModule {
     @Provides
     @Singleton
     fun provideExpenseRepository(
-        firestore: FirebaseFirestore
-    ): ExpenseRepository = ExpenseRepositoryImpl(firestore)
+        firestore: FirebaseFirestore,
+        auth: FirebaseAuth
+    ): ExpenseRepository = ExpenseRepositoryImpl(firestore, auth)
 } 

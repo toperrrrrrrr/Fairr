@@ -118,4 +118,10 @@ class AuthViewModel : ViewModel() {
     private fun setError(message: String) {
         state = state.copy(error = message)
     }
+
+    fun showMessage(message: String) {
+        viewModelScope.launch {
+            _uiEvent.emit(AuthUiEvent.ShowMessage(message))
+        }
+    }
 } 

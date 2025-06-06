@@ -30,6 +30,7 @@ import com.example.fairr.ui.theme.*
 import com.example.fairr.ui.model.Group
 import com.example.fairr.ui.model.GroupMember
 import com.example.fairr.util.CurrencyFormatter
+import com.example.fairr.data.expenses.Expense
 
 // Data classes
 data class GroupDetail(
@@ -101,7 +102,9 @@ fun GroupDetailScreen(
                     group = state.group,
                     currentUserBalance = state.currentUserBalance,
                     totalExpenses = state.totalExpenses,
+                    expenses = state.expenses,
                     onNavigateToAddExpense = onNavigateToAddExpense,
+                    viewModel = viewModel,
                     modifier = Modifier.padding(padding)
                 )
             }
@@ -127,7 +130,9 @@ private fun GroupDetailContent(
     group: Group,
     currentUserBalance: Double,
     totalExpenses: Double,
+    expenses: List<Expense>,
     onNavigateToAddExpense: () -> Unit,
+    viewModel: GroupDetailViewModel,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -227,21 +232,63 @@ private fun GroupDetailContent(
                 )
             }
         }
-        
-        // Members List
-        item {
-            Text(
-                text = "Members",
-                style = MaterialTheme.typography.titleLarge,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(vertical = 8.dp)
-            )
+
+        // Recent Expenses Section
+        if (expenses.isNotEmpty()) {
+            item {
+                Text(
+                    text = "Recent Expenses",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.padding(vertical = 8.dp)
+                )
+            }
+
+            items(expenses) { expense ->
+                ExpenseCard(
+                    expense = expense,
+                    currency = group.currency,
+                    viewModel = viewModel
+                )
+            }
         }
-        
-        items(group.members) { member ->
-            MemberCard(
-                member = member,
-                currency = group.currency
+    }
+}
+
+@Composable
+private fun ExpenseCard(
+    expense: Expense,
+    currency: String,
+    viewModel: GroupDetailViewModel,
+    modifier: Modifier = Modifier
+) {
+    ModernCard(
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = expense.description,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    text = viewModel.formatDate(expense.date),
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            
+            Text(
+                text = CurrencyFormatter.format(currency, expense.amount),
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
             )
         }
     }
