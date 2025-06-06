@@ -32,6 +32,7 @@ import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import com.example.fairr.navigation.Screen
 import androidx.compose.material.icons.filled.BugReport
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MobileLoginScreen(
     navController: NavController,
@@ -66,236 +67,176 @@ fun MobileLoginScreen(
     Box(
         modifier = Modifier
             .fillMaxSize()
-            .background(Primary) // Dark background
+            .background(Primary)
     ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .verticalScroll(rememberScrollState())
+                .padding(24.dp)
+                .verticalScroll(rememberScrollState()),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Top Section with Back Button and Title
-            Column(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(24.dp)
+            // Back button and title
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                // Back button
                 IconButton(
                     onClick = onNavigateBack,
-                    modifier = Modifier.size(32.dp)
+                    modifier = Modifier
+                        .size(48.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.surface.copy(alpha = 0.1f),
+                            shape = RoundedCornerShape(16.dp)
+                        )
                 ) {
                     Icon(
-                        imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                        Icons.AutoMirrored.Filled.ArrowBack,
                         contentDescription = "Back",
-                        tint = TextOnDark,
-                        modifier = Modifier.size(24.dp)
+                        tint = MaterialTheme.colorScheme.onPrimary
                     )
                 }
                 
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                // Welcome text - more compact
                 Text(
-                    text = "Hey, Welcome Back",
-                    fontSize = 28.sp,
+                    text = "Login",
+                    color = MaterialTheme.colorScheme.onPrimary,
+                    fontSize = 24.sp,
                     fontWeight = FontWeight.Bold,
-                    color = TextOnDark,
-                    lineHeight = 32.sp
+                    modifier = Modifier.weight(1f),
+                    textAlign = TextAlign.Center
+                )
+                
+                // Spacer to balance the layout
+                Spacer(modifier = Modifier.size(48.dp))
+            }
+
+            Spacer(modifier = Modifier.height(48.dp))
+
+            // Email field
+            OutlinedTextField(
+                value = email,
+                onValueChange = { email = it },
+                label = { Text("Email") },
+                singleLine = true,
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(16.dp))
+
+            // Password field
+            OutlinedTextField(
+                value = password,
+                onValueChange = { password = it },
+                label = { Text("Password") },
+                singleLine = true,
+                visualTransformation = if (isPasswordVisible) 
+                    VisualTransformation.None else PasswordVisualTransformation(),
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Password),
+                trailingIcon = {
+                    IconButton(onClick = { isPasswordVisible = !isPasswordVisible }) {
+                        Icon(
+                            if (isPasswordVisible) Icons.Default.Visibility
+                            else Icons.Default.VisibilityOff,
+                            contentDescription = if (isPasswordVisible) "Hide password" else "Show password"
+                        )
+                    }
+                },
+                colors = TextFieldDefaults.colors(
+                    focusedContainerColor = MaterialTheme.colorScheme.surface,
+                    unfocusedContainerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.8f),
+                    focusedTextColor = MaterialTheme.colorScheme.onSurface,
+                    unfocusedTextColor = MaterialTheme.colorScheme.onSurface
+                ),
+                modifier = Modifier.fillMaxWidth()
+            )
+
+            Spacer(modifier = Modifier.height(8.dp))
+
+            // Forgot password
+            TextButton(
+                onClick = onNavigateToForgotPassword,
+                modifier = Modifier.align(Alignment.End)
+            ) {
+                Text(
+                    text = "Forgot Password?",
+                    color = MaterialTheme.colorScheme.onPrimary
                 )
             }
-            
-            Spacer(modifier = Modifier.height(24.dp))
-            
-            // Form Section
-            Column(
+
+            Spacer(modifier = Modifier.height(32.dp))
+
+            // Login button
+            Button(
+                onClick = {
+                    keyboardController?.hide()
+                    focusManager.clearFocus()
+                    viewModel.signIn(email, password)
+                },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(horizontal = 24.dp),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
+                    .height(56.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = MaterialTheme.colorScheme.secondary
+                ),
+                enabled = !state.isLoading
             ) {
-                // Email Field
-                MobileTextField(
-                    value = email,
-                    onValueChange = { email = it },
-                    placeholder = "Email Id",
-                    leadingIcon = Icons.Default.Email,
-                    keyboardType = KeyboardType.Email,
-                    enabled = !state.isLoading
-                )
-                
-                // Password Field
-                MobileTextField(
-                    value = password,
-                    onValueChange = { password = it },
-                    placeholder = "Password",
-                    leadingIcon = Icons.Default.Lock,
-                    trailingIcon = if (isPasswordVisible) Icons.Default.VisibilityOff else Icons.Default.Visibility,
-                    onTrailingIconClick = { isPasswordVisible = !isPasswordVisible },
-                    visualTransformation = if (isPasswordVisible) VisualTransformation.None else PasswordVisualTransformation(),
-                    enabled = !state.isLoading
-                )
-                
-                // Forgot Password
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.End
-                ) {
+                if (state.isLoading) {
+                    CircularProgressIndicator(
+                        color = MaterialTheme.colorScheme.onSecondary,
+                        modifier = Modifier.size(24.dp)
+                    )
+                } else {
                     Text(
-                        text = "Forget password?",
-                        color = TextOnDark.copy(alpha = 0.7f),
-                        fontSize = 14.sp,
-                        modifier = Modifier.clickable(enabled = !state.isLoading) {
-                            viewModel.resetPassword(email)
-                        }
+                        text = "Login",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
                     )
                 }
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                // Login Button
-                Button(
-                    onClick = {
-                        // Hide keyboard and clear focus
-                        keyboardController?.hide()
-                        focusManager.clearFocus()
-                        viewModel.signIn(email, password)
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = TextOnDark,
-                        contentColor = Primary
-                    ),
-                    shape = RoundedCornerShape(28.dp),
-                    enabled = !state.isLoading
-                ) {
-                    if (state.isLoading) {
-                        CircularProgressIndicator(
-                            modifier = Modifier.size(24.dp),
-                            color = Primary
-                        )
-                    } else {
-                        Text(
-                            text = "Login",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.SemiBold
-                        )
-                    }
-                }
-                
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                // Continue with section
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    HorizontalDivider(
-                        modifier = Modifier.weight(1f),
-                        color = TextOnDark.copy(alpha = 0.3f)
-                    )
-                    Text(
-                        text = "or continue with",
-                        color = TextOnDark.copy(alpha = 0.7f),
-                        fontSize = 14.sp,
-                        modifier = Modifier.padding(horizontal = 16.dp)
-                    )
-                    HorizontalDivider(
-                        modifier = Modifier.weight(1f),
-                        color = TextOnDark.copy(alpha = 0.3f)
-                    )
-                }
-                
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                // Google Sign In Button
-                OutlinedButton(
-                    onClick = {
-                        // Handle Google sign in
-                    },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = TextOnDark
-                    ),
-                    border = androidx.compose.foundation.BorderStroke(1.dp, TextOnDark.copy(alpha = 0.3f)),
-                    shape = RoundedCornerShape(28.dp)
-                ) {
-                    Row(
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        // Google icon placeholder
-                        Text(
-                            text = "G",
-                            fontSize = 18.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = TextOnDark
-                        )
-                        Spacer(modifier = Modifier.width(12.dp))
-                        Text(
-                            text = "Google",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
-                }
-                
-                Spacer(modifier = Modifier.height(32.dp))
-                
-                // Sign up link
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.Center
-                ) {
-                    Text(
-                        text = "Don't have an account? ",
-                        color = TextOnDark.copy(alpha = 0.7f),
-                        fontSize = 14.sp
-                    )
-                    Text(
-                        text = "Sign up",
-                        color = TextOnDark,
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        modifier = Modifier.clickable {
-                            onNavigateToSignUp()
-                        }
-                    )
-                }
-                
-                Spacer(modifier = Modifier.height(24.dp))
+            }
 
-                // Review Unused Pages Button
-                OutlinedButton(
-                    onClick = { navController.navigate(Screen.UnusedPages.route) },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = ButtonDefaults.outlinedButtonColors(
-                        contentColor = MaterialTheme.colorScheme.primary
+            Spacer(modifier = Modifier.height(24.dp))
+
+            // Sign up prompt
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.Center,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Don't have an account? ",
+                    color = MaterialTheme.colorScheme.onPrimary.copy(alpha = 0.7f)
+                )
+                TextButton(onClick = onNavigateToSignUp) {
+                    Text(
+                        text = "Sign Up",
+                        color = MaterialTheme.colorScheme.secondary,
+                        fontWeight = FontWeight.Bold
                     )
-                ) {
-                    Icon(
-                        Icons.Default.BugReport,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Review Unused Pages")
                 }
             }
         }
 
-        // Snackbar host
+        // Error snackbar
         SnackbarHost(
             hostState = snackbarHostState,
             modifier = Modifier
                 .align(Alignment.BottomCenter)
                 .padding(16.dp)
-        )
+        ) { data ->
+            Snackbar(
+                containerColor = MaterialTheme.colorScheme.errorContainer,
+                contentColor = MaterialTheme.colorScheme.onErrorContainer,
+                snackbarData = data
+            )
+        }
     }
 }
 

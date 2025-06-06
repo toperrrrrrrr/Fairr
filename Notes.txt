@@ -10,3 +10,6 @@ There are some pages that are still using USD as default. Please change that to 
 Add expense is not working/not opening the next page
 
 Login button does show 
+
+
+Add emoji in the groups. 

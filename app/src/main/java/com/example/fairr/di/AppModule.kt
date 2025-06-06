@@ -1,6 +1,9 @@
 package com.example.fairr.di
 
 import com.example.fairr.data.groups.GroupService
+import com.example.fairr.data.repository.*
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -16,4 +19,18 @@ object AppModule {
     fun provideGroupService(): GroupService {
         return GroupService()
     }
+
+    @Provides
+    @Singleton
+    fun provideFirebaseAuth(): FirebaseAuth = FirebaseAuth.getInstance()
+
+    @Provides
+    @Singleton
+    fun provideFirebaseFirestore(): FirebaseFirestore = FirebaseFirestore.getInstance()
+
+    @Provides
+    @Singleton
+    fun provideExpenseRepository(
+        firestore: FirebaseFirestore
+    ): ExpenseRepository = ExpenseRepositoryImpl(firestore)
 } 

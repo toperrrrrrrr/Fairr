@@ -28,20 +28,23 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.fairr.ui.components.*
 import com.example.fairr.ui.screens.categories.ExpenseCategory
 import com.example.fairr.ui.screens.categories.getDefaultCategories
 import com.example.fairr.ui.theme.*
 import com.example.fairr.utils.ReceiptPhoto
+import com.example.fairr.util.CurrencyFormatter
 import java.io.File
+import java.util.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 @Suppress("UNUSED_PARAMETER")
 fun AddExpenseScreen(
-    navController: NavController,
     groupId: String,
+    navController: NavController,
     onExpenseAdded: () -> Unit = {}
 ) {
     var description by remember { mutableStateOf("") }
@@ -95,8 +98,7 @@ fun AddExpenseScreen(
             modifier = Modifier
                 .fillMaxSize()
                 .background(BackgroundSecondary)
-                .padding(padding)
-                .verticalScroll(rememberScrollState()),
+                .padding(padding),
             verticalArrangement = Arrangement.spacedBy(20.dp)
         ) {
             Spacer(modifier = Modifier.height(4.dp))
@@ -250,7 +252,7 @@ fun AddExpenseScreen(
                     }
                 }
             }
-            
+
             // Expense Details Form
             ModernCard(
                 modifier = Modifier.padding(horizontal = 16.dp)
@@ -376,9 +378,9 @@ fun AddExpenseScreen(
                     }
                 }
             }
-            
+
             Spacer(modifier = Modifier.height(32.dp))
-            
+
             // Save Button
             ModernButton(
                 text = "Save Expense",

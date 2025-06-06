@@ -1,34 +1,23 @@
 package com.example.fairr.navigation
 
-import androidx.compose.foundation.layout.padding
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.*
-import androidx.compose.material3.*
-import androidx.compose.runtime.*
+import androidx.compose.material3.ExperimentalMaterial3Api
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.getValue
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.vector.ImageVector
-import androidx.navigation.NavDestination.Companion.hierarchy
-import androidx.navigation.NavGraph.Companion.findStartDestination
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.viewmodel.compose.viewModel
 import androidx.navigation.NavType
 import androidx.navigation.compose.NavHost
 import androidx.navigation.compose.composable
-import androidx.navigation.compose.currentBackStackEntryAsState
 import androidx.navigation.compose.rememberNavController
 import androidx.navigation.navArgument
-import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.fairr.ui.screens.MainScreen
-import com.example.fairr.ui.screens.SplashScreen
-import com.example.fairr.ui.screens.auth.MobileLoginScreen
-import com.example.fairr.ui.screens.auth.MobileSignUpScreen
-import com.example.fairr.ui.screens.auth.WelcomeScreen
-import com.example.fairr.ui.screens.home.HomeScreen
-import com.example.fairr.ui.screens.onboarding.OnboardingScreen
-import com.example.fairr.ui.screens.groups.CreateGroupScreen
-import com.example.fairr.ui.screens.groups.JoinGroupScreen
-import com.example.fairr.ui.screens.groups.GroupDetailScreen
-import com.example.fairr.ui.screens.settings.SettingsScreen
-import com.example.fairr.ui.screens.settings.CurrencySelectionScreen
-import com.example.fairr.ui.screens.settings.UnusedPagesScreen
+import com.example.fairr.ui.screens.*
+import com.example.fairr.ui.screens.auth.*
+import com.example.fairr.ui.screens.groups.*
+import com.example.fairr.ui.screens.settings.*
+import com.example.fairr.ui.screens.onboarding.*
+import com.example.fairr.ui.screens.expenses.*
 import com.example.fairr.ui.viewmodels.StartupViewModel
 
 sealed class Screen(val route: String) {
@@ -52,7 +41,6 @@ sealed class Screen(val route: String) {
     object AddExpense : Screen("add_expense/{groupId}") {
         fun createRoute(groupId: String) = "add_expense/$groupId"
     }
-    object UnusedPages : Screen("unused_pages")
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -158,7 +146,6 @@ fun FairrNavGraph() {
             val tab = backStackEntry.arguments?.getInt("tab") ?: 0
             MainScreen(
                 navController = navController,
-                initialTab = tab,
                 onNavigateToAddExpense = { groupId: String ->
                     navController.navigate(Screen.AddExpense.createRoute(groupId))
                 },
@@ -184,7 +171,8 @@ fun FairrNavGraph() {
                     navController.navigate(Screen.Welcome.route) {
                         popUpTo(Screen.Main.route) { inclusive = true }
                     }
-                }
+                },
+                initialTab = tab
             )
         }
 
@@ -213,7 +201,10 @@ fun FairrNavGraph() {
                 ?: return@composable
             GroupDetailScreen(
                 groupId = groupId,
-                navController = navController
+                navController = navController,
+                onNavigateToAddExpense = {
+                    navController.navigate(Screen.AddExpense.createRoute(groupId))
+                }
             )
         }
 
@@ -234,8 +225,22 @@ fun FairrNavGraph() {
             )
         }
 
-        composable(Screen.UnusedPages.route) {
-            UnusedPagesScreen(navController = navController)
+        // AddExpense screen implementation
+        composable(
+            route = Screen.AddExpense.route,
+            arguments = listOf(
+                navArgument("groupId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val groupId = backStackEntry.arguments?.getString("groupId")
+                ?: return@composable
+            AddExpenseScreen(
+                groupId = groupId,
+                navController = navController,
+                onExpenseAdded = {
+                    navController.popBackStack()
+                }
+            )
         }
     }
 } 

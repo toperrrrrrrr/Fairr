@@ -131,16 +131,13 @@ private fun GroupDetailContent(
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
-        modifier = modifier
-            .fillMaxSize()
-            .padding(16.dp),
+        modifier = modifier.fillMaxSize(),
+        contentPadding = PaddingValues(16.dp),
         verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
-        // Group Summary Card
+        // Group Info Card
         item {
-            ModernCard(
-                modifier = Modifier.fillMaxWidth()
-            ) {
+            ModernCard {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -151,12 +148,13 @@ private fun GroupDetailContent(
                         style = MaterialTheme.typography.headlineMedium,
                         fontWeight = FontWeight.Bold
                     )
+                    
                     if (group.description.isNotBlank()) {
+                        Spacer(modifier = Modifier.height(8.dp))
                         Text(
                             text = group.description,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant,
-                            modifier = Modifier.padding(top = 4.dp)
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
                         )
                     }
                     
@@ -167,25 +165,53 @@ private fun GroupDetailContent(
                         horizontalArrangement = Arrangement.SpaceBetween
                     ) {
                         InfoItem(
-                            label = "Members",
-                            value = group.members.size.toString(),
-                            icon = Icons.Default.Group
+                            label = "Total Expenses",
+                            value = CurrencyFormatter.format(group.currency, totalExpenses),
+                            icon = Icons.Default.Receipt
                         )
                         InfoItem(
-                            label = "Total Expenses",
-                            value = "${group.currency} ${String.format("%.2f", totalExpenses)}",
-                            icon = Icons.Default.Receipt
+                            label = "Members",
+                            value = "${group.members.size}",
+                            icon = Icons.Default.Group
                         )
                     }
                 }
             }
         }
-
+        
+        // Balance Card
+        item {
+            ModernCard {
+                Column(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp)
+                ) {
+                    Text(
+                        text = if (currentUserBalance > 0) "You are owed" else if (currentUserBalance < 0) "You owe" else "You're all settled up",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    
+                    Text(
+                        text = CurrencyFormatter.format(group.currency, kotlin.math.abs(currentUserBalance)),
+                        style = MaterialTheme.typography.headlineLarge,
+                        fontWeight = FontWeight.Bold,
+                        color = when {
+                            currentUserBalance > 0 -> MaterialTheme.colorScheme.primary
+                            currentUserBalance < 0 -> MaterialTheme.colorScheme.error
+                            else -> MaterialTheme.colorScheme.onSurface
+                        }
+                    )
+                }
+            }
+        }
+        
         // Quick Actions
         item {
             Row(
                 modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 QuickActionCard(
                     title = "Add Expense",
@@ -195,54 +221,13 @@ private fun GroupDetailContent(
                 )
                 QuickActionCard(
                     title = "Settle Up",
-                    icon = Icons.Default.AccountBalance,
-                    onClick = { /* TODO */ },
-                    modifier = Modifier.weight(1f)
-                )
-                QuickActionCard(
-                    title = "Statistics",
-                    icon = Icons.Default.PieChart,
-                    onClick = { /* TODO */ },
+                    icon = Icons.Default.Payment,
+                    onClick = { /* TODO: Implement settle up */ },
                     modifier = Modifier.weight(1f)
                 )
             }
         }
-
-        // Your Balance Card
-        item {
-            ModernCard(
-                modifier = Modifier.fillMaxWidth()
-            ) {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        text = "Your Balance",
-                        style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = CurrencyFormatter.format(group.currency, currentUserBalance),
-                        style = MaterialTheme.typography.headlineMedium,
-                        color = when {
-                            currentUserBalance > 0 -> SuccessGreen
-                            currentUserBalance < 0 -> ErrorRed
-                            else -> MaterialTheme.colorScheme.onSurface
-                        },
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = if (currentUserBalance > 0) "you'll receive" else if (currentUserBalance < 0) "you owe" else "you're all settled up",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                }
-            }
-        }
-
+        
         // Members List
         item {
             Text(
@@ -312,46 +297,33 @@ private fun MemberCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Row(
-                verticalAlignment = Alignment.CenterVertically
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
             ) {
-                // Avatar or initials
                 Box(
                     modifier = Modifier
                         .size(40.dp)
                         .background(
-                            color = if (member.isAdmin) Primary else MaterialTheme.colorScheme.surfaceVariant,
+                            color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
                             shape = CircleShape
                         ),
                     contentAlignment = Alignment.Center
                 ) {
                     Text(
-                        text = member.name.take(2).uppercase(),
-                        color = if (member.isAdmin) Color.White else MaterialTheme.colorScheme.onSurfaceVariant,
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                }
-                
-                Spacer(modifier = Modifier.width(12.dp))
-                
-                Column {
-                    Text(
-                        text = member.name + if (member.isCurrentUser) " (You)" else "",
+                        text = member.name.first().toString(),
                         style = MaterialTheme.typography.titleMedium,
-                        fontWeight = FontWeight.SemiBold
+                        color = MaterialTheme.colorScheme.primary
                     )
-                    if (member.isAdmin) {
-                        Text(
-                            text = "Admin",
-                            style = MaterialTheme.typography.bodySmall,
-                            color = Primary
-                        )
-                    }
                 }
+                Text(
+                    text = member.name + (if (member.isCurrentUser) " (You)" else ""),
+                    style = MaterialTheme.typography.titleMedium
+                )
             }
             
-            // Balance info - placeholder for now
+            // For now, show 0.00 as balance since GroupMember doesn't track balance
             Text(
-                text = "$currency 0.00",
+                text = CurrencyFormatter.format(currency, 0.00),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold
             )
