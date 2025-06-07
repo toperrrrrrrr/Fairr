@@ -18,6 +18,7 @@ import com.example.fairr.ui.screens.groups.*
 import com.example.fairr.ui.screens.settings.*
 import com.example.fairr.ui.screens.onboarding.*
 import com.example.fairr.ui.screens.expenses.*
+import com.example.fairr.ui.screens.friends.FriendsScreen
 import com.example.fairr.ui.viewmodels.StartupViewModel
 
 sealed class Screen(val route: String) {
@@ -41,6 +42,7 @@ sealed class Screen(val route: String) {
     object AddExpense : Screen("add_expense/{groupId}") {
         fun createRoute(groupId: String) = "add_expense/$groupId"
     }
+    object Friends : Screen("friends")
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -167,6 +169,9 @@ fun FairrNavGraph() {
                 onNavigateToSettings = {
                     navController.navigate(Screen.Settings.route)
                 },
+                onNavigateToFriends = {
+                    navController.navigate(Screen.Friends.route)
+                },
                 onSignOut = {
                     navController.navigate(Screen.Welcome.route) {
                         popUpTo(Screen.Main.route) { inclusive = true }
@@ -222,6 +227,14 @@ fun FairrNavGraph() {
         composable(Screen.CurrencySelection.route) {
             CurrencySelectionScreen(
                 navController = navController
+            )
+        }
+
+        composable(Screen.Friends.route) {
+            FriendsScreen(
+                onNavigateBack = {
+                    navController.popBackStack()
+                }
             )
         }
 

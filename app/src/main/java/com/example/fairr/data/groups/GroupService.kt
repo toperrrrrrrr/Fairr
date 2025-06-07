@@ -22,10 +22,35 @@ sealed class GroupResult {
 }
 
 @Singleton
-class GroupService @Inject constructor() {
-    private val auth = FirebaseAuth.getInstance()
-    private val firestore = FirebaseFirestore.getInstance()
+class GroupService @Inject constructor(
+    private val auth: FirebaseAuth,
+    private val firestore: FirebaseFirestore
+) {
     private val groupsCollection = firestore.collection("groups")
+
+    private fun generateInviteCode(): String {
+        return UUID.randomUUID().toString().substring(0, 6).uppercase()
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    private fun parseMembersMap(data: Map<String, Any>, currentUserId: String): List<GroupMember> {
+        return try {
+            val membersData = data["members"] as? Map<String, Any> ?: return emptyList()
+            membersData.mapNotNull { (userId, memberData) ->
+                if (memberData !is Map<*, *>) return@mapNotNull null
+                GroupMember(
+                    id = userId,
+                    name = (memberData["name"] as? String) ?: "Unknown",
+                    email = (memberData["email"] as? String) ?: "",
+                    isAdmin = (memberData["isAdmin"] as? Boolean) ?: false,
+                    isCurrentUser = userId == currentUserId
+                )
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error parsing members map", e)
+            emptyList()
+        }
+    }
 
     fun getUserGroups(): Flow<List<Group>> = callbackFlow {
         val currentUser = auth.currentUser
@@ -33,8 +58,9 @@ class GroupService @Inject constructor() {
 
         Log.d(TAG, "Fetching groups for user: ${currentUser.uid}")
 
+        val memberPath = "members.${currentUser.uid}.id"
         val subscription = groupsCollection
-            .whereNotEqualTo("members." + currentUser.uid, null)
+            .whereEqualTo(memberPath, currentUser.uid)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     Log.e(TAG, "Error fetching groups", error)
@@ -55,17 +81,6 @@ class GroupService @Inject constructor() {
                         val data = doc.data ?: return@mapNotNull null
                         Log.d(TAG, "Processing group document: ${doc.id}")
                         Log.d(TAG, "Group data: $data")
-                        
-                        val membersMap = data["members"] as? Map<String, Map<String, Any>> ?: emptyMap()
-                        val members = membersMap.map { (userId, memberData) ->
-                            GroupMember(
-                                id = userId,
-                                name = memberData["name"] as? String ?: "Unknown",
-                                email = memberData["email"] as? String ?: "",
-                                isAdmin = memberData["isAdmin"] as? Boolean ?: false,
-                                isCurrentUser = userId == currentUser.uid
-                            )
-                        }
 
                         Group(
                             id = doc.id,
@@ -73,9 +88,10 @@ class GroupService @Inject constructor() {
                             description = data["description"] as? String ?: "",
                             currency = data["currency"] as? String ?: "PHP",
                             createdBy = data["createdBy"] as? String ?: "",
-                            members = members,
+                            members = parseMembersMap(data, currentUser.uid),
                             inviteCode = data["inviteCode"] as? String ?: "",
-                            createdAt = data["createdAt"] as? Long ?: System.currentTimeMillis()
+                            createdAt = (data["createdAt"] as? com.google.firebase.Timestamp)?.toDate()?.time 
+                                ?: System.currentTimeMillis()
                         )
                     } catch (e: Exception) {
                         Log.e(TAG, "Error parsing group document", e)
@@ -107,26 +123,17 @@ class GroupService @Inject constructor() {
 
                 try {
                     val data = snapshot.data ?: throw IllegalStateException("Group data is null")
-                    val membersMap = data["members"] as? Map<String, Map<String, Any>> ?: emptyMap()
-                    val members = membersMap.map { (userId, memberData) ->
-                        GroupMember(
-                            id = userId,
-                            name = memberData["name"] as? String ?: "Unknown",
-                            email = memberData["email"] as? String ?: "",
-                            isAdmin = memberData["isAdmin"] as? Boolean ?: false,
-                            isCurrentUser = userId == currentUser.uid
-                        )
-                    }
-
+                    
                     val group = Group(
                         id = snapshot.id,
                         name = data["name"] as? String ?: "",
                         description = data["description"] as? String ?: "",
                         currency = data["currency"] as? String ?: "PHP",
                         createdBy = data["createdBy"] as? String ?: "",
-                        members = members,
+                        members = parseMembersMap(data, currentUser.uid),
                         inviteCode = data["inviteCode"] as? String ?: "",
-                        createdAt = data["createdAt"] as? Long ?: System.currentTimeMillis()
+                        createdAt = (data["createdAt"] as? com.google.firebase.Timestamp)?.toDate()?.time 
+                            ?: System.currentTimeMillis()
                     )
 
                     trySend(group)
@@ -229,12 +236,5 @@ class GroupService @Inject constructor() {
         } catch (e: Exception) {
             GroupResult.Error(e.message ?: "Failed to join group")
         }
-    }
-
-    private fun generateInviteCode(): String {
-        return UUID.randomUUID().toString()
-            .replace("-", "")
-            .take(6)
-            .uppercase()
     }
 } 

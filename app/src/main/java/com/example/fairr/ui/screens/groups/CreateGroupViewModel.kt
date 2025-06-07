@@ -9,9 +9,11 @@ import com.example.fairr.data.groups.GroupResult
 import com.example.fairr.data.groups.GroupService
 import com.example.fairr.ui.model.CreateGroupData
 import com.example.fairr.ui.model.GroupMember
+import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
+import javax.inject.Inject
 
 sealed class CreateGroupUiState {
     object Initial : CreateGroupUiState()
@@ -20,9 +22,10 @@ sealed class CreateGroupUiState {
     data class Success(val groupId: String) : CreateGroupUiState()
 }
 
-class CreateGroupViewModel : ViewModel() {
-    private val groupService = GroupService()
-
+@HiltViewModel
+class CreateGroupViewModel @Inject constructor(
+    private val groupService: GroupService
+) : ViewModel() {
     var uiState by mutableStateOf<CreateGroupUiState>(CreateGroupUiState.Initial)
         private set
 

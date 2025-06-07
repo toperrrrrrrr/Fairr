@@ -29,12 +29,14 @@ import androidx.navigation.compose.rememberNavController
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
+    navController: NavController,
     onNavigateToCreateGroup: () -> Unit,
     onNavigateToJoinGroup: () -> Unit,
     onNavigateToSearch: () -> Unit,
     onNavigateToNotifications: () -> Unit,
     onNavigateToGroupDetail: (String) -> Unit,
-    onNavigateToSettings: () -> Unit
+    onNavigateToSettings: () -> Unit,
+    onNavigateToAddExpense: (String) -> Unit
 ) {
     val groups = remember {
         listOf(
@@ -48,136 +50,30 @@ fun HomeScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { 
-                    Text(
-                        text = "Fairr",
-                        fontWeight = FontWeight.Bold,
-                        color = MaterialTheme.colorScheme.onBackground
-                    ) 
-                },
+                title = { Text("Home") },
                 actions = {
-                    // Search action
                     IconButton(onClick = onNavigateToSearch) {
-                        Icon(
-                            Icons.Default.Search,
-                            contentDescription = "Search",
-                            tint = MaterialTheme.colorScheme.onBackground
-                        )
+                        Icon(Icons.Default.Search, contentDescription = "Search")
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
+                    IconButton(onClick = onNavigateToNotifications) {
+                        Icon(Icons.Default.Notifications, contentDescription = "Notifications")
+                    }
+                }
             )
         }
     ) { padding ->
-        LazyColumn(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
-                .padding(horizontal = 16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(padding),
+            contentAlignment = Alignment.Center
         ) {
-            item {
-                // Welcome Section
-                Column(modifier = Modifier.padding(vertical = 8.dp)) {
-                    Text(
-                        text = "Welcome back!",
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = "Manage your shared expenses",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.7f)
-                    )
-                }
-            }
-
-            item {
-                Text(
-                    text = "Overview",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
-            }
-
-            item {
-                // Overview Cards Row
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    // Total Balance Card
-                    OverviewCard(
-                        modifier = Modifier.weight(1f),
-                        icon = Icons.Default.AccountBalance,
-                        title = "Total\nBalance",
-                        value = "$321.50",
-                        subtitle = "Active"
-                    )
-                    
-                    // Groups Card
-                    OverviewCard(
-                        modifier = Modifier.weight(1f),
-                        icon = Icons.Default.Group,
-                        title = "Groups",
-                        value = "4",
-                        subtitle = "Joined"
-                    )
-                }
-            }
-
-            item {
-                // Recent Groups Header with View All
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Recent Groups",
-                        style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold
-                    )
-                    TextButton(onClick = onNavigateToCreateGroup) {
-                        Text("Create New")
-                    }
-                }
-            }
-
-            items(groups) { group ->
-                GroupCard(
-                    group = group,
-                    onClick = { onNavigateToGroupDetail(group.id) }
-                )
-            }
-
-            item {
-                // Quick Actions
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    OutlinedButton(
-                        onClick = onNavigateToJoinGroup,
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("Join Group")
-                    }
-                    OutlinedButton(
-                        onClick = onNavigateToSettings,
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text("View Settings")
-                    }
-                }
-            }
+            Text(
+                text = "Welcome to Fairr",
+                style = MaterialTheme.typography.headlineMedium,
+                textAlign = TextAlign.Center,
+                modifier = Modifier.padding(16.dp)
+            )
         }
     }
 }
@@ -324,18 +220,4 @@ data class GroupItem(
     val currency: String
 )
 
-@Preview(showBackground = true)
-@Composable
-fun HomeScreenPreview() {
-    FairrTheme {
-        HomeScreen(
-            onNavigateToCreateGroup = {},
-            onNavigateToJoinGroup = {},
-            onNavigateToSearch = {},
-            onNavigateToNotifications = {},
-            onNavigateToGroupDetail = {},
-            onNavigateToSettings = {}
-        )
-    }
-}
 

@@ -27,6 +27,9 @@ import com.example.fairr.ui.screens.groups.GroupListUiState
 import com.example.fairr.ui.model.Group
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fairr.util.CurrencyFormatter
+import com.example.fairr.ui.screens.profile.ProfileScreen
+import com.example.fairr.ui.components.ModernNavigationBar
+import com.example.fairr.ui.screens.analytics.AnalyticsScreen
 
 // Data class for group items
 private data class GroupItem(
@@ -48,6 +51,7 @@ fun MainScreen(
     onNavigateToNotifications: () -> Unit,
     onNavigateToGroupDetail: (String) -> Unit,
     onNavigateToSettings: () -> Unit,
+    onNavigateToFriends: () -> Unit,
     onSignOut: () -> Unit,
     initialTab: Int = 0
 ) {
@@ -64,56 +68,37 @@ fun MainScreen(
             )
         },
         contentWindowInsets = WindowInsets(0.dp)
-    ) { paddingValues ->
-        when (selectedTab) {
-            0 -> HomeTabContent(
-                paddingValues = paddingValues,
-                onNavigateToCreateGroup = onNavigateToCreateGroup,
-                onNavigateToJoinGroup = onNavigateToJoinGroup,
-                onNavigateToSearch = onNavigateToSearch,
-                onNavigateToNotifications = onNavigateToNotifications,
-                onNavigateToGroupDetail = onNavigateToGroupDetail,
-                onNavigateToSettings = onNavigateToSettings
-            )
-            1 -> GroupsTabContent(
-                paddingValues = paddingValues,
-                onNavigateToCreateGroup = onNavigateToCreateGroup,
-                onNavigateToGroupDetail = onNavigateToGroupDetail,
-                onNavigateToJoinGroup = onNavigateToJoinGroup,
-                modifier = Modifier
-            )
-            2 -> NotificationsScreen(
-                navController = navController,
-                modifier = Modifier.padding(paddingValues)
-            )
-            3 -> SettingsScreen(
-                navController = navController,
-                onSignOut = onSignOut,
-                modifier = Modifier.padding(paddingValues)
-            )
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(padding)
+        ) {
+            when (selectedTab) {
+                0 -> HomeScreen(
+                    navController = navController,
+                    onNavigateToCreateGroup = onNavigateToCreateGroup,
+                    onNavigateToJoinGroup = onNavigateToJoinGroup,
+                    onNavigateToSearch = onNavigateToSearch,
+                    onNavigateToNotifications = onNavigateToNotifications,
+                    onNavigateToGroupDetail = onNavigateToGroupDetail,
+                    onNavigateToSettings = onNavigateToSettings,
+                    onNavigateToAddExpense = onNavigateToAddExpense
+                )
+                1 -> GroupListScreen(
+                    navController = navController,
+                    onNavigateToCreateGroup = onNavigateToCreateGroup,
+                    onNavigateToGroupDetail = onNavigateToGroupDetail,
+                    onNavigateToJoinGroup = onNavigateToJoinGroup
+                )
+                2 -> AnalyticsScreen()
+                3 -> ProfileScreen(
+                    onNavigateToSettings = onNavigateToSettings,
+                    onNavigateToFriends = onNavigateToFriends,
+                    onSignOut = onSignOut
+                )
+            }
         }
-    }
-}
-
-@Composable
-private fun HomeTabContent(
-    paddingValues: PaddingValues,
-    onNavigateToCreateGroup: () -> Unit,
-    onNavigateToJoinGroup: () -> Unit,
-    onNavigateToSearch: () -> Unit,
-    onNavigateToNotifications: () -> Unit,
-    onNavigateToGroupDetail: (String) -> Unit,
-    onNavigateToSettings: () -> Unit
-) {
-    Box(modifier = Modifier.padding(paddingValues)) {
-        HomeScreen(
-            onNavigateToCreateGroup = onNavigateToCreateGroup,
-            onNavigateToJoinGroup = onNavigateToJoinGroup,
-            onNavigateToSearch = onNavigateToSearch,
-            onNavigateToNotifications = onNavigateToNotifications,
-            onNavigateToGroupDetail = onNavigateToGroupDetail,
-            onNavigateToSettings = onNavigateToSettings
-        )
     }
 }
 

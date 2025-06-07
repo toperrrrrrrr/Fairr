@@ -16,13 +16,14 @@ object AppModule {
     
     @Provides
     @Singleton
-    fun provideGroupService(): GroupService {
-        return GroupService()
-    }
+    fun provideFirebaseFirestore(): FirebaseFirestore = FirebaseFirestore.getInstance()
 
     @Provides
     @Singleton
-    fun provideFirebaseFirestore(): FirebaseFirestore = FirebaseFirestore.getInstance()
+    fun provideGroupService(
+        auth: FirebaseAuth,
+        firestore: FirebaseFirestore
+    ): GroupService = GroupService(auth, firestore)
 
     @Provides
     @Singleton
