@@ -1,12 +1,18 @@
 package com.example.fairr.data.repository
 
 import android.util.Log
+import com.example.fairr.data.model.Expense
+import com.example.fairr.data.model.ExpenseSplit
+import com.example.fairr.data.model.ExpenseCategory
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.Timestamp
 import kotlinx.coroutines.tasks.await
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
+
+private const val TAG = "ExpenseRepository"
 
 interface ExpenseRepository {
     suspend fun addExpense(
@@ -15,6 +21,8 @@ interface ExpenseRepository {
         amount: Double,
         date: Date
     )
+    
+    suspend fun getExpensesByGroupId(groupId: String): List<Expense>
 }
 
 @Singleton
@@ -22,6 +30,72 @@ class ExpenseRepositoryImpl @Inject constructor(
     private val firestore: FirebaseFirestore,
     private val auth: FirebaseAuth
 ) : ExpenseRepository {
+
+    @Suppress("UNCHECKED_CAST")
+    override suspend fun getExpensesByGroupId(groupId: String): List<Expense> {
+        try {
+            val expensesRef = firestore.collection("expenses")
+                .whereEqualTo("groupId", groupId)
+                .orderBy("date", com.google.firebase.firestore.Query.Direction.DESCENDING)
+                .get()
+                .await()
+
+            return expensesRef.documents.mapNotNull { doc ->
+                try {
+                    val data = doc.data ?: return@mapNotNull null
+                    
+                    // Get the user who paid
+                    val paidByUser = firestore.collection("users")
+                        .document(data["paidBy"] as? String ?: "")
+                        .get()
+                        .await()
+                    
+                    val paidByName = paidByUser.getString("displayName") ?: "Unknown User"
+                    
+                    // Parse splits
+                    val splitsData = data["splitBetween"] as? List<Map<String, Any>> ?: emptyList()
+                    val splits = splitsData.mapNotNull { splitData ->
+                        try {
+                            ExpenseSplit(
+                                userId = splitData["userId"] as? String ?: return@mapNotNull null,
+                                userName = splitData["userName"] as? String ?: "Unknown",
+                                share = (splitData["share"] as? Number)?.toDouble() ?: 0.0,
+                                isPaid = splitData["isPaid"] as? Boolean ?: false
+                            )
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Error parsing split data", e)
+                            null
+                        }
+                    }
+
+                    Expense(
+                        id = doc.id,
+                        groupId = data["groupId"] as? String ?: "",
+                        description = data["description"] as? String ?: "",
+                        amount = (data["amount"] as? Number)?.toDouble() ?: 0.0,
+                        currency = data["currency"] as? String ?: "USD",
+                        date = (data["date"] as? Timestamp) ?: Timestamp.now(),
+                        paidBy = data["paidBy"] as? String ?: "",
+                        paidByName = paidByName,
+                        splitBetween = splits,
+                        category = try {
+                            ExpenseCategory.valueOf((data["category"] as? String)?.uppercase() ?: "OTHER")
+                        } catch (e: Exception) {
+                            ExpenseCategory.OTHER
+                        },
+                        notes = data["notes"] as? String ?: "",
+                        attachments = (data["attachments"] as? List<String>) ?: emptyList()
+                    )
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error parsing expense document", e)
+                    null
+                }
+            }
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting expenses", e)
+            return emptyList()
+        }
+    }
 
     override suspend fun addExpense(
         groupId: String,

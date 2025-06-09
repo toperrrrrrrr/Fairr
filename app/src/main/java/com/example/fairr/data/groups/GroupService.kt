@@ -2,10 +2,12 @@ package com.example.fairr.data.groups
 
 import android.util.Log
 import com.example.fairr.ui.model.CreateGroupData
-import com.example.fairr.ui.model.Group
-import com.example.fairr.ui.model.GroupMember
+import com.example.fairr.data.model.Group
+import com.example.fairr.data.model.GroupMember
+import com.example.fairr.data.model.GroupRole
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.Timestamp
 import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
@@ -38,12 +40,13 @@ class GroupService @Inject constructor(
             val membersData = data["members"] as? Map<String, Any> ?: return emptyList()
             membersData.mapNotNull { (userId, memberData) ->
                 if (memberData !is Map<*, *>) return@mapNotNull null
+                val memberMap = memberData as? Map<String, Any> ?: return@mapNotNull null
                 GroupMember(
-                    id = userId,
-                    name = (memberData["name"] as? String) ?: "Unknown",
-                    email = (memberData["email"] as? String) ?: "",
-                    isAdmin = (memberData["isAdmin"] as? Boolean) ?: false,
-                    isCurrentUser = userId == currentUserId
+                    userId = userId,
+                    name = (memberMap["name"] as? String) ?: "Unknown",
+                    email = (memberMap["email"] as? String) ?: "",
+                    role = if ((memberMap["isAdmin"] as? Boolean) == true) GroupRole.ADMIN else GroupRole.MEMBER,
+                    joinedAt = (memberMap["joinedAt"] as? Timestamp) ?: Timestamp.now()
                 )
             }
         } catch (e: Exception) {
@@ -87,11 +90,9 @@ class GroupService @Inject constructor(
                             name = data["name"] as? String ?: "",
                             description = data["description"] as? String ?: "",
                             currency = data["currency"] as? String ?: "PHP",
+                            createdAt = (data["createdAt"] as? Timestamp) ?: Timestamp.now(),
                             createdBy = data["createdBy"] as? String ?: "",
-                            members = parseMembersMap(data, currentUser.uid),
-                            inviteCode = data["inviteCode"] as? String ?: "",
-                            createdAt = (data["createdAt"] as? com.google.firebase.Timestamp)?.toDate()?.time 
-                                ?: System.currentTimeMillis()
+                            members = parseMembersMap(data, currentUser.uid)
                         )
                     } catch (e: Exception) {
                         Log.e(TAG, "Error parsing group document", e)
@@ -129,11 +130,9 @@ class GroupService @Inject constructor(
                         name = data["name"] as? String ?: "",
                         description = data["description"] as? String ?: "",
                         currency = data["currency"] as? String ?: "PHP",
+                        createdAt = (data["createdAt"] as? Timestamp) ?: Timestamp.now(),
                         createdBy = data["createdBy"] as? String ?: "",
-                        members = parseMembersMap(data, currentUser.uid),
-                        inviteCode = data["inviteCode"] as? String ?: "",
-                        createdAt = (data["createdAt"] as? com.google.firebase.Timestamp)?.toDate()?.time 
-                            ?: System.currentTimeMillis()
+                        members = parseMembersMap(data, currentUser.uid)
                     )
 
                     trySend(group)
@@ -163,7 +162,8 @@ class GroupService @Inject constructor(
                 "id" to currentUser.uid,
                 "name" to (currentUser.displayName ?: currentUser.email?.substringBefore("@") ?: "Unknown"),
                 "email" to (currentUser.email ?: ""),
-                "isAdmin" to true
+                "isAdmin" to true,
+                "joinedAt" to Timestamp.now()
             )
             membersMap[currentUser.uid] = currentUserData
             
@@ -175,7 +175,8 @@ class GroupService @Inject constructor(
                     "id" to member.id,
                     "name" to member.name,
                     "email" to member.email,
-                    "isAdmin" to member.isAdmin
+                    "isAdmin" to member.isAdmin,
+                    "joinedAt" to Timestamp.now()
                 )
                 membersMap[member.id] = memberData
             }
@@ -186,7 +187,7 @@ class GroupService @Inject constructor(
                 "currency" to groupData.currency,
                 "members" to membersMap,
                 "createdBy" to currentUser.uid,
-                "createdAt" to com.google.firebase.Timestamp.now(),
+                "createdAt" to Timestamp.now(),
                 "inviteCode" to generateInviteCode()
             )
 
@@ -224,7 +225,8 @@ class GroupService @Inject constructor(
                     "id" to currentUser.uid,
                     "name" to (currentUser.displayName ?: currentUser.email?.substringBefore("@") ?: "Unknown"),
                     "email" to (currentUser.email ?: ""),
-                    "isAdmin" to false
+                    "isAdmin" to false,
+                    "joinedAt" to Timestamp.now()
                 )
             )
 

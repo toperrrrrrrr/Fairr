@@ -19,14 +19,24 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
-import androidx.compose.ui.unit.sp
-import com.example.fairr.ui.theme.*
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.fairr.data.model.Group
+import com.example.fairr.data.model.Expense
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import java.text.NumberFormat
+import java.util.*
 import androidx.navigation.NavController
-import androidx.navigation.compose.rememberNavController
+import androidx.compose.foundation.layout.Box
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import com.example.fairr.ui.components.*
+import com.example.fairr.util.CurrencyFormatter
+import androidx.compose.material.ExperimentalMaterialApi
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterialApi::class)
 @Composable
 fun HomeScreen(
     navController: NavController,
@@ -36,100 +46,115 @@ fun HomeScreen(
     onNavigateToNotifications: () -> Unit,
     onNavigateToGroupDetail: (String) -> Unit,
     onNavigateToSettings: () -> Unit,
-    onNavigateToAddExpense: (String) -> Unit
+    onNavigateToAddExpense: (String) -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: HomeViewModel = hiltViewModel()
 ) {
-    val groups = remember {
-        listOf(
-            GroupItem("1", "Weekend Trip", 4, -125.75, "$"),
-            GroupItem("2", "Apartment Rent", 3, 150.25, "$"),
-            GroupItem("3", "Dinner Party", 6, 0.00, "$"),
-            GroupItem("4", "Office Lunch", 8, -45.50, "$")
-        )
-    }
+    val state by viewModel.state.collectAsState()
+    val refreshing = state.isLoading
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = refreshing,
+        onRefresh = { viewModel.refresh() }
+    )
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Home") },
-                actions = {
-                    IconButton(onClick = onNavigateToSearch) {
-                        Icon(Icons.Default.Search, contentDescription = "Search")
-                    }
-                    IconButton(onClick = onNavigateToNotifications) {
-                        Icon(Icons.Default.Notifications, contentDescription = "Notifications")
-                    }
-                }
-            )
-        }
-    ) { padding ->
-        Box(
+    Box(modifier = modifier.pullRefresh(pullRefreshState)) {
+        LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding),
-            contentAlignment = Alignment.Center
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Text(
-                text = "Welcome to Fairr",
-                style = MaterialTheme.typography.headlineMedium,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(16.dp)
-            )
+            // Overview Cards
+            item {
+                OverviewSection(
+                    totalBalance = state.totalBalance,
+                    totalExpenses = state.totalExpenses,
+                    activeGroups = state.activeGroups
+                )
+            }
+
+            // Quick Actions
+            item {
+                QuickActionsSection(
+                    onCreateGroupClick = onNavigateToCreateGroup,
+                    onJoinGroupClick = onNavigateToJoinGroup,
+                    onSettingsClick = onNavigateToSettings
+                )
+            }
+
+            // Groups
+            item {
+                Text(
+                    text = "Your Groups",
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+
+            items(state.groups) { group ->
+                GroupCard(
+                    group = group,
+                    onClick = { onNavigateToGroupDetail(group.id) },
+                    onAddExpenseClick = { onNavigateToAddExpense(group.id) }
+                )
+            }
+
+            // Recent Expenses
+            if (state.recentExpenses.isNotEmpty()) {
+                item {
+                    Text(
+                        text = "Recent Expenses",
+                        style = MaterialTheme.typography.titleLarge,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(top = 16.dp)
+                    )
+                }
+
+                items(state.recentExpenses) { expense ->
+                    ExpenseCard(expense = expense)
+                }
+            }
         }
+
+        PullRefreshIndicator(
+            refreshing = refreshing,
+            state = pullRefreshState,
+            modifier = Modifier.align(Alignment.TopCenter)
+        )
     }
 }
 
 @Composable
-private fun OverviewCard(
-    modifier: Modifier = Modifier,
-    icon: ImageVector,
-    title: String,
-    value: String,
-    subtitle: String
-) {
+private fun ExpenseCard(expense: Expense) {
     Card(
-        modifier = modifier,
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        ),
+        modifier = Modifier
+            .fillMaxWidth(),
         shape = RoundedCornerShape(16.dp)
     ) {
-        Column(
+        Row(
             modifier = Modifier
                 .padding(16.dp)
                 .fillMaxWidth(),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    imageVector = icon,
-                    contentDescription = null,
-                    tint = MaterialTheme.colorScheme.primary,
-                    modifier = Modifier.size(24.dp)
+            Column {
+                Text(
+                    text = expense.description,
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    text = "Paid by ${expense.paidByName}",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                 )
             }
-            
             Text(
-                text = title,
+                text = formatCurrency(expense.amount),
                 style = MaterialTheme.typography.titleMedium,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-            )
-            
-            Text(
-                text = value,
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold
-            )
-            
-            Text(
-                text = subtitle,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.5f)
+                fontWeight = FontWeight.SemiBold,
+                color = MaterialTheme.colorScheme.primary
             )
         }
     }
@@ -137,17 +162,15 @@ private fun OverviewCard(
 
 @Composable
 private fun GroupCard(
-    group: GroupItem,
-    onClick: () -> Unit
+    group: Group,
+    onClick: () -> Unit,
+    onAddExpenseClick: (String) -> Unit
 ) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
+        shape = RoundedCornerShape(16.dp)
     ) {
         Row(
             modifier = Modifier
@@ -160,7 +183,6 @@ private fun GroupCard(
                 horizontalArrangement = Arrangement.spacedBy(12.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-                // Group Icon/Avatar
                 Box(
                     modifier = Modifier
                         .size(48.dp)
@@ -175,7 +197,6 @@ private fun GroupCard(
                     )
                 }
                 
-                // Group Info
                 Column {
                     Text(
                         text = group.name,
@@ -183,41 +204,143 @@ private fun GroupCard(
                         fontWeight = FontWeight.SemiBold
                     )
                     Text(
-                        text = "${group.memberCount} members",
+                        text = "${group.members.size} members",
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
                     )
                 }
             }
-            
-            // Balance
-            Column(horizontalAlignment = Alignment.End) {
-                Text(
-                    text = "${group.currency}${kotlin.math.abs(group.balance)}",
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold,
-                    color = when {
-                        group.balance > 0 -> Color(0xFF4CAF50) // Green
-                        group.balance < 0 -> Color(0xFFF44336) // Red
-                        else -> MaterialTheme.colorScheme.onSurface
-                    }
-                )
-                Text(
-                    text = if (group.balance > 0) "You'll receive" else if (group.balance < 0) "You owe" else "Settled up",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                )
-            }
         }
     }
 }
 
-data class GroupItem(
-    val id: String,
-    val name: String,
-    val memberCount: Int,
-    val balance: Double,
-    val currency: String
-)
+@Composable
+private fun OverviewSection(
+    totalBalance: Double,
+    totalExpenses: Double,
+    activeGroups: Int,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Text(
+            text = "Overview",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            InfoCard(
+                title = "Total Balance",
+                value = CurrencyFormatter.format("USD", totalBalance),
+                icon = Icons.Default.AccountBalance,
+                modifier = Modifier.weight(1f)
+            )
+            InfoCard(
+                title = "Total Expenses",
+                value = CurrencyFormatter.format("USD", totalExpenses),
+                icon = Icons.Default.Receipt,
+                modifier = Modifier.weight(1f)
+            )
+            InfoCard(
+                title = "Active Groups",
+                value = activeGroups.toString(),
+                icon = Icons.Default.Group,
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+@Composable
+private fun QuickActionsSection(
+    onCreateGroupClick: () -> Unit,
+    onJoinGroupClick: () -> Unit,
+    onSettingsClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Text(
+            text = "Quick Actions",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            QuickActionCard(
+                title = "Create Group",
+                icon = Icons.Default.Add,
+                onClick = onCreateGroupClick,
+                modifier = Modifier.weight(1f)
+            )
+            QuickActionCard(
+                title = "Join Group",
+                icon = Icons.Default.GroupAdd,
+                onClick = onJoinGroupClick,
+                modifier = Modifier.weight(1f)
+            )
+            QuickActionCard(
+                title = "Settings",
+                icon = Icons.Default.Settings,
+                onClick = onSettingsClick,
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
+@Composable
+private fun InfoCard(
+    title: String,
+    value: String,
+    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = MaterialTheme.colorScheme.primary
+            )
+            Text(
+                text = title,
+                style = MaterialTheme.typography.bodyMedium,
+                color = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+            Text(
+                text = value,
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold
+            )
+        }
+    }
+}
+
+private fun formatCurrency(amount: Double): String {
+    val format = NumberFormat.getCurrencyInstance()
+    format.currency = Currency.getInstance("USD")
+    return format.format(amount)
+}
 
 

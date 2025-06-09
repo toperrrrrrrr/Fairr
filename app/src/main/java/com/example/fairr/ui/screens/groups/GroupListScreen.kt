@@ -13,7 +13,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.hilt.navigation.compose.hiltViewModel
-import com.example.fairr.ui.model.Group
+import com.example.fairr.data.model.Group
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

@@ -115,8 +115,11 @@ class AuthViewModel @Inject constructor(
     }
 
     fun signOut() {
-        authService.signOut()
-        _state.value = _state.value.copy(isAuthenticated = false)
+        viewModelScope.launch {
+            googleAuthService.signOut()
+            authService.signOut()
+            _state.value = _state.value.copy(isAuthenticated = false)
+        }
     }
 
     private fun setError(message: String) {

@@ -1,6 +1,6 @@
 package com.example.fairr.ui.screens.groups
 
-import com.example.fairr.ui.model.Group
+import com.example.fairr.data.model.Group
 
 sealed interface GroupListUiState {
     object Loading : GroupListUiState

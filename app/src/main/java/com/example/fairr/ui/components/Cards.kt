@@ -10,7 +10,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
-import com.example.fairr.ui.screens.home.GroupItem
+import com.example.fairr.data.model.Group
 
 @Composable
 fun OverviewCard(
@@ -64,7 +64,8 @@ fun OverviewCard(
 
 @Composable
 fun GroupCard(
-    group: GroupItem,
+    group: Group,
+    balance: Double = 0.0,
     onClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -90,7 +91,7 @@ fun GroupCard(
                 )
                 
                 Text(
-                    text = "${group.memberCount} members",
+                    text = "${group.members.size} members",
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -98,17 +99,17 @@ fun GroupCard(
             
             Column(horizontalAlignment = Alignment.End) {
                 Text(
-                    text = "${group.currency}${String.format("%.2f", group.balance)}",
+                    text = "${group.currency}${String.format("%.2f", balance)}",
                     style = MaterialTheme.typography.titleMedium,
                     fontWeight = FontWeight.SemiBold,
-                    color = if (group.balance >= 0) 
+                    color = if (balance >= 0) 
                         MaterialTheme.colorScheme.primary 
                     else 
                         MaterialTheme.colorScheme.error
                 )
                 
                 Text(
-                    text = if (group.balance >= 0) "you'll receive" else "you owe",
+                    text = if (balance >= 0) "you'll receive" else "you owe",
                     style = MaterialTheme.typography.bodySmall,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

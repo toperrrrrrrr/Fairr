@@ -27,8 +27,8 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.fairr.ui.components.*
 import com.example.fairr.ui.theme.*
-import com.example.fairr.ui.model.Group
-import com.example.fairr.ui.model.GroupMember
+import com.example.fairr.data.model.Group
+import com.example.fairr.ui.model.GroupMember as UiGroupMember
 import com.example.fairr.util.CurrencyFormatter
 import com.example.fairr.data.expenses.Expense
 
@@ -58,67 +58,107 @@ data class ExpenseItem(
     val date: String
 )
 
-@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun GroupDetailScreen(
     groupId: String,
     navController: NavController,
-    viewModel: GroupDetailViewModel = hiltViewModel(),
-    onNavigateToAddExpense: () -> Unit = {}
+    onNavigateToAddExpense: () -> Unit,
+    modifier: Modifier = Modifier,
+    viewModel: GroupDetailViewModel = hiltViewModel()
 ) {
-    val snackbarHostState = remember { SnackbarHostState() }
+    val uiState = viewModel.uiState
 
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { Text("Group Details") },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
-                    }
-                },
-                actions = {
-                    IconButton(onClick = { /* TODO: Show more options */ }) {
-                        Icon(Icons.Default.MoreVert, contentDescription = "More options")
-                    }
-                }
+    when (uiState) {
+        is GroupDetailUiState.Loading -> {
+            FairrLoadingCard(
+                message = "Loading group details...",
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
             )
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
-    ) { padding ->
-        when (val state = viewModel.uiState) {
-            is GroupDetailUiState.Loading -> {
-                Box(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(padding),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator()
-                }
-            }
-            is GroupDetailUiState.Success -> {
-                GroupDetailContent(
-                    group = state.group,
-                    currentUserBalance = state.currentUserBalance,
-                    totalExpenses = state.totalExpenses,
-                    expenses = state.expenses,
-                    onNavigateToAddExpense = onNavigateToAddExpense,
-                    viewModel = viewModel,
-                    modifier = Modifier.padding(padding)
+        }
+        is GroupDetailUiState.Error -> {
+            FairrErrorState(
+                message = uiState.message,
+                onActionClick = { viewModel.refresh() },
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp)
+            )
+        }
+        is GroupDetailUiState.Success -> {
+            val group = uiState.group
+            Column(
+                modifier = modifier.fillMaxSize()
+            ) {
+                TopAppBar(
+                    title = { Text(text = group.name) },
+                    navigationIcon = {
+                        IconButton(onClick = { navController.navigateUp() }) {
+                            Icon(
+                                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back"
+                            )
+                        }
+                    }
                 )
-            }
-            is GroupDetailUiState.Error -> {
-                Box(
+
+                LazyColumn(
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(padding),
-                    contentAlignment = Alignment.Center
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    Text(
-                        text = state.message,
-                        color = MaterialTheme.colorScheme.error
-                    )
+                    // Group Overview Section
+                    item {
+                        GroupOverview(
+                            memberCount = uiState.members.size,
+                            totalExpenses = uiState.totalExpenses,
+                            currentUserBalance = uiState.currentUserBalance,
+                            currency = group.currency
+                        )
+                    }
+
+                    // Quick Actions Section
+                    item {
+                        QuickActionsSection(
+                            onAddExpenseClick = onNavigateToAddExpense
+                        )
+                    }
+
+                    // Members Section
+                    item {
+                        Text(
+                            text = "Members",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold
+                        )
+                    }
+
+                    items(uiState.members) { member ->
+                        MemberCard(
+                            member = member,
+                            currency = group.currency
+                        )
+                    }
+
+                    // Expenses Section
+                    item {
+                        Text(
+                            text = "Recent Expenses",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(vertical = 8.dp)
+                        )
+                    }
+
+                    items(uiState.expenses) { expense ->
+                        ExpenseCard(
+                            expense = expense,
+                            currency = group.currency,
+                            viewModel = viewModel
+                        )
+                    }
                 }
             }
         }
@@ -279,7 +319,7 @@ private fun ExpenseCard(
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
-                    text = viewModel.formatDate(expense.date),
+                    text = viewModel.formatDate(expense.date.time),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
@@ -329,7 +369,7 @@ private fun InfoItem(
 
 @Composable
 private fun MemberCard(
-    member: GroupMember,
+    member: UiGroupMember,
     currency: String,
     modifier: Modifier = Modifier
 ) {
@@ -426,13 +466,103 @@ fun QuickActionCard(
     }
 }
 
+@Composable
+private fun GroupOverview(
+    memberCount: Int,
+    totalExpenses: Double,
+    currentUserBalance: Double,
+    currency: String,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        Column(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Text(
+                text = "Overview",
+                style = MaterialTheme.typography.titleLarge,
+                fontWeight = FontWeight.Bold
+            )
+
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween
+            ) {
+                InfoItem(
+                    label = "Members",
+                    value = memberCount.toString(),
+                    icon = Icons.Default.Group
+                )
+                InfoItem(
+                    label = "Total Expenses",
+                    value = CurrencyFormatter.format(currency, totalExpenses),
+                    icon = Icons.Default.Receipt
+                )
+                InfoItem(
+                    label = "Your Balance",
+                    value = CurrencyFormatter.format(currency, currentUserBalance),
+                    icon = Icons.Default.AccountBalance
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun QuickActionsSection(
+    onAddExpenseClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        Text(
+            text = "Quick Actions",
+            style = MaterialTheme.typography.titleLarge,
+            fontWeight = FontWeight.Bold
+        )
+
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            QuickActionCard(
+                title = "Add Expense",
+                icon = Icons.Default.AddCircle,
+                onClick = onAddExpenseClick,
+                modifier = Modifier.weight(1f)
+            )
+            QuickActionCard(
+                title = "Settle Up",
+                icon = Icons.Default.SwapHoriz,
+                onClick = { /* TODO: Navigate to settle up */ },
+                modifier = Modifier.weight(1f)
+            )
+            QuickActionCard(
+                title = "Settings",
+                icon = Icons.Default.Settings,
+                onClick = { /* TODO: Navigate to group settings */ },
+                modifier = Modifier.weight(1f)
+            )
+        }
+    }
+}
+
 @Preview(showBackground = true)
 @Composable
 fun GroupDetailScreenPreview() {
     FairrTheme {
         GroupDetailScreen(
             groupId = "1",
-            navController = rememberNavController()
+            navController = rememberNavController(),
+            onNavigateToAddExpense = {}
         )
     }
 }

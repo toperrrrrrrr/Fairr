@@ -24,7 +24,7 @@ import com.example.fairr.ui.theme.*
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fairr.ui.screens.groups.GroupListViewModel
 import com.example.fairr.ui.screens.groups.GroupListUiState
-import com.example.fairr.ui.model.Group
+import com.example.fairr.data.model.Group
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fairr.util.CurrencyFormatter
 import com.example.fairr.ui.screens.profile.ProfileScreen

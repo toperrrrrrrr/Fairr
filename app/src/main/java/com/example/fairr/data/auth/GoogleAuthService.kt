@@ -36,8 +36,15 @@ class GoogleAuthService @Inject constructor(
         auth.signInWithCredential(credential).await()
     }
 
-    fun signOut() {
-        auth.signOut()
-        googleSignInClient.signOut()
+    suspend fun signOut() {
+        try {
+            // Sign out from Firebase
+            auth.signOut()
+            // Revoke access and sign out from Google
+            googleSignInClient.revokeAccess().await()
+            googleSignInClient.signOut().await()
+        } catch (e: Exception) {
+            // Handle any errors silently, as this is a sign-out operation
+        }
     }
 } 

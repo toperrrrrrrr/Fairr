@@ -7,7 +7,6 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fairr.data.groups.GroupService
-import com.example.fairr.ui.model.Group
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.catch
 import kotlinx.coroutines.launch
@@ -49,4 +48,4 @@ class GroupListViewModel @Inject constructor(
     fun refresh() {
         loadGroups()
     }
-} 
+}
