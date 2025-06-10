@@ -68,7 +68,11 @@ fun CurrencySelectionScreen(
                         navController.popBackStack()
                     }
                 )
-                Divider()
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    thickness = 1.dp,
+                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
+                )
             }
         }
     }

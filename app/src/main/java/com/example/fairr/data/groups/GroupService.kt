@@ -35,24 +35,26 @@ class GroupService @Inject constructor(
     }
 
     @Suppress("UNCHECKED_CAST")
-    private fun parseMembersMap(data: Map<String, Any>, currentUserId: String): List<GroupMember> {
+    private fun parseGroupData(data: Map<String, Any>): Map<String, Map<String, Any>> {
         return try {
-            val membersData = data["members"] as? Map<String, Any> ?: return emptyList()
-            membersData.mapNotNull { (userId, memberData) ->
-                if (memberData !is Map<*, *>) return@mapNotNull null
-                val memberMap = memberData as? Map<String, Any> ?: return@mapNotNull null
-                GroupMember(
-                    userId = userId,
-                    name = (memberMap["name"] as? String) ?: "Unknown",
-                    email = (memberMap["email"] as? String) ?: "",
-                    role = if ((memberMap["isAdmin"] as? Boolean) == true) GroupRole.ADMIN else GroupRole.MEMBER,
-                    joinedAt = (memberMap["joinedAt"] as? Timestamp) ?: Timestamp.now()
-                )
-            }
+            data["members"] as? Map<String, Map<String, Any>> ?: emptyMap()
         } catch (e: Exception) {
-            Log.e(TAG, "Error parsing members map", e)
-            emptyList()
+            Log.e(TAG, "Error parsing group data", e)
+            emptyMap()
         }
+    }
+
+    private fun createGroupMember(
+        name: String,
+        email: String,
+        isAdmin: Boolean
+    ): Map<String, Any> {
+        return mapOf(
+            "name" to name,
+            "email" to email,
+            "isAdmin" to isAdmin,
+            "joinedAt" to Timestamp.now()
+        )
     }
 
     fun getUserGroups(): Flow<List<Group>> = callbackFlow {
@@ -92,7 +94,15 @@ class GroupService @Inject constructor(
                             currency = data["currency"] as? String ?: "PHP",
                             createdAt = (data["createdAt"] as? Timestamp) ?: Timestamp.now(),
                             createdBy = data["createdBy"] as? String ?: "",
-                            members = parseMembersMap(data, currentUser.uid)
+                            members = parseGroupData(data).map { (userId, memberData) ->
+                                GroupMember(
+                                    userId = userId,
+                                    name = memberData["name"] as? String ?: "Unknown",
+                                    email = memberData["email"] as? String ?: "",
+                                    role = if (memberData["isAdmin"] as? Boolean == true) GroupRole.ADMIN else GroupRole.MEMBER,
+                                    joinedAt = memberData["joinedAt"] as? Timestamp ?: Timestamp.now()
+                                )
+                            }
                         )
                     } catch (e: Exception) {
                         Log.e(TAG, "Error parsing group document", e)
@@ -132,7 +142,64 @@ class GroupService @Inject constructor(
                         currency = data["currency"] as? String ?: "PHP",
                         createdAt = (data["createdAt"] as? Timestamp) ?: Timestamp.now(),
                         createdBy = data["createdBy"] as? String ?: "",
-                        members = parseMembersMap(data, currentUser.uid)
+                        members = parseGroupData(data).map { (userId, memberData) ->
+                            GroupMember(
+                                userId = userId,
+                                name = memberData["name"] as? String ?: "Unknown",
+                                email = memberData["email"] as? String ?: "",
+                                role = if (memberData["isAdmin"] as? Boolean == true) GroupRole.ADMIN else GroupRole.MEMBER,
+                                joinedAt = memberData["joinedAt"] as? Timestamp ?: Timestamp.now()
+                            )
+                        }
+                    )
+
+                    trySend(group)
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error parsing group document", e)
+                    close(e)
+                }
+            }
+
+        awaitClose { subscription.remove() }
+    }
+
+    fun getGroup(groupId: String): Flow<Group> = callbackFlow {
+        val currentUser = auth.currentUser
+            ?: throw IllegalStateException("User not authenticated")
+
+        val subscription = groupsCollection.document(groupId)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+
+                if (snapshot == null || !snapshot.exists()) {
+                    close(IllegalStateException("Group not found"))
+                    return@addSnapshotListener
+                }
+
+                try {
+                    val data = snapshot.data ?: throw IllegalStateException("Group data is null")
+                    val currentUserId = currentUser.uid
+                    
+                    val group = Group(
+                        id = snapshot.id,
+                        name = data["name"] as? String ?: "",
+                        description = data["description"] as? String ?: "",
+                        currency = data["currency"] as? String ?: "USD",
+                        createdAt = (data["createdAt"] as? Timestamp) ?: Timestamp.now(),
+                        createdBy = data["createdBy"] as? String ?: "",
+                        inviteCode = data["inviteCode"] as? String ?: "",
+                        members = parseGroupData(data).map { (userId, memberData) ->
+                            GroupMember(
+                                userId = userId,
+                                name = memberData["name"] as? String ?: "Unknown",
+                                email = memberData["email"] as? String ?: "",
+                                role = if (memberData["isAdmin"] as? Boolean == true) GroupRole.ADMIN else GroupRole.MEMBER,
+                                joinedAt = memberData["joinedAt"] as? Timestamp ?: Timestamp.now()
+                            )
+                        }
                     )
 
                     trySend(group)
@@ -158,12 +225,10 @@ class GroupService @Inject constructor(
             val membersMap = mutableMapOf<String, Map<String, Any>>()
             
             // Add current user as admin
-            val currentUserData = mapOf(
-                "id" to currentUser.uid,
-                "name" to (currentUser.displayName ?: currentUser.email?.substringBefore("@") ?: "Unknown"),
-                "email" to (currentUser.email ?: ""),
-                "isAdmin" to true,
-                "joinedAt" to Timestamp.now()
+            val currentUserData = createGroupMember(
+                currentUser.displayName ?: currentUser.email?.substringBefore("@") ?: "Unknown",
+                currentUser.email ?: "",
+                true
             )
             membersMap[currentUser.uid] = currentUserData
             
@@ -171,13 +236,7 @@ class GroupService @Inject constructor(
             
             // Add other members
             groupData.members.forEach { member ->
-                val memberData = mapOf(
-                    "id" to member.id,
-                    "name" to member.name,
-                    "email" to member.email,
-                    "isAdmin" to member.isAdmin,
-                    "joinedAt" to Timestamp.now()
-                )
+                val memberData = createGroupMember(member.name, member.email, member.isAdmin)
                 membersMap[member.id] = memberData
             }
 
@@ -215,19 +274,15 @@ class GroupService @Inject constructor(
                 return GroupResult.Error("Group not found")
             }
 
-            val membersMap = groupDoc.get("members") as? Map<String, Map<String, Any>> ?: emptyMap()
+            val membersMap = parseGroupData(groupDoc.data ?: emptyMap())
             if (membersMap.containsKey(currentUser.uid)) {
                 return GroupResult.Error("You are already a member of this group")
             }
 
-            val newMember = mapOf(
-                currentUser.uid to mapOf(
-                    "id" to currentUser.uid,
-                    "name" to (currentUser.displayName ?: currentUser.email?.substringBefore("@") ?: "Unknown"),
-                    "email" to (currentUser.email ?: ""),
-                    "isAdmin" to false,
-                    "joinedAt" to Timestamp.now()
-                )
+            val newMember = createGroupMember(
+                currentUser.displayName ?: currentUser.email?.substringBefore("@") ?: "Unknown",
+                currentUser.email ?: "",
+                false
             )
 
             groupsCollection.document(groupId)
@@ -237,6 +292,89 @@ class GroupService @Inject constructor(
             GroupResult.Success(groupId)
         } catch (e: Exception) {
             GroupResult.Error(e.message ?: "Failed to join group")
+        }
+    }
+
+    suspend fun getGroupMembers(groupId: String): Flow<List<GroupMember>> = callbackFlow {
+        try {
+            val membersRef = firestore.collection("groups").document(groupId)
+                .collection("members")
+            
+            val subscription = membersRef.addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    close(error)
+                    return@addSnapshotListener
+                }
+
+                val members = snapshot?.documents?.mapNotNull { doc ->
+                    try {
+                        GroupMember(
+                            userId = doc.id,
+                            name = doc.getString("name") ?: "Unknown",
+                            email = doc.getString("email") ?: "",
+                            role = if (doc.getBoolean("isAdmin") == true) GroupRole.ADMIN else GroupRole.MEMBER,
+                            joinedAt = doc.getTimestamp("joinedAt") ?: Timestamp.now()
+                        )
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error parsing member document", e)
+                        null
+                    }
+                } ?: emptyList()
+
+                trySend(members)
+            }
+
+            awaitClose { subscription.remove() }
+        } catch (e: Exception) {
+            close(e)
+        }
+    }
+
+    suspend fun deleteGroup(groupId: String): GroupResult {
+        return try {
+            val currentUser = auth.currentUser
+                ?: return GroupResult.Error("User not authenticated")
+
+            // Get the group to check permissions
+            val groupDoc = groupsCollection.document(groupId).get().await()
+            if (!groupDoc.exists()) {
+                return GroupResult.Error("Group not found")
+            }
+
+            val data = groupDoc.data
+                ?: return GroupResult.Error("Group data not found")
+
+            // Check if current user is admin
+            val membersMap = parseGroupData(data)
+            val currentUserData = membersMap[currentUser.uid]
+                ?: return GroupResult.Error("You are not a member of this group")
+
+            if (!(currentUserData["isAdmin"] as? Boolean ?: false)) {
+                return GroupResult.Error("Only admins can delete the group")
+            }
+
+            // Delete all expenses for this group
+            val expensesSnapshot = firestore.collection("expenses")
+                .whereEqualTo("groupId", groupId)
+                .get()
+                .await()
+
+            // Delete expenses in batches
+            val batch = firestore.batch()
+            expensesSnapshot.documents.forEach { doc ->
+                batch.delete(firestore.collection("expenses").document(doc.id))
+            }
+
+            // Delete the group
+            batch.delete(groupsCollection.document(groupId))
+
+            // Commit the batch
+            batch.commit().await()
+
+            GroupResult.Success(groupId)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error deleting group", e)
+            GroupResult.Error(e.message ?: "Failed to delete group")
         }
     }
 } 

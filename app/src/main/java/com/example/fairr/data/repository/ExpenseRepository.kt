@@ -11,6 +11,12 @@ import kotlinx.coroutines.tasks.await
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
+import kotlinx.coroutines.withContext
+import kotlinx.coroutines.Dispatchers
+import com.google.firebase.firestore.ktx.toObject
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.flow
+import kotlinx.coroutines.flow.flowOn
 
 private const val TAG = "ExpenseRepository"
 
@@ -165,4 +171,41 @@ class ExpenseRepositoryImpl @Inject constructor(
             throw Exception("Failed to save expense: ${e.message}")
         }
     }
+
+    suspend fun addExpense(expense: Expense): Result<Unit> = withContext(Dispatchers.IO) {
+        try {
+            val expenseRef = firestore.collection("expenses").document()
+            val expenseData = mapOf(
+                "id" to expenseRef.id,
+                "amount" to expense.amount,
+                "description" to expense.description,
+                "date" to expense.date,
+                "groupId" to expense.groupId,
+                "paidBy" to expense.paidBy,
+                "splitBetween" to expense.splitBetween
+            )
+            
+            expenseRef.set(expenseData).await()
+            Result.success(Unit)
+        } catch (e: Exception) {
+            Result.failure(e)
+        }
+    }
+
+    suspend fun getExpensesByGroup(groupId: String): Flow<List<Expense>> = flow {
+        try {
+            val expenses = firestore.collection("expenses")
+                .whereEqualTo("groupId", groupId)
+                .get()
+                .await()
+                .documents
+                .mapNotNull { doc ->
+                    doc.toObject(Expense::class.java)?.copy(id = doc.id)
+                }
+            emit(expenses)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting expenses for group $groupId", e)
+            emit(emptyList())
+        }
+    }.flowOn(Dispatchers.IO)
 } 

@@ -16,6 +16,8 @@ import androidx.compose.ui.unit.dp
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fairr.ui.components.ProfileImage
 import com.example.fairr.ui.viewmodels.ProfileViewModel
+import androidx.compose.material3.HorizontalDivider
+import androidx.compose.material.icons.automirrored.filled.ExitToApp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -69,7 +71,11 @@ fun ProfileScreen(
                 )
             }
 
-            Divider()
+            HorizontalDivider(
+                modifier = Modifier.padding(vertical = 8.dp),
+                thickness = 1.dp,
+                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.12f)
+            )
 
             // Profile Actions
             Column(
@@ -93,7 +99,7 @@ fun ProfileScreen(
 
                 // Sign Out
                 ProfileActionButton(
-                    icon = Icons.Default.ExitToApp,
+                    icon = Icons.AutoMirrored.Filled.ExitToApp,
                     text = "Sign Out",
                     onClick = onSignOut,
                     tint = MaterialTheme.colorScheme.error

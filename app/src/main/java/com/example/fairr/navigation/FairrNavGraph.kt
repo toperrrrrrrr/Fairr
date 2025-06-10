@@ -194,7 +194,7 @@ fun FairrNavGraph() {
                     navController.navigate(Screen.JoinGroup.route)
                 },
                 onNavigateToSearch = {
-                    navController.navigate(Screen.Search.route)
+                    // TODO: Implement search navigation
                 },
                 onNavigateToNotifications = {
                     navController.navigate(Screen.Notifications.route)
@@ -212,8 +212,7 @@ fun FairrNavGraph() {
                     navController.navigate(Screen.Welcome.route) {
                         popUpTo(Screen.Main.route) { inclusive = true }
                     }
-                },
-                initialTab = tab
+                }
             )
         }
 

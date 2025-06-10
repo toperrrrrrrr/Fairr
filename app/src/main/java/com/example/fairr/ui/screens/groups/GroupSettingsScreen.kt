@@ -1,6 +1,7 @@
 package com.example.fairr.ui.screens.groups
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -15,6 +16,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.platform.LocalClipboardManager
 import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.font.FontWeight
@@ -25,8 +28,11 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.fairr.ui.theme.*
-import com.example.fairr.ui.model.GroupMember
-import com.example.fairr.ui.model.GroupSettingsData
+import com.example.fairr.data.model.GroupMember
+import com.example.fairr.data.model.GroupRole
+import com.example.fairr.ui.viewmodel.GroupSettingsEvent
+import com.example.fairr.ui.viewmodel.GroupSettingsViewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 
 @Composable
 private fun DetailItem(
@@ -57,52 +63,42 @@ private fun DetailItem(
 fun GroupSettingsScreen(
     navController: NavController,
     groupId: String,
-    onLeaveGroup: () -> Unit = {}
+    viewModel: GroupSettingsViewModel = hiltViewModel()
 ) {
-    // Sample group data
-    val group = remember {
-        GroupSettingsData(
-            id = groupId,
-            name = "Weekend Trip",
-            description = "Fun weekend getaway with friends",
-            inviteCode = "ABC123",
-            currency = "$",
-            createdBy = "Alice Johnson",
-            isUserAdmin = true,
-            memberCount = 4
-        )
-    }
-    
-    val members = remember {
-        listOf(
-            GroupMember("1", "Alice Johnson", "alice@example.com", true, true),
-            GroupMember("2", "Bob Smith", "bob@example.com", false, false),
-            GroupMember("3", "Charlie Brown", "charlie@example.com", false, false),
-            GroupMember("4", "Diana Prince", "diana@example.com", false, false)
-        )
-    }
-    
-    val clipboardManager = LocalClipboardManager.current
+    var showDeleteDialog by remember { mutableStateOf(false) }
     var showLeaveDialog by remember { mutableStateOf(false) }
+    val clipboardManager = LocalClipboardManager.current
+    
+    val uiState by viewModel.uiState.collectAsState()
+    val group = uiState.group
+    val members = uiState.members
+
+    LaunchedEffect(groupId) {
+        viewModel.loadGroup(groupId)
+    }
+
+    // Handle UI events
+    LaunchedEffect(Unit) {
+        viewModel.uiEvents.collect { event ->
+            when (event) {
+                is GroupSettingsEvent.NavigateBack -> navController.popBackStack()
+                is GroupSettingsEvent.ShowError -> {
+                    // Show error message
+                }
+                is GroupSettingsEvent.GroupDeleted -> {
+                    navController.popBackStack()
+                }
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { 
-                    Text(
-                        "Group Settings",
-                        style = MaterialTheme.typography.titleLarge
-                    ) 
-                },
+                title = { Text("Group Settings") },
                 navigationIcon = {
-                    IconButton(
-                        onClick = { navController.popBackStack() },
-                        modifier = Modifier.size(48.dp)
-                    ) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
-                        )
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
                 }
             )
@@ -111,183 +107,89 @@ fun GroupSettingsScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .background(LightBackground)
-                .padding(padding),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .padding(padding)
         ) {
-            item {
-                Spacer(modifier = Modifier.height(8.dp))
-            }
-            
-            // Group Info Card
+            // Group Info Section
             item {
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .shadow(2.dp, RoundedCornerShape(16.dp)),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = ComponentColors.CardBackgroundElevated
-                    )
+                        .padding(16.dp)
                 ) {
                     Column(
-                        modifier = Modifier.padding(20.dp)
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
                     ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.Top
-                        ) {
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = group.name,
-                                    style = MaterialTheme.typography.headlineSmall,
-                                    color = TextPrimary
-                                )
-                                if (group.description.isNotEmpty()) {
-                                    Text(
-                                        text = group.description,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = TextSecondary,
-                                        modifier = Modifier.padding(top = 4.dp)
-                                    )
-                                }
-                            }
-                            
-                            Box(
-                                modifier = Modifier
-                                    .size(48.dp)
-                                    .background(
-                                        ComponentColors.IconBackgroundSuccess,
-                                        CircleShape
-                                    ),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    Icons.Default.Group,
-                                    contentDescription = "Group",
-                                    tint = ComponentColors.Success,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            }
+                        Text(
+                            text = group.name,
+                            style = MaterialTheme.typography.headlineSmall
+                        )
+                        if (group.description.isNotEmpty()) {
+                            Text(
+                                text = group.description,
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
                         }
                         
-                        Spacer(modifier = Modifier.height(16.dp))
-                        
+                        // Invite Code Section
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceEvenly
-                        ) {
-                            DetailItem(
-                                label = "Created By",
-                                value = group.createdBy
-                            )
-                            DetailItem(
-                                label = "Currency",
-                                value = group.currency
-                            )
-                            DetailItem(
-                                label = "Members",
-                                value = group.memberCount.toString()
-                            )
-                        }
-                    }
-                }
-            }
-            
-            // Invite Code Card
-            item {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .shadow(1.dp, RoundedCornerShape(12.dp)),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = ComponentColors.CardBackgroundElevated
-                    )
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(top = 8.dp),
                             horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Column {
                                 Text(
                                     text = "Invite Code",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = TextPrimary
+                                    style = MaterialTheme.typography.labelMedium
                                 )
                                 Text(
                                     text = group.inviteCode,
-                                    style = MaterialTheme.typography.headlineMedium,
-                                    color = ComponentColors.Info,
-                                    modifier = Modifier.padding(vertical = 8.dp)
+                                    style = MaterialTheme.typography.titleMedium
                                 )
                             }
-                            
-                            FilledTonalButton(
+                            IconButton(
                                 onClick = {
                                     clipboardManager.setText(AnnotatedString(group.inviteCode))
-                                },
-                                modifier = Modifier.height(48.dp)
+                                }
                             ) {
                                 Icon(
                                     Icons.Default.ContentCopy,
-                                    contentDescription = "Copy",
-                                    modifier = Modifier.size(20.dp)
+                                    contentDescription = "Copy Invite Code"
                                 )
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Text("Copy")
                             }
                         }
                     }
                 }
             }
-            
+
             // Members Section
             item {
                 Text(
                     text = "Members (${members.size})",
                     style = MaterialTheme.typography.titleLarge,
-                    color = TextPrimary,
-                    modifier = Modifier.padding(horizontal = 16.dp)
+                    modifier = Modifier.padding(16.dp)
                 )
             }
-            
+
             items(members) { member ->
                 MemberCard(
                     member = member,
                     isUserAdmin = group.isUserAdmin,
-                    onRemoveMember = { /* TODO */ },
+                    onRemoveMember = { viewModel.removeMember(it) },
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
             }
-            
-            // Group Actions Section
-            item {
-                Text(
-                    text = "Actions",
-                    style = MaterialTheme.typography.titleLarge,
-                    color = TextPrimary,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-            }
-            
+
+            // Actions Section
             item {
                 Card(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                        .shadow(1.dp, RoundedCornerShape(12.dp)),
-                    shape = RoundedCornerShape(12.dp),
-                    colors = CardDefaults.cardColors(
-                        containerColor = ComponentColors.CardBackgroundElevated
-                    )
+                        .padding(16.dp)
                 ) {
                     Column {
                         if (group.isUserAdmin) {
@@ -304,8 +206,8 @@ fun GroupSettingsScreen(
                                 icon = Icons.Default.Delete,
                                 title = "Delete Group",
                                 subtitle = "Permanently delete this group",
-                                onClick = { /* TODO */ },
-                                textColor = ComponentColors.Error
+                                onClick = { showDeleteDialog = true },
+                                textColor = MaterialTheme.colorScheme.error
                             )
                         }
                         
@@ -322,19 +224,47 @@ fun GroupSettingsScreen(
                                 else
                                     "Leave this group",
                                 onClick = { showLeaveDialog = true },
-                                textColor = ComponentColors.Error
+                                textColor = MaterialTheme.colorScheme.error
                             )
                         }
                     }
                 }
             }
-            
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
-            }
         }
     }
-    
+
+    // Delete Group Dialog
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Delete Group") },
+            text = { 
+                Text(
+                    "Are you sure you want to delete this group? This action cannot be undone and will delete all associated expenses.",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteDialog = false
+                        viewModel.deleteGroup()
+                    }
+                ) {
+                    Text(
+                        "Delete",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
     // Leave Group Dialog
     if (showLeaveDialog) {
         AlertDialog(
@@ -350,19 +280,17 @@ fun GroupSettingsScreen(
                 TextButton(
                     onClick = {
                         showLeaveDialog = false
-                        onLeaveGroup()
+                        viewModel.leaveGroup()
                     }
                 ) {
                     Text(
                         "Leave",
-                        color = ComponentColors.Error
+                        color = MaterialTheme.colorScheme.error
                     )
                 }
             },
             dismissButton = {
-                TextButton(
-                    onClick = { showLeaveDialog = false }
-                ) {
+                TextButton(onClick = { showLeaveDialog = false }) {
                     Text("Cancel")
                 }
             }
@@ -378,70 +306,35 @@ fun MemberCard(
     modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .shadow(1.dp, RoundedCornerShape(12.dp)),
-        shape = RoundedCornerShape(12.dp),
+        modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
-            containerColor = ComponentColors.CardBackgroundElevated
+            containerColor = MaterialTheme.colorScheme.surface
         )
     ) {
         Row(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .background(
-                        if (member.isAdmin) 
-                            ComponentColors.IconBackgroundSuccess
-                        else if (member.isCurrentUser)
-                            ComponentColors.IconBackgroundInfo
-                        else
-                            ComponentColors.AvatarBackground,
-                        CircleShape
-                    ),
-                contentAlignment = Alignment.Center
-            ) {
+            Column {
                 Text(
-                    text = member.name.split(" ").map { it.first() }.joinToString(""),
-                    style = MaterialTheme.typography.titleMedium,
-                    color = if (member.isAdmin)
-                        ComponentColors.Success
-                    else if (member.isCurrentUser)
-                        ComponentColors.Info
-                    else
-                        TextPrimary
+                    text = member.name,
+                    style = MaterialTheme.typography.titleMedium
+                )
+                Text(
+                    text = member.email,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            
-            Spacer(modifier = Modifier.width(12.dp))
-            
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = member.name + if (member.isCurrentUser) " (You)" else "",
-                    style = MaterialTheme.typography.titleMedium,
-                    color = TextPrimary
-                )
-                Text(
-                    text = if (member.isAdmin) "Admin" else "Member",
-                    style = MaterialTheme.typography.bodySmall,
-                    color = TextSecondary
-                )
-            }
-            
-            if (isUserAdmin && !member.isCurrentUser) {
-                IconButton(
-                    onClick = { onRemoveMember(member) },
-                    modifier = Modifier.size(48.dp)
-                ) {
+            if (isUserAdmin && member.role != GroupRole.ADMIN) {
+                IconButton(onClick = { onRemoveMember(member) }) {
                     Icon(
-                        Icons.Default.Close,
-                        contentDescription = "Remove member",
-                        tint = ComponentColors.Error
+                        Icons.Default.PersonRemove,
+                        contentDescription = "Remove Member",
+                        tint = MaterialTheme.colorScheme.error
                     )
                 }
             }
@@ -451,15 +344,16 @@ fun MemberCard(
 
 @Composable
 fun SettingsActionItem(
-    icon: androidx.compose.ui.graphics.vector.ImageVector,
+    icon: ImageVector,
     title: String,
     subtitle: String,
     onClick: () -> Unit,
-    textColor: androidx.compose.ui.graphics.Color = TextPrimary
+    textColor: Color = MaterialTheme.colorScheme.onSurface,
+    modifier: Modifier = Modifier
 ) {
     Surface(
-        onClick = onClick,
-        color = androidx.compose.ui.graphics.Color.Transparent
+        modifier = modifier.clickable(onClick = onClick),
+        color = Color.Transparent
     ) {
         Row(
             modifier = Modifier
@@ -468,15 +362,12 @@ fun SettingsActionItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Icon(
-                icon,
-                contentDescription = title,
-                tint = textColor,
-                modifier = Modifier.size(24.dp)
+                imageVector = icon,
+                contentDescription = null,
+                tint = textColor
             )
-            
             Spacer(modifier = Modifier.width(16.dp))
-            
-            Column(modifier = Modifier.weight(1f)) {
+            Column {
                 Text(
                     text = title,
                     style = MaterialTheme.typography.titleMedium,
@@ -484,11 +375,8 @@ fun SettingsActionItem(
                 )
                 Text(
                     text = subtitle,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = if (textColor == ComponentColors.Error)
-                        textColor.copy(alpha = 0.7f)
-                    else
-                        TextSecondary
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
         }

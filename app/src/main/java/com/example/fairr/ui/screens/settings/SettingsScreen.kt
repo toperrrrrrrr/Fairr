@@ -204,9 +204,9 @@ fun SettingsScreen(
                             supportingContent = { Text(viewModel.selectedCurrency) },
                             leadingContent = { 
                                 Icon(
-                                    Icons.Default.CurrencyExchange,
-                                    contentDescription = null,
-                                    tint = Primary
+                                    imageVector = Icons.AutoMirrored.Filled.Label,
+                                    contentDescription = "Currency",
+                                    tint = MaterialTheme.colorScheme.primary
                                 )
                             },
                             modifier = Modifier.clickable {

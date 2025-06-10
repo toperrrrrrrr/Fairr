@@ -20,6 +20,7 @@ import com.example.fairr.ui.screens.home.HomeScreen
 import com.example.fairr.ui.screens.notifications.NotificationsScreen
 import com.example.fairr.ui.screens.settings.SettingsScreen
 import com.example.fairr.ui.screens.groups.GroupListScreen
+import com.example.fairr.ui.screens.profile.ProfileScreen
 import com.example.fairr.ui.theme.*
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fairr.ui.screens.groups.GroupListViewModel
@@ -50,10 +51,9 @@ fun MainScreen(
     onNavigateToGroupDetail: (String) -> Unit,
     onNavigateToSettings: () -> Unit,
     onNavigateToFriends: () -> Unit,
-    onSignOut: () -> Unit,
-    initialTab: Int = 0
+    onSignOut: () -> Unit
 ) {
-    var selectedTab by rememberSaveable { mutableStateOf(initialTab) }
+    var selectedTab by remember { mutableStateOf(0) }
 
     Scaffold(
         bottomBar = {
@@ -64,14 +64,9 @@ fun MainScreen(
                 },
                 modifier = Modifier.fillMaxWidth()
             )
-        },
-        contentWindowInsets = WindowInsets(0.dp)
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
+        }
+    ) { paddingValues ->
+        Box(modifier = Modifier.padding(paddingValues)) {
             when (selectedTab) {
                 0 -> HomeScreen(
                     navController = navController,
@@ -89,7 +84,9 @@ fun MainScreen(
                     onNavigateToGroupDetail = onNavigateToGroupDetail,
                     onNavigateToJoinGroup = onNavigateToJoinGroup
                 )
-                2 -> NotificationsScreen(navController = navController)
+                2 -> NotificationsScreen(
+                    navController = navController
+                )
                 3 -> SettingsScreen(
                     navController = navController,
                     onSignOut = onSignOut

@@ -9,8 +9,12 @@ data class Group(
     val currency: String = "USD",
     val createdAt: Timestamp = Timestamp.now(),
     val createdBy: String = "",
+    val inviteCode: String = "",
     val members: List<GroupMember> = emptyList()
-)
+) {
+    val isUserAdmin: Boolean
+        get() = members.any { it.role == GroupRole.ADMIN }
+}
 
 data class GroupMember(
     val userId: String = "",
