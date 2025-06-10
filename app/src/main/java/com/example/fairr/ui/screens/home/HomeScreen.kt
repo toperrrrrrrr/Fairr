@@ -35,6 +35,7 @@ import androidx.compose.material.pullrefresh.rememberPullRefreshState
 import com.example.fairr.ui.components.*
 import com.example.fairr.util.CurrencyFormatter
 import androidx.compose.material.ExperimentalMaterialApi
+import com.example.fairr.navigation.Screen
 
 @OptIn(ExperimentalMaterialApi::class)
 @Composable
@@ -111,7 +112,10 @@ fun HomeScreen(
                 }
 
                 items(state.recentExpenses) { expense ->
-                    ExpenseCard(expense = expense)
+                    ExpenseCard(
+                        expense = expense,
+                        onClick = { navController.navigate(Screen.ExpenseDetail.createRoute(expense.id)) }
+                    )
                 }
             }
         }
@@ -125,10 +129,14 @@ fun HomeScreen(
 }
 
 @Composable
-private fun ExpenseCard(expense: Expense) {
+private fun ExpenseCard(
+    expense: Expense,
+    onClick: () -> Unit = {}
+) {
     Card(
         modifier = Modifier
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .clickable { onClick() },
         shape = RoundedCornerShape(16.dp)
     ) {
         Row(

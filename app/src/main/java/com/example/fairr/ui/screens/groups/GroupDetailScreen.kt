@@ -27,6 +27,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.fairr.ui.components.*
 import com.example.fairr.ui.theme.*
+import com.example.fairr.navigation.Screen
 import com.example.fairr.data.model.Group
 import com.example.fairr.ui.model.GroupMember as UiGroupMember
 import com.example.fairr.util.CurrencyFormatter
@@ -122,6 +123,8 @@ fun GroupDetailScreen(
                     // Quick Actions Section
                     item {
                         QuickActionsSection(
+                            groupId = groupId,
+                            navController = navController,
                             onAddExpenseClick = onNavigateToAddExpense
                         )
                     }
@@ -156,7 +159,8 @@ fun GroupDetailScreen(
                         ExpenseCard(
                             expense = expense,
                             currency = group.currency,
-                            viewModel = viewModel
+                            viewModel = viewModel,
+                            onClick = { navController.navigate(Screen.ExpenseDetail.createRoute(expense.id)) }
                         )
                     }
                 }
@@ -165,145 +169,20 @@ fun GroupDetailScreen(
     }
 }
 
-@Composable
-private fun GroupDetailContent(
-    group: Group,
-    currentUserBalance: Double,
-    totalExpenses: Double,
-    expenses: List<Expense>,
-    onNavigateToAddExpense: () -> Unit,
-    viewModel: GroupDetailViewModel,
-    modifier: Modifier = Modifier
-) {
-    LazyColumn(
-        modifier = modifier.fillMaxSize(),
-        contentPadding = PaddingValues(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
-    ) {
-        // Group Info Card
-        item {
-            ModernCard {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        text = group.name,
-                        style = MaterialTheme.typography.headlineMedium,
-                        fontWeight = FontWeight.Bold
-                    )
-                    
-                    if (group.description.isNotBlank()) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = group.description,
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurfaceVariant
-                        )
-                    }
-                    
-                    Spacer(modifier = Modifier.height(16.dp))
-                    
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween
-                    ) {
-                        InfoItem(
-                            label = "Total Expenses",
-                            value = CurrencyFormatter.format(group.currency, totalExpenses),
-                            icon = Icons.Default.Receipt
-                        )
-                        InfoItem(
-                            label = "Members",
-                            value = "${group.members.size}",
-                            icon = Icons.Default.Group
-                        )
-                    }
-                }
-            }
-        }
-        
-        // Balance Card
-        item {
-            ModernCard {
-                Column(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    Text(
-                        text = if (currentUserBalance > 0) "You are owed" else if (currentUserBalance < 0) "You owe" else "You're all settled up",
-                        style = MaterialTheme.typography.titleMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
-                    
-                    Text(
-                        text = CurrencyFormatter.format(group.currency, kotlin.math.abs(currentUserBalance)),
-                        style = MaterialTheme.typography.headlineLarge,
-                        fontWeight = FontWeight.Bold,
-                        color = when {
-                            currentUserBalance > 0 -> MaterialTheme.colorScheme.primary
-                            currentUserBalance < 0 -> MaterialTheme.colorScheme.error
-                            else -> MaterialTheme.colorScheme.onSurface
-                        }
-                    )
-                }
-            }
-        }
-        
-        // Quick Actions
-        item {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                QuickActionCard(
-                    title = "Add Expense",
-                    icon = Icons.Default.AddCircle,
-                    onClick = onNavigateToAddExpense,
-                    modifier = Modifier.weight(1f)
-                )
-                QuickActionCard(
-                    title = "Settle Up",
-                    icon = Icons.Default.Payment,
-                    onClick = { /* TODO: Implement settle up */ },
-                    modifier = Modifier.weight(1f)
-                )
-            }
-        }
 
-        // Recent Expenses Section
-        if (expenses.isNotEmpty()) {
-            item {
-                Text(
-                    text = "Recent Expenses",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
-            }
-
-            items(expenses) { expense ->
-                ExpenseCard(
-                    expense = expense,
-                    currency = group.currency,
-                    viewModel = viewModel
-                )
-            }
-        }
-    }
-}
 
 @Composable
 private fun ExpenseCard(
     expense: Expense,
     currency: String,
     viewModel: GroupDetailViewModel,
+    onClick: () -> Unit = {},
     modifier: Modifier = Modifier
 ) {
     ModernCard(
-        modifier = modifier.fillMaxWidth()
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable { onClick() }
     ) {
         Row(
             modifier = Modifier
@@ -516,6 +395,8 @@ private fun GroupOverview(
 
 @Composable
 private fun QuickActionsSection(
+    groupId: String,
+    navController: NavController,
     onAddExpenseClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
@@ -542,15 +423,36 @@ private fun QuickActionsSection(
             QuickActionCard(
                 title = "Settle Up",
                 icon = Icons.Default.SwapHoriz,
-                onClick = { /* TODO: Navigate to settle up */ },
+                onClick = { 
+                    navController.navigate(Screen.Settlement.createRoute(groupId))
+                },
                 modifier = Modifier.weight(1f)
             )
             QuickActionCard(
-                title = "Settings",
-                icon = Icons.Default.Settings,
-                onClick = { /* TODO: Navigate to group settings */ },
+                title = "Activity",
+                icon = Icons.Default.History,
+                onClick = { 
+                    navController.navigate(Screen.GroupActivity.createRoute(groupId))
+                },
                 modifier = Modifier.weight(1f)
             )
+        }
+        
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            QuickActionCard(
+                title = "Settings",
+                icon = Icons.Default.Settings,
+                onClick = { 
+                    navController.navigate(Screen.GroupSettings.createRoute(groupId))
+                },
+                modifier = Modifier.weight(1f)
+            )
+            // Add spacers to maintain layout with only one button in second row
+            Spacer(modifier = Modifier.weight(1f))
+            Spacer(modifier = Modifier.weight(1f))
         }
     }
 }

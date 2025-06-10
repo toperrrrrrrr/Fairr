@@ -19,6 +19,16 @@ import com.example.fairr.ui.screens.settings.*
 import com.example.fairr.ui.screens.onboarding.*
 import com.example.fairr.ui.screens.expenses.*
 import com.example.fairr.ui.screens.friends.FriendsScreen
+import com.example.fairr.ui.screens.profile.EditProfileScreen
+import com.example.fairr.ui.screens.profile.UserProfileScreen
+import com.example.fairr.ui.screens.support.HelpSupportScreen
+import com.example.fairr.ui.screens.categories.CategoryManagementScreen
+import com.example.fairr.ui.screens.export.ExportDataScreen
+import com.example.fairr.ui.screens.groups.GroupSettingsScreen
+import com.example.fairr.ui.screens.groups.GroupActivityScreen
+import com.example.fairr.ui.screens.settlements.SettlementScreen
+import com.example.fairr.ui.screens.expenses.ExpenseDetailScreen
+import com.example.fairr.ui.screens.expenses.EditExpenseScreen
 import com.example.fairr.ui.viewmodels.StartupViewModel
 
 sealed class Screen(val route: String) {
@@ -38,6 +48,26 @@ sealed class Screen(val route: String) {
         fun createRoute(groupId: String) = "group_detail/$groupId"
     }
     object Settings : Screen("settings")
+    object EditProfile : Screen("edit_profile")
+    object HelpSupport : Screen("help_support")
+    object UserProfile : Screen("user_profile")
+    object CategoryManagement : Screen("category_management")
+    object ExportData : Screen("export_data")
+    object GroupSettings : Screen("group_settings/{groupId}") {
+        fun createRoute(groupId: String) = "group_settings/$groupId"
+    }
+    object GroupActivity : Screen("group_activity/{groupId}") {
+        fun createRoute(groupId: String) = "group_activity/$groupId"
+    }
+    object Settlement : Screen("settlement/{groupId}") {
+        fun createRoute(groupId: String) = "settlement/$groupId"
+    }
+    object ExpenseDetail : Screen("expense_detail/{expenseId}") {
+        fun createRoute(expenseId: String) = "expense_detail/$expenseId"
+    }
+    object EditExpense : Screen("edit_expense/{expenseId}") {
+        fun createRoute(expenseId: String) = "edit_expense/$expenseId"
+    }
     object CurrencySelection : Screen("currency_selection")
     object AddExpense : Screen("add_expense/{groupId}") {
         fun createRoute(groupId: String) = "add_expense/$groupId"
@@ -253,6 +283,119 @@ fun FairrNavGraph() {
                 onExpenseAdded = {
                     navController.popBackStack()
                 }
+            )
+        }
+
+        // Edit Profile screen
+        composable(Screen.EditProfile.route) {
+            EditProfileScreen(
+                navController = navController
+            )
+        }
+
+        // Help & Support screen
+        composable(Screen.HelpSupport.route) {
+            HelpSupportScreen(
+                navController = navController
+            )
+        }
+
+        // User Profile screen (Advanced profile)
+        composable(Screen.UserProfile.route) {
+            UserProfileScreen(
+                navController = navController
+            )
+        }
+
+        // Category Management screen
+        composable(Screen.CategoryManagement.route) {
+            CategoryManagementScreen(
+                navController = navController
+            )
+        }
+
+        // Export Data screen
+        composable(Screen.ExportData.route) {
+            ExportDataScreen(
+                navController = navController
+            )
+        }
+
+        // Group Settings screen
+        composable(
+            route = Screen.GroupSettings.route,
+            arguments = listOf(
+                navArgument("groupId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val groupId = backStackEntry.arguments?.getString("groupId")
+                ?: return@composable
+            GroupSettingsScreen(
+                groupId = groupId,
+                navController = navController
+            )
+        }
+
+        // Group Activity screen
+        composable(
+            route = Screen.GroupActivity.route,
+            arguments = listOf(
+                navArgument("groupId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val groupId = backStackEntry.arguments?.getString("groupId")
+                ?: return@composable
+            GroupActivityScreen(
+                groupId = groupId,
+                navController = navController
+            )
+        }
+
+        // Settlement screen
+        composable(
+            route = Screen.Settlement.route,
+            arguments = listOf(
+                navArgument("groupId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val groupId = backStackEntry.arguments?.getString("groupId")
+                ?: return@composable
+            SettlementScreen(
+                groupId = groupId,
+                navController = navController
+            )
+        }
+
+        // Expense Detail screen
+        composable(
+            route = Screen.ExpenseDetail.route,
+            arguments = listOf(
+                navArgument("expenseId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val expenseId = backStackEntry.arguments?.getString("expenseId")
+                ?: return@composable
+            ExpenseDetailScreen(
+                expenseId = expenseId,
+                navController = navController,
+                onEditExpense = {
+                    navController.navigate(Screen.EditExpense.createRoute(expenseId))
+                }
+            )
+        }
+
+        // Edit Expense screen
+        composable(
+            route = Screen.EditExpense.route,
+            arguments = listOf(
+                navArgument("expenseId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val expenseId = backStackEntry.arguments?.getString("expenseId")
+                ?: return@composable
+            EditExpenseScreen(
+                expenseId = expenseId,
+                navController = navController
             )
         }
     }

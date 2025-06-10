@@ -26,6 +26,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.fairr.ui.components.*
 import com.example.fairr.ui.theme.*
+import com.example.fairr.navigation.Screen
 import androidx.hilt.navigation.compose.hiltViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -99,7 +100,7 @@ fun SettingsScreen(
                                 )
                             }
                             Button(
-                                onClick = { navController.navigate("edit_profile") },
+                                onClick = { navController.navigate(Screen.EditProfile.route) },
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = Primary.copy(alpha = 0.1f),
                                     contentColor = Primary
@@ -133,29 +134,37 @@ fun SettingsScreen(
                                     tint = Primary
                                 )
                             },
-                            modifier = Modifier.clickable { }
+                            modifier = Modifier.clickable { 
+                                navController.navigate(Screen.UserProfile.route)
+                            }
                         )
                         ListItem(
-                            headlineContent = { Text("Payment Methods") },
+                            headlineContent = { Text("Category Management") },
+                            supportingContent = { Text("Manage expense categories") },
                             leadingContent = { 
                                 Icon(
-                                    Icons.Default.Payment,
+                                    Icons.Default.Label,
                                     contentDescription = null,
                                     tint = Primary
                                 )
                             },
-                            modifier = Modifier.clickable { }
+                            modifier = Modifier.clickable { 
+                                navController.navigate(Screen.CategoryManagement.route)
+                            }
                         )
                         ListItem(
-                            headlineContent = { Text("Account Security") },
+                            headlineContent = { Text("Export Data") },
+                            supportingContent = { Text("Export your expense data") },
                             leadingContent = { 
                                 Icon(
-                                    Icons.Default.Security,
+                                    Icons.Default.FileDownload,
                                     contentDescription = null,
                                     tint = Primary
                                 )
                             },
-                            modifier = Modifier.clickable { }
+                            modifier = Modifier.clickable { 
+                                navController.navigate(Screen.ExportData.route)
+                            }
                         )
                     }
                 }
@@ -201,7 +210,7 @@ fun SettingsScreen(
                                 )
                             },
                             modifier = Modifier.clickable {
-                                navController.navigate("currency_selection")
+                                navController.navigate(Screen.CurrencySelection.route)
                             }
                         )
                         ListItem(
@@ -263,7 +272,7 @@ fun SettingsScreen(
                                     tint = Primary
                                 )
                             },
-                            modifier = Modifier.clickable { navController.navigate("help_support") }
+                            modifier = Modifier.clickable { navController.navigate(Screen.HelpSupport.route) }
                         )
                         ListItem(
                             headlineContent = { Text("Contact Support") },

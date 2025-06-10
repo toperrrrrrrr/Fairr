@@ -27,9 +27,7 @@ import com.example.fairr.ui.screens.groups.GroupListUiState
 import com.example.fairr.data.model.Group
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fairr.util.CurrencyFormatter
-import com.example.fairr.ui.screens.profile.ProfileScreen
 import com.example.fairr.ui.components.ModernNavigationBar
-import com.example.fairr.ui.screens.analytics.AnalyticsScreen
 
 // Data class for group items
 private data class GroupItem(
@@ -91,10 +89,9 @@ fun MainScreen(
                     onNavigateToGroupDetail = onNavigateToGroupDetail,
                     onNavigateToJoinGroup = onNavigateToJoinGroup
                 )
-                2 -> AnalyticsScreen()
-                3 -> ProfileScreen(
-                    onNavigateToSettings = onNavigateToSettings,
-                    onNavigateToFriends = onNavigateToFriends,
+                2 -> NotificationsScreen(navController = navController)
+                3 -> SettingsScreen(
+                    navController = navController,
                     onSignOut = onSignOut
                 )
             }
