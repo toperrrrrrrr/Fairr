@@ -283,7 +283,9 @@ fun SettingsScreen(
                                     tint = Primary
                                 )
                             },
-                            modifier = Modifier.clickable { }
+                            modifier = Modifier.clickable { 
+                                navController.navigate(Screen.ContactSupport.route)
+                            }
                         )
                         ListItem(
                             headlineContent = { Text("Privacy Policy") },
@@ -294,7 +296,9 @@ fun SettingsScreen(
                                     tint = Primary
                                 )
                             },
-                            modifier = Modifier.clickable { }
+                            modifier = Modifier.clickable { 
+                                navController.navigate(Screen.PrivacyPolicy.route)
+                            }
                         )
                     }
                 }

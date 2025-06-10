@@ -22,6 +22,8 @@ import com.example.fairr.ui.screens.friends.FriendsScreen
 import com.example.fairr.ui.screens.profile.EditProfileScreen
 import com.example.fairr.ui.screens.profile.UserProfileScreen
 import com.example.fairr.ui.screens.support.HelpSupportScreen
+import com.example.fairr.ui.screens.support.PrivacyPolicyScreen
+import com.example.fairr.ui.screens.support.ContactSupportScreen
 import com.example.fairr.ui.screens.categories.CategoryManagementScreen
 import com.example.fairr.ui.screens.export.ExportDataScreen
 import com.example.fairr.ui.screens.groups.GroupSettingsScreen
@@ -75,6 +77,8 @@ sealed class Screen(val route: String) {
         fun createRoute(groupId: String) = "add_expense/$groupId"
     }
     object Friends : Screen("friends")
+    object PrivacyPolicy : Screen("privacy_policy")
+    object ContactSupport : Screen("contact_support")
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -409,6 +413,16 @@ fun FairrNavGraph() {
         // Notifications screen
         composable(Screen.Notifications.route) {
             NotificationsScreen(navController = navController)
+        }
+
+        // Privacy Policy screen
+        composable(Screen.PrivacyPolicy.route) {
+            PrivacyPolicyScreen(navController = navController)
+        }
+
+        // Contact Support screen
+        composable(Screen.ContactSupport.route) {
+            ContactSupportScreen(navController = navController)
         }
     }
 } 

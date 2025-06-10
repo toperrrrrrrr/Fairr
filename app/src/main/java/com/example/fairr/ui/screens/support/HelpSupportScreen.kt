@@ -28,6 +28,11 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import android.content.Intent
+import android.content.Context
+import android.net.Uri
+import androidx.compose.ui.platform.LocalContext
+import com.example.fairr.navigation.Screen
 import com.example.fairr.ui.components.FairrEmptyState
 import com.example.fairr.ui.components.FairrFilterChip
 import com.example.fairr.ui.theme.*
@@ -52,6 +57,7 @@ data class HelpArticle(
 fun HelpSupportScreen(
     navController: NavController
 ) {
+    val context = LocalContext.current
     var selectedCategory by remember { mutableStateOf("All") }
     var searchQuery by remember { mutableStateOf("") }
     var expandedArticle by remember { mutableStateOf<String?>(null) }
@@ -230,7 +236,7 @@ fun HelpSupportScreen(
             
             // Contact Support Section
             item {
-                ContactSupportSection()
+                ContactSupportSection(context, navController)
             }
             
             // Additional spacing at bottom
@@ -400,7 +406,10 @@ fun HelpArticleCard(
 }
 
 @Composable
-fun ContactSupportSection() {
+fun ContactSupportSection(
+    context: android.content.Context,
+    navController: NavController
+) {
     Column {
         Text(
             text = "Still Need Help?",
@@ -436,7 +445,14 @@ fun ContactSupportSection() {
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
                     OutlinedButton(
-                        onClick = { /* Open email */ },
+                        onClick = { 
+                            val emailIntent = Intent(Intent.ACTION_SENDTO).apply {
+                                data = Uri.parse("mailto:support@fairr.app")
+                                putExtra(Intent.EXTRA_SUBJECT, "Fairr App Support Request")
+                                putExtra(Intent.EXTRA_TEXT, "Hi Fairr Support Team,\n\nI need help with:\n\n")
+                            }
+                            context.startActivity(Intent.createChooser(emailIntent, "Send Email"))
+                        },
                         modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.outlinedButtonColors(
                             contentColor = DarkGreen
@@ -453,7 +469,10 @@ fun ContactSupportSection() {
                     }
                     
                     Button(
-                        onClick = { /* Open live chat */ },
+                        onClick = { 
+                            // For now, redirect to Contact Support screen
+                            navController.navigate(Screen.ContactSupport.route)
+                        },
                         modifier = Modifier.weight(1f),
                         colors = ButtonDefaults.buttonColors(
                             containerColor = DarkGreen

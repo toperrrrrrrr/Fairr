@@ -20,6 +20,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import android.content.Context
+import android.content.Intent
+import androidx.compose.ui.platform.LocalContext
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
+import androidx.compose.runtime.rememberCoroutineScope
 import com.example.fairr.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -28,6 +34,8 @@ fun ExportDataScreen(
     navController: NavController,
     groupId: String? = null
 ) {
+    val context = LocalContext.current
+    val coroutineScope = rememberCoroutineScope()
     var selectedFormat by remember { mutableStateOf("CSV") }
     var selectedDateRange by remember { mutableStateOf("All Time") }
     var includeSettlements by remember { mutableStateOf(true) }
@@ -300,11 +308,20 @@ fun ExportDataScreen(
                 
                 Button(
                     onClick = {
-                        isExporting = true
-                        // TODO: Implement actual export functionality
-                        // Simulate export delay
-                        showSuccessDialog = true
-                        isExporting = false
+                        coroutineScope.launch {
+                            isExporting = true
+                            // Simulate export process
+                            delay(2000)
+                            
+                            // Create sample export data
+                            val exportData = generateSampleExportData(selectedFormat, emptyList())
+                            
+                            // Share the data (in real app, this would save to file)
+                            shareExportData(context, exportData, selectedFormat)
+                            
+                            showSuccessDialog = true
+                            isExporting = false
+                        }
                     },
                     modifier = Modifier.fillMaxWidth(),
                     colors = ButtonDefaults.buttonColors(
@@ -411,6 +428,80 @@ fun ExportDataScreen(
             }
         )
     }
+}
+
+// Helper function to generate sample export data
+private fun generateSampleExportData(format: String, selectedGroups: List<String>): String {
+    return when (format) {
+        "CSV" -> {
+            """
+Date,Group,Description,Amount,Paid By,Split Between
+2025-01-15,Roommates,Groceries,$85.50,John,"John, Alice, Bob"
+2025-01-14,Weekend Trip,Gas,$45.00,Alice,"Alice, Bob"
+2025-01-13,Dinner Group,Restaurant,$120.75,Bob,"John, Alice, Bob, Charlie"
+2025-01-12,Roommates,Utilities,$150.00,John,"John, Alice, Bob"
+2025-01-11,Weekend Trip,Hotel,$300.00,Alice,"Alice, Bob"
+            """.trimIndent()
+        }
+        "JSON" -> {
+            """
+{
+  "export_date": "2025-01-15",
+  "groups": [
+    {
+      "name": "Roommates",
+      "expenses": [
+        {
+          "date": "2025-01-15",
+          "description": "Groceries",
+          "amount": 85.50,
+          "paid_by": "John",
+          "split_between": ["John", "Alice", "Bob"]
+        },
+        {
+          "date": "2025-01-12",
+          "description": "Utilities",
+          "amount": 150.00,
+          "paid_by": "John",
+          "split_between": ["John", "Alice", "Bob"]
+        }
+      ]
+    },
+    {
+      "name": "Weekend Trip",
+      "expenses": [
+        {
+          "date": "2025-01-14",
+          "description": "Gas",
+          "amount": 45.00,
+          "paid_by": "Alice",
+          "split_between": ["Alice", "Bob"]
+        },
+        {
+          "date": "2025-01-11",
+          "description": "Hotel",
+          "amount": 300.00,
+          "paid_by": "Alice",
+          "split_between": ["Alice", "Bob"]
+        }
+      ]
+    }
+  ]
+}
+            """.trimIndent()
+        }
+        else -> "Export format not supported"
+    }
+}
+
+// Helper function to share export data
+private fun shareExportData(context: Context, data: String, format: String) {
+    val intent = Intent(Intent.ACTION_SEND).apply {
+        type = "text/plain"
+        putExtra(Intent.EXTRA_TEXT, data)
+        putExtra(Intent.EXTRA_SUBJECT, "Fairr Export Data - $format")
+    }
+    context.startActivity(Intent.createChooser(intent, "Share Export Data"))
 }
 
 @Preview(showBackground = true)
