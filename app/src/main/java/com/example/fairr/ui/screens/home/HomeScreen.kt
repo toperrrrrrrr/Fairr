@@ -37,7 +37,7 @@ import com.example.fairr.util.CurrencyFormatter
 import androidx.compose.material.ExperimentalMaterialApi
 import com.example.fairr.navigation.Screen
 
-@OptIn(ExperimentalMaterialApi::class)
+@OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
 fun HomeScreen(
     navController: NavController,
@@ -58,73 +58,105 @@ fun HomeScreen(
         onRefresh = { viewModel.refresh() }
     )
 
-    Box(modifier = modifier.pullRefresh(pullRefreshState)) {
-        LazyColumn(
+    Scaffold(
+        topBar = {
+            TopAppBar(
+                title = { 
+                    Text(
+                        text = "Fairr",
+                        style = MaterialTheme.typography.headlineSmall,
+                        fontWeight = FontWeight.Bold
+                    )
+                },
+                actions = {
+                    IconButton(onClick = onNavigateToSearch) {
+                        Icon(
+                            imageVector = Icons.Default.Search,
+                            contentDescription = "Search",
+                            tint = MaterialTheme.colorScheme.onSurface
+                        )
+                    }
+                },
+                colors = TopAppBarDefaults.topAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
+            )
+        },
+        modifier = modifier
+    ) { paddingValues ->
+        Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
+                .pullRefresh(pullRefreshState)
+                .padding(paddingValues)
         ) {
-            // Overview Cards
-            item {
-                OverviewSection(
-                    totalBalance = state.totalBalance,
-                    totalExpenses = state.totalExpenses,
-                    activeGroups = state.activeGroups
-                )
-            }
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Overview Cards
+                item {
+                    OverviewSection(
+                        totalBalance = state.totalBalance,
+                        totalExpenses = state.totalExpenses,
+                        activeGroups = state.activeGroups
+                    )
+                }
 
-            // Quick Actions
-            item {
-                QuickActionsSection(
-                    onCreateGroupClick = onNavigateToCreateGroup,
-                    onJoinGroupClick = onNavigateToJoinGroup,
-                    onSettingsClick = onNavigateToSettings
-                )
-            }
+                // Quick Actions
+                item {
+                    QuickActionsSection(
+                        onCreateGroupClick = onNavigateToCreateGroup,
+                        onJoinGroupClick = onNavigateToJoinGroup,
+                        onSettingsClick = onNavigateToSettings
+                    )
+                }
 
-            // Groups
-            item {
-                Text(
-                    text = "Your Groups",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold
-                )
-            }
-
-            items(state.groups) { group ->
-                GroupCard(
-                    group = group,
-                    onClick = { onNavigateToGroupDetail(group.id) },
-                    onAddExpenseClick = { onNavigateToAddExpense(group.id) }
-                )
-            }
-
-            // Recent Expenses
-            if (state.recentExpenses.isNotEmpty()) {
+                // Groups
                 item {
                     Text(
-                        text = "Recent Expenses",
+                        text = "Your Groups",
                         style = MaterialTheme.typography.titleLarge,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(top = 16.dp)
+                        fontWeight = FontWeight.Bold
                     )
                 }
 
-                items(state.recentExpenses) { expense ->
-                    ExpenseCard(
-                        expense = expense,
-                        onClick = { navController.navigate(Screen.ExpenseDetail.createRoute(expense.id)) }
+                items(state.groups) { group ->
+                    GroupCard(
+                        group = group,
+                        onClick = { onNavigateToGroupDetail(group.id) },
+                        onAddExpenseClick = { onNavigateToAddExpense(group.id) }
                     )
+                }
+
+                // Recent Expenses
+                if (state.recentExpenses.isNotEmpty()) {
+                    item {
+                        Text(
+                            text = "Recent Expenses",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(top = 16.dp)
+                        )
+                    }
+
+                    items(state.recentExpenses) { expense ->
+                        ExpenseCard(
+                            expense = expense,
+                            onClick = { navController.navigate(Screen.ExpenseDetail.createRoute(expense.id)) }
+                        )
+                    }
                 }
             }
-        }
 
-        PullRefreshIndicator(
-            refreshing = refreshing,
-            state = pullRefreshState,
-            modifier = Modifier.align(Alignment.TopCenter)
-        )
+            PullRefreshIndicator(
+                refreshing = refreshing,
+                state = pullRefreshState,
+                modifier = Modifier.align(Alignment.TopCenter)
+            )
+        }
     }
 }
 

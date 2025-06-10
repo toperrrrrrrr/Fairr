@@ -29,6 +29,8 @@ import com.example.fairr.ui.screens.groups.GroupActivityScreen
 import com.example.fairr.ui.screens.settlements.SettlementScreen
 import com.example.fairr.ui.screens.expenses.ExpenseDetailScreen
 import com.example.fairr.ui.screens.expenses.EditExpenseScreen
+import com.example.fairr.ui.screens.search.SearchScreen
+import com.example.fairr.ui.screens.notifications.NotificationsScreen
 import com.example.fairr.ui.viewmodels.StartupViewModel
 
 sealed class Screen(val route: String) {
@@ -397,6 +399,16 @@ fun FairrNavGraph() {
                 expenseId = expenseId,
                 navController = navController
             )
+        }
+
+        // Search screen
+        composable(Screen.Search.route) {
+            SearchScreen(navController = navController)
+        }
+
+        // Notifications screen
+        composable(Screen.Notifications.route) {
+            NotificationsScreen(navController = navController)
         }
     }
 } 
