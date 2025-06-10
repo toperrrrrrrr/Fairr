@@ -14,6 +14,7 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fairr.data.model.Group
+import com.example.fairr.ui.components.GroupCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -29,18 +30,8 @@ fun GroupListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Groups") },
-                actions = {
-                    IconButton(onClick = onNavigateToCreateGroup) {
-                        Icon(Icons.Default.Add, contentDescription = "Create Group")
-                    }
-                }
+                title = { Text("Groups") }
             )
-        },
-        floatingActionButton = {
-            FloatingActionButton(onClick = onNavigateToJoinGroup) {
-                Icon(Icons.Default.GroupAdd, contentDescription = "Join Group")
-            }
         }
     ) { padding ->
         Box(
@@ -56,17 +47,55 @@ fun GroupListScreen(
                 }
                 is GroupListUiState.Success -> {
                     if (uiState.groups.isEmpty()) {
-                        EmptyGroupsMessage(
+                        GroupActions(
                             onCreateGroup = onNavigateToCreateGroup,
                             onJoinGroup = onNavigateToJoinGroup,
                             modifier = Modifier.align(Alignment.Center)
                         )
                     } else {
-                        GroupList(
-                            groups = uiState.groups,
-                            onGroupClick = onNavigateToGroupDetail,
-                            modifier = Modifier.fillMaxSize()
-                        )
+                        Column(
+                            modifier = Modifier
+                                .fillMaxSize()
+                                .padding(horizontal = 16.dp)
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(vertical = 8.dp),
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                Button(
+                                    onClick = onNavigateToCreateGroup,
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.Add,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("Create Group")
+                                }
+                                Button(
+                                    onClick = onNavigateToJoinGroup,
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Icon(
+                                        imageVector = Icons.Default.GroupAdd,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(20.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(4.dp))
+                                    Text("Join Group")
+                                }
+                            }
+
+                            GroupList(
+                                groups = uiState.groups,
+                                onGroupClick = onNavigateToGroupDetail,
+                                modifier = Modifier.fillMaxSize()
+                            )
+                        }
                     }
                 }
                 is GroupListUiState.Error -> {
@@ -94,6 +123,90 @@ fun GroupListScreen(
 }
 
 @Composable
+private fun GroupActions(
+    onCreateGroup: () -> Unit,
+    onJoinGroup: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(16.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Text(
+            text = "Get Started",
+            style = MaterialTheme.typography.titleLarge,
+            textAlign = TextAlign.Center
+        )
+        Spacer(modifier = Modifier.height(24.dp))
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Card(
+                onClick = onCreateGroup,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(160.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Create Group",
+                        modifier = Modifier.size(48.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Create Group",
+                        style = MaterialTheme.typography.titleMedium,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+            
+            Card(
+                onClick = onJoinGroup,
+                modifier = Modifier
+                    .weight(1f)
+                    .height(160.dp),
+                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+            ) {
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(16.dp),
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.Center
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.GroupAdd,
+                        contentDescription = "Join Group",
+                        modifier = Modifier.size(48.dp),
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "Join Group",
+                        style = MaterialTheme.typography.titleMedium,
+                        textAlign = TextAlign.Center
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
 private fun GroupList(
     groups: List<Group>,
     onGroupClick: (String) -> Unit,
@@ -108,97 +221,6 @@ private fun GroupList(
                 group = group,
                 onClick = { onGroupClick(group.id) }
             )
-        }
-    }
-}
-
-@Composable
-private fun GroupCard(
-    group: Group,
-    onClick: () -> Unit
-) {
-    Card(
-        modifier = Modifier
-            .fillMaxWidth(),
-        onClick = onClick
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
-        ) {
-            Text(
-                text = group.name,
-                style = MaterialTheme.typography.titleMedium
-            )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = "${group.members.size} members",
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
-            if (group.description.isNotBlank()) {
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = group.description,
-                    style = MaterialTheme.typography.bodySmall,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
-            }
-        }
-    }
-}
-
-@Composable
-private fun EmptyGroupsMessage(
-    onCreateGroup: () -> Unit,
-    onJoinGroup: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Column(
-        modifier = modifier.padding(16.dp),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.Center
-    ) {
-        Icon(
-            imageVector = Icons.Default.Group,
-            contentDescription = null,
-            modifier = Modifier.size(64.dp),
-            tint = MaterialTheme.colorScheme.primary
-        )
-        Spacer(modifier = Modifier.height(16.dp))
-        Text(
-            text = "No Groups Yet",
-            style = MaterialTheme.typography.titleLarge,
-            textAlign = TextAlign.Center
-        )
-        Spacer(modifier = Modifier.height(8.dp))
-        Text(
-            text = "Create or join a group to get started",
-            style = MaterialTheme.typography.bodyLarge,
-            textAlign = TextAlign.Center,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-        Spacer(modifier = Modifier.height(24.dp))
-        Row(
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            Button(
-                onClick = onCreateGroup,
-                modifier = Modifier.weight(1f)
-            ) {
-                Icon(Icons.Default.Add, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Create")
-            }
-            OutlinedButton(
-                onClick = onJoinGroup,
-                modifier = Modifier.weight(1f)
-            ) {
-                Icon(Icons.Default.GroupAdd, contentDescription = null)
-                Spacer(modifier = Modifier.width(8.dp))
-                Text("Join")
-            }
         }
     }
 } 

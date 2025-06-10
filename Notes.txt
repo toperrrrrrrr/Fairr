@@ -13,3 +13,24 @@ Login button does show
 
 
 Add emoji in the groups. 
+
+
+Malformed password 
+home button create group - crash 
+Session always logs out. Setup persistent login
+Remove the settins button on the main page. Replace with something else 
+Friends button is nowhere to be found
+
+Create group / join group box  missing 
+
+USD/PESO update th currency 
+
+Notifications - open notification to another page
+
+
+
+Keep the profile with a huge card 
+
+
+Create group crashes the app. 
+Nav bar have huge white space make the oblong and the buttons float. 

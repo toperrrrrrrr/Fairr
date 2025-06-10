@@ -28,7 +28,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.fairr.ui.theme.*
 import com.example.fairr.ui.model.GroupMember
 import com.example.fairr.ui.model.CreateGroupData
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.material3.SnackbarHostState
 import kotlinx.coroutines.launch
 import com.example.fairr.ui.components.LoadingSpinner
@@ -38,7 +38,7 @@ import com.example.fairr.navigation.Screen
 @Composable
 fun CreateGroupScreen(
     navController: NavController,
-    viewModel: CreateGroupViewModel = viewModel()
+    viewModel: CreateGroupViewModel = hiltViewModel()
 ) {
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
