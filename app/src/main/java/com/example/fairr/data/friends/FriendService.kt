@@ -137,14 +137,12 @@ class FriendService @Inject constructor() {
             val receiverData = userQuery.documents.first()
             val receiverId = receiverData.id
 
-            // Check if friend request already exists
-            val existingRequest = friendRequestsCollection
-                .whereEqualTo("senderId", currentUser.uid)
-                .whereEqualTo("receiverId", receiverId)
-                .get()
-                .await()
+            // Create a deterministic document ID
+            val requestId = "${currentUser.uid}_${receiverId}"
 
-            if (!existingRequest.isEmpty) {
+            // Check if friend request already exists
+            val existingRequest = friendRequestsCollection.document(requestId).get().await()
+            if (existingRequest.exists()) {
                 return FriendResult.Error("Friend request already sent")
             }
 
@@ -159,7 +157,7 @@ class FriendService @Inject constructor() {
                 return FriendResult.Error("You are already friends with this user")
             }
 
-            // Create friend request
+            // Create friend request with specific document ID
             val friendRequest = hashMapOf(
                 "senderId" to currentUser.uid,
                 "senderName" to (currentUser.displayName ?: currentUser.email?.substringBefore("@") ?: "Unknown"),
@@ -170,7 +168,11 @@ class FriendService @Inject constructor() {
                 "sentAt" to System.currentTimeMillis()
             )
 
-            friendRequestsCollection.add(friendRequest).await()
+            // Add debug log
+            Log.d(TAG, "Sending friend request: $friendRequest with ID: $requestId")
+
+            // Use set() with the specific document ID instead of add()
+            friendRequestsCollection.document(requestId).set(friendRequest).await()
             return FriendResult.Success("Friend request sent successfully")
 
         } catch (e: Exception) {

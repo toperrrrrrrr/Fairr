@@ -2,17 +2,37 @@ rules_version = '2';
 
 service cloud.firestore {
   match /databases/{database}/documents {
-    // Allow users to read and write their own user data
+    // Users collection rules
     match /users/{userId} {
-      allow create: if request.auth != null 
-        && request.auth.uid == userId 
-        && request.resource.data.id == userId;
-      allow read, update: if request.auth != null && request.auth.uid == userId;
+      // Allow reading any user document for friend requests and group operations
+      allow read: if request.auth != null;
+      
+      // Allow users to create and update their own data
+      allow create: if request.auth != null && request.auth.uid == userId;
+      allow update: if request.auth != null && request.auth.uid == userId;
     }
     
     // Groups collection rules
     match /groups/{groupId} {
-      allow read, write: if request.auth != null;
+      // Allow reading groups where user is a member
+      allow read: if request.auth != null && (
+        exists(/databases/$(database)/documents/groups/$(groupId)/members/$(request.auth.uid))
+      );
+      
+      // Allow creating groups (creator becomes admin)
+      allow create: if request.auth != null && 
+        request.resource.data.creatorId == request.auth.uid;
+      
+      // Allow updates if user is group admin
+      allow update: if request.auth != null && 
+        get(/databases/$(database)/documents/groups/$(groupId)).data.creatorId == request.auth.uid;
+
+      // Members subcollection rules
+      match /members/{memberId} {
+        allow read: if request.auth != null;
+        allow write: if request.auth != null && 
+          get(/databases/$(database)/documents/groups/$(groupId)).data.creatorId == request.auth.uid;
+      }
     }
 
     // Expenses collection rules
@@ -34,12 +54,14 @@ service cloud.firestore {
 
     // Friend requests collection rules
     match /friendRequests/{requestId} {
-      allow read: if request.auth != null && (
-        resource.data.senderId == request.auth.uid ||
-        resource.data.receiverId == request.auth.uid
-      );
+      // Allow reading friend requests they're involved in
+      allow read: if request.auth != null;
+      
+      // Allow creating friend requests if user is the sender
       allow create: if request.auth != null && 
-        request.resource.data.senderId == request.auth.uid;
+                   request.resource.data.senderId == request.auth.uid;
+      
+      // Allow update/delete if user is either sender or receiver
       allow update, delete: if request.auth != null && (
         resource.data.senderId == request.auth.uid ||
         resource.data.receiverId == request.auth.uid

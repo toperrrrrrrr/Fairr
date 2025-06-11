@@ -63,9 +63,9 @@ class GroupService @Inject constructor(
 
         Log.d(TAG, "Fetching groups for user: ${currentUser.uid}")
 
-        val memberPath = "members.${currentUser.uid}.id"
+        // Query groups where the current user is a member
         val subscription = groupsCollection
-            .whereEqualTo(memberPath, currentUser.uid)
+            .whereArrayContains("memberIds", currentUser.uid)  // Add memberIds array for efficient querying
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
                     Log.e(TAG, "Error fetching groups", error)
@@ -94,6 +94,7 @@ class GroupService @Inject constructor(
                             currency = data["currency"] as? String ?: "PHP",
                             createdAt = (data["createdAt"] as? Timestamp) ?: Timestamp.now(),
                             createdBy = data["createdBy"] as? String ?: "",
+                            inviteCode = data["inviteCode"] as? String ?: "",
                             members = parseGroupData(data).map { (userId, memberData) ->
                                 GroupMember(
                                     userId = userId,
@@ -223,6 +224,7 @@ class GroupService @Inject constructor(
             
             // Create a map of members with user IDs as keys
             val membersMap = mutableMapOf<String, Map<String, Any>>()
+            val memberIds = mutableListOf<String>()
             
             // Add current user as admin
             val currentUserData = createGroupMember(
@@ -231,6 +233,7 @@ class GroupService @Inject constructor(
                 true
             )
             membersMap[currentUser.uid] = currentUserData
+            memberIds.add(currentUser.uid)
             
             Log.d(TAG, "Current user data: $currentUserData")
             
@@ -238,6 +241,7 @@ class GroupService @Inject constructor(
             groupData.members.forEach { member ->
                 val memberData = createGroupMember(member.name, member.email, member.isAdmin)
                 membersMap[member.id] = memberData
+                memberIds.add(member.id)
             }
 
             val groupDocument = hashMapOf(
@@ -245,6 +249,7 @@ class GroupService @Inject constructor(
                 "description" to groupData.description,
                 "currency" to groupData.currency,
                 "members" to membersMap,
+                "memberIds" to memberIds,  // Add memberIds array for querying
                 "createdBy" to currentUser.uid,
                 "createdAt" to Timestamp.now(),
                 "inviteCode" to generateInviteCode()
