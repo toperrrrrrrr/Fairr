@@ -3,7 +3,9 @@ package com.example.fairr.di
 import android.content.Context
 import com.example.fairr.data.auth.AuthService
 import com.example.fairr.data.auth.GoogleAuthService
+import com.example.fairr.data.repository.UserRepository
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.firestore.FirebaseFirestore
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -30,10 +32,17 @@ object AuthModule {
 
     @Provides
     @Singleton
+    fun provideUserRepository(firestore: FirebaseFirestore): UserRepository {
+        return UserRepository(firestore)
+    }
+
+    @Provides
+    @Singleton
     fun provideGoogleAuthService(
         auth: FirebaseAuth,
-        @ApplicationContext context: Context
+        @ApplicationContext context: Context,
+        userRepository: UserRepository
     ): GoogleAuthService {
-        return GoogleAuthService(auth, context)
+        return GoogleAuthService(auth, context, userRepository)
     }
 } 

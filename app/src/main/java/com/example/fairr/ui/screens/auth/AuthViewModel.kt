@@ -9,6 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.fairr.data.auth.AuthResult
 import com.example.fairr.data.auth.AuthService
 import com.example.fairr.data.auth.GoogleAuthService
+import com.example.fairr.data.repository.UserRepository
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.common.api.ApiException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -24,7 +25,8 @@ import javax.inject.Inject
 @HiltViewModel
 class AuthViewModel @Inject constructor(
     private val authService: AuthService,
-    private val googleAuthService: GoogleAuthService
+    private val googleAuthService: GoogleAuthService,
+    private val userRepository: UserRepository
 ) : ViewModel() {
     private val _state = MutableStateFlow(AuthState())
     val state: StateFlow<AuthState> = _state.asStateFlow()
@@ -72,11 +74,21 @@ class AuthViewModel @Inject constructor(
             _state.value = _state.value.copy(isLoading = true, error = null)
             when (val result = authService.signUp(email, password)) {
                 is AuthResult.Success -> {
-                    _state.value = _state.value.copy(
-                        isLoading = false,
-                        isAuthenticated = true
-                    )
-                    _uiEvent.emit(AuthUiEvent.NavigateToHome)
+                    try {
+                        // Create the user document in Firestore
+                        userRepository.createOrUpdateUser(result.user)
+                        _state.value = _state.value.copy(
+                            isLoading = false,
+                            isAuthenticated = true
+                        )
+                        _uiEvent.emit(AuthUiEvent.NavigateToHome)
+                    } catch (e: Exception) {
+                        _state.value = _state.value.copy(
+                            isLoading = false,
+                            error = "Failed to create user profile: ${e.message}"
+                        )
+                        _uiEvent.emit(AuthUiEvent.ShowMessage("Failed to create user profile: ${e.message}"))
+                    }
                 }
                 is AuthResult.Error -> {
                     _state.value = _state.value.copy(

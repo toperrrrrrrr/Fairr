@@ -2,6 +2,7 @@ package com.example.fairr.data.auth
 
 import android.content.Context
 import android.content.Intent
+import com.example.fairr.data.repository.UserRepository
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
@@ -14,7 +15,8 @@ import javax.inject.Singleton
 @Singleton
 class GoogleAuthService @Inject constructor(
     private val auth: FirebaseAuth,
-    private val context: Context
+    private val context: Context,
+    private val userRepository: UserRepository
 ) {
     private lateinit var googleSignInClient: GoogleSignInClient
 
@@ -33,7 +35,12 @@ class GoogleAuthService @Inject constructor(
 
     suspend fun firebaseAuthWithGoogle(idToken: String): Result<Unit> = runCatching {
         val credential = GoogleAuthProvider.getCredential(idToken, null)
-        auth.signInWithCredential(credential).await()
+        val authResult = auth.signInWithCredential(credential).await()
+        
+        // Create or update user profile in Firestore
+        authResult.user?.let { user ->
+            userRepository.createOrUpdateUser(user)
+        } ?: throw Exception("Authentication successful but user is null")
     }
 
     suspend fun signOut() {
