@@ -82,3 +82,27 @@ This document provides a prioritized, high-level roadmap for the development of 
     - **Goal**: Let users create, edit, and delete their own expense categories.
     - **Area**: Full Stack.
     - **Justification**: Greatly enhances personalization and makes the app more flexible for different user needs.
+
+## Phase 5: Future UI/UX Refinements & Personalization
+
+*This phase includes long-term enhancements to make the app more polished, accessible, and customizable.*
+
+1.  **Enhance Accessibility & Responsiveness**
+    - **Goal**: Ensure all components are fully accessible and add adaptive layouts for tablets and foldables.
+    - **Area**: Frontend (UI Components).
+    - **Justification**: Makes the app usable for a wider audience and improves the experience on a variety of devices.
+
+2.  **Implement Undo/Redo Functionality**
+    - **Goal**: Allow users to undo destructive actions like deleting an expense.
+    - **Area**: Full Stack.
+    - **Justification**: Increases user confidence and prevents accidental data loss.
+
+3.  **Improve Navigation & Visuals**
+    - **Goal**: Implement deep linking, refine animations, and improve the visual hierarchy.
+    - **Area**: Frontend (Navigation, UI Components).
+    - **Justification**: Creates a more polished and intuitive user experience.
+
+4.  **Introduce Personalization & Theming**
+    - **Goal**: Allow users to customize their dashboard, pin favorite groups, and select different app themes.
+    - **Area**: Frontend (UI/UX).
+    - **Justification**: Gives users more control over their experience and can increase long-term engagement.

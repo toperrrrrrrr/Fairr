@@ -1,80 +1,40 @@
-# Data Models & Firestore Schema
+# Data Modeling Principles & Strategy
 
-This document outlines the target data schema for the Fairr application. It is designed for performance and scalability, leveraging denormalization to optimize for common read patterns.
+This document outlines the high-level strategies and principles governing the data models for the Fairr application. It explains *why* our data is structured the way it is.
 
-## 1. Core Collections
+For the definitive, concrete schema for every collection, please refer to our single source of truth:
+**[Firestore Collections: Single Source of Truth](./firestore_collections.md)**
 
-### `users`
-Stores public user profiles.
-- **Document ID**: `userId` (from Firebase Auth)
-- **Fields**:
-  - `id`: `string`
-  - `fullName`: `string`
-  - `email`: `string`
-  - `profileImageUrl`: `string` (optional)
+---
 
-### `groups`
-Stores information about each expense-sharing group.
-- **Document ID**: Auto-generated
-- **Fields**:
-  - `id`: `string`
-  - `name`: `string`
-  - `description`: `string`
-  - `currency`: `string` (e.g., "USD")
-  - `createdBy`: `string` (userId)
-  - `memberIds`: `array` of `string` (list of userIds)
-  - `memberInfo`: `map` (Denormalized map of userId to user's name and image URL for fast display of member lists).
-  - `inviteCode`: `string`
-  - `createdAt`: `timestamp`
+## 1. Firestore Data Modeling Strategy
 
-### `expenses`
-Stores individual expense records.
-- **Document ID**: Auto-generated
-- **Fields**:
-  - `id`: `string`
-  - `groupId`: `string`
-  - `description`: `string`
-  - `amount`: `double`
-  - `date`: `timestamp`
-  - `paidById`: `string` (userId)
-  - `paidByName`: `string` (**Denormalized** for performance to avoid extra user profile lookups when displaying expense lists).
-  - `splitType`: `string` (e.g., "EQUAL", "EXACT", "PERCENTAGE")
-  - `splitBetween`: `map` (Details of the split, e.g., `{"userId1": 25.00, "userId2": 15.00}`)
-  - `category`: `string`
-  - `receiptUrl`: `string` (optional)
+Our Firestore schema is designed with two primary goals: **performance** and **scalability**. We follow several key principles to achieve this.
 
-## 2. Supporting Collections
+### Principle 1: Denormalization for Read Performance
 
-### `settlements` (New)
-Tracks payments made between users to settle up their debts.
-- **Purpose**: To provide a record of debt resolutions, which is critical for accurate balance calculations.
-- **Document ID**: Auto-generated
-- **Fields**:
-  - `groupId`: `string`
-  - `fromUserId`: `string`
-  - `toUserId`: `string`
-  - `amount`: `double`
-  - `method`: `string` (e.g., "Cash", "Venmo")
-  - `createdAt`: `timestamp`
+We prioritize fast read operations, as these are the most common in the app (e.g., loading a group's dashboard). To avoid slow, complex, and costly client-side joins, we strategically denormalize data.
 
-## 3. Pre-computed Data Collections (for Performance)
+- **Example**: When an expense is created, we store the `paidByName` directly on the expense document. This prevents the client from needing to fetch the profile for every single user for every single expense in a list, which would be a classic N+1 query problem.
 
-### `group_summaries` (New)
-Stores pre-calculated data for groups to enable fast dashboard loading.
-- **Purpose**: To be calculated and updated by a Firebase Function whenever an expense or settlement is modified. The client app reads from this document instead of performing heavy calculations.
-- **Document ID**: `groupId` (to match the group it summarizes)
-- **Fields**:
-  - `groupId`: `string`
-  - `totalSpending`: `double`
-  - `lastActivity`: `timestamp`
-  - `balances`: `map` (A map of `userId` to their current balance, e.g., `{"userA": 50.25, "userB": -30.00}`)
+### Principle 2: Backend-Managed Data for Integrity
 
-## 4. Local Database Schema (Room)
+Any data that is critical for financial calculations or that summarizes other data must be calculated and managed by a trusted backend environment (Firebase Functions), not the client.
 
-The local Room database is used for offline caching, following the strategy outlined in the `architecture_deep_dive.md`.
+- **Example**: The `group_summaries` collection is read-only for clients. It is populated by a Firebase Function that triggers whenever an expense or settlement is added. This ensures that the user balances displayed on the dashboard are always authoritative and cannot be tampered with.
 
-- **`UserEntity`**: Caches user profiles.
-- **`GroupEntity`**: Caches group details.
-- **`ExpenseEntity`**: Caches expenses.
+### Principle 3: Data Structure Optimized for Security Rules
 
-These entities will mirror the Firestore models, allowing the Repository layer to serve cached data first for a fast, offline-first user experience.
+Our data is structured to make writing effective and secure Firestore Security Rules as simple as possible.
+
+- **Example**: Every group document contains a `memberIds` array. This allows us to write a simple rule that grants access to a group and its sub-collections (like expenses) only if the requesting user's `uid` is present in that array.
+
+---
+
+## 2. Local Database Strategy (Room)
+
+The local Room database is a critical part of our architecture, enabling a fast, offline-first user experience.
+
+- **Purpose**: To serve as a local cache of the Firestore data. The UI will always read from the repository, which will first attempt to provide data from the Room cache for an instantaneous response, while simultaneously fetching fresh data from Firestore in the background.
+- **Schema**: The Room database schema (e.g., `UserEntity`, `GroupEntity`, `ExpenseEntity`) will generally mirror the structure of the corresponding Firestore collections.
+- **Synchronization**: The `Repository` layer is responsible for all synchronization logic, ensuring that the local cache is kept up-to-date with the remote database.

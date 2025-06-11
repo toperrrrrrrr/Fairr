@@ -1,47 +1,49 @@
-# Testing Strategy
+# Application Testing Strategy
 
-This document outlines the testing strategy for the Fairr application, ensuring the reliability, correctness, and quality of the codebase. The strategy is divided into three main categories: Unit Tests, Integration Tests, and UI Tests.
+This document outlines the comprehensive testing strategy for the Fairr application, designed to ensure correctness, reliability, and maintainability. Our approach is based on the "Testing Pyramid," emphasizing a large base of fast, isolated unit tests and progressively fewer, more integrated tests.
 
-## 1. Unit Tests
+## Level 1: Unit Tests (`/src/test`)
 
-**Scope**: These tests focus on the smallest parts of the application in isolation.
+**Scope**: Fast, isolated tests of individual classes or functions running on the local JVM.
 
-- **ViewModels**: Test the logic within ViewModels by mocking the Use Cases they depend on. Verify that UI state is updated correctly in response to events and data changes.
-- **Use Cases**: Test the business logic within Use Cases. Since Use Cases are pure Kotlin classes, they are straightforward to test.
-- **Mappers and Utility Functions**: Test any data mapping functions or other utility classes to ensure they behave as expected.
+- **ViewModels**: We will test all ViewModels by providing mock repositories or use cases. Key scenarios to test include:
+  - The initial `UiState` is correct.
+  - State is updated correctly in response to user events.
+  - One-off events (e.g., navigation, errors) are emitted correctly via `SharedFlow`.
+- **Business Logic**: Critical business logic, such as the **debt simplification algorithm**, will be placed in pure Kotlin classes (Use Cases) and will have extensive unit test coverage.
+- **Mappers & Utilities**: All data mapping and utility functions will be unit tested to ensure they handle all expected inputs correctly.
 
-**Tools**: JUnit, Mockito (or MockK) for mocking dependencies.
+**Tools**: `JUnit 5`, `MockK` for creating test doubles.
 
-## 2. Integration Tests
+## Level 2: Integration Tests (`/src/androidTest`)
 
-**Scope**: These tests verify the interactions between different parts of the application.
+**Scope**: Tests that verify the interaction between different components of the app or with external systems like the database and backend services.
 
-- **Data Layer**: Test the `Repository` implementations. This includes testing the interaction between the local Room database and the remote Firebase Firestore data source. For example, verify that data is correctly cached locally after being fetched from the remote source.
-- **Room Database**: Test the DAOs (Data Access Objects) to ensure that database queries are correct.
+- **Data Layer Integration**: We will test our `Repository` implementations against the **Firebase Emulator Suite**. This allows us to verify real interactions with emulated Firestore, Authentication, and Storage services without incurring costs or relying on a network connection.
+- **Room Database (DAOs)**: We will test all Data Access Objects using an in-memory Room database to ensure all SQL queries for our offline cache are correct.
+- **Firebase Security Rules**: A critical part of our security posture. We will use the Firebase Emulator Suite's testing utilities to write tests that assert whether a given user can or cannot perform specific actions (read, write, delete) on our Firestore collections.
+- **Firebase Functions**: The business logic within our Cloud Functions (e.g., `debtSimplification`, `sendGroupInvite`) will be unit tested using the `firebase-functions-test` library.
 
-**Tools**: AndroidX Test libraries, Robolectric (for running tests on the JVM), and a local Room database instance.
+**Tools**: `AndroidX Test`, `Robolectric`, `Firebase Emulator Suite`.
 
-## 3. UI Tests
+## Level 3: UI Tests (`/src/androidTest`)
 
-**Scope**: These tests verify the UI and user flows from the user's perspective.
+**Scope**: Tests that verify user flows and ensure the UI behaves as expected from a user's perspective. These tests are the slowest and most brittle, so they will be reserved for the most critical user journeys.
 
-- **Composable Components**: Test individual Jetpack Compose components to ensure they render correctly based on different states and inputs.
-- **Screen-Level Tests**: Test entire screens to verify that they display the correct data and respond to user interactions as expected.
-- **End-to-End User Flows**: Test critical user journeys, such as:
-  - Logging in and navigating to the home screen.
-  - Creating a group and adding an expense.
-  - Settling a balance.
+- **Hermetic UI Tests**: To keep UI tests fast and reliable, we will use **Hilt's testing APIs** to replace our real `Repository` implementations with **fake repositories**. These fakes will provide controlled, predictable data to the UI, allowing us to test all UI states (loading, success, empty, error) without needing a real backend or network connection.
+- **Critical User Flows (End-to-End)**:
+  - Onboarding, Login, and Registration.
+  - Creating a group and successfully adding an expense.
+  - Navigating to the Settle Up screen and viewing the settlement plan.
 
-**Tools**: Jetpack Compose testing APIs (`createComposeRule`), Espresso (for interacting with UI elements), and Hilt for providing test dependencies.
+**Tools**: `Jetpack Compose Test APIs` (`createComposeRule`), `Hilt Android Testing`.
 
-## Running Tests
+## Continuous Integration (CI)
 
-Tests should be organized into the standard Android project structure (`/src/test` for unit tests and `/src/androidTest` for integration and UI tests). They can be executed from Android Studio or via the command line using Gradle.
+A testing strategy is only effective if it is consistently applied. Therefore, we will set up a Continuous Integration pipeline (e.g., using GitHub Actions).
 
-```bash
-# Run unit tests
-./gradlew test
+- **On Every Pull Request**: The CI server will automatically run all **Level 1 (Unit) tests**.
+- **On Merge to Main**: The CI server will run all **Level 1 (Unit)** and **Level 2 (Integration)** tests.
+- **Nightly/On-Demand**: The full suite, including the slower **Level 3 (UI) tests**, will be run on a nightly basis or triggered manually before a release.
 
-# Run instrumentation tests (UI and integration)
-./gradlew connectedAndroidTest
-```
+This automated process ensures that no new code is merged without passing our quality checks, maintaining a high standard for the entire codebase.

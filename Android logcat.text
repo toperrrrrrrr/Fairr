@@ -1,0 +1,672 @@
+---------------------------- PROCESS STARTED (3511) for package com.example.fairr ----------------------------
+2025-06-11 18:21:30.967  3511-3511  ActivityThread          com.example.fairr                    D  setEmbeddedParam packageName=com.example.fairr processName=com.example.fairr isEmbedded=false isIsolated=false
+2025-06-11 18:21:30.972  3511-3511  ApplicationLoaders      com.example.fairr                    D  Returning zygote-cached class loader: /system_ext/framework/androidx.window.extensions.jar
+2025-06-11 18:21:30.972  3511-3511  ApplicationLoaders      com.example.fairr                    D  Returning zygote-cached class loader: /system_ext/framework/androidx.window.sidecar.jar
+2025-06-11 18:21:30.974  3511-3511  ziparchive              com.example.fairr                    W  Unable to open '/data/data/com.example.fairr/code_cache/.overlay/base.apk/classes11.dm': No such file or directory
+2025-06-11 18:21:30.975  3511-3511  ziparchive              com.example.fairr                    W  Unable to open '/data/data/com.example.fairr/code_cache/.overlay/base.apk/classes13.dm': No such file or directory
+2025-06-11 18:21:30.976  3511-3511  ziparchive              com.example.fairr                    W  Unable to open '/data/data/com.example.fairr/code_cache/.overlay/base.apk/classes3.dm': No such file or directory
+2025-06-11 18:21:30.976  3511-3511  ziparchive              com.example.fairr                    W  Unable to open '/data/data/com.example.fairr/code_cache/.overlay/base.apk/classes4.dm': No such file or directory
+2025-06-11 18:21:30.977  3511-3511  ziparchive              com.example.fairr                    W  Unable to open '/data/data/com.example.fairr/code_cache/.overlay/base.apk/classes7.dm': No such file or directory
+2025-06-11 18:21:30.978  3511-3511  ziparchive              com.example.fairr                    W  Unable to open '/data/data/com.example.fairr/code_cache/.overlay/base.apk/classes8.dm': No such file or directory
+2025-06-11 18:21:30.979  3511-3511  ziparchive              com.example.fairr                    W  Unable to open '/data/app/~~5kY_-ChYbPD9qKFrojRzLw==/com.example.fairr-1_cdnoSi8WuRARvjZ6Axsg==/base.dm': No such file or directory
+2025-06-11 18:21:30.979  3511-3511  ziparchive              com.example.fairr                    W  Unable to open '/data/app/~~5kY_-ChYbPD9qKFrojRzLw==/com.example.fairr-1_cdnoSi8WuRARvjZ6Axsg==/base.dm': No such file or directory
+2025-06-11 18:21:31.389  2476-3040  ActivityManagerWrapper  com.mi.android.globallauncher        E  getRecentTasksForceIncludingTaskIdIfValid: getRecentTasks: size=10
+                                                                                                     mainTaskId=1258   userId=0   windowMode=1   baseIntent=Intent { act=android.intent.action.MAIN flag=268435456 cmp=ComponentInfo{com.example.fairr/com.example.fairr.MainActivity} }
+                                                                                                     mainTaskId=1226   userId=0   windowMode=1   baseIntent=Intent { act=android.settings.BLUETOOTH_SETTINGS flag=335544320 cmp=ComponentInfo{com.android.settings/com.android.settings.Settings$BluetoothSettingsActivity} }
+                                                                                                     mainTaskId=1244   userId=0   windowMode=1   baseIntent=Intent { act=com.whatsapp.intent.action.OPEN flag=335544320 cmp=ComponentInfo{com.whatsapp/com.whatsapp.Conversation} }
+                                                                                                     mainTaskId=1243   userId=0   windowMode=1   baseIntent=Intent { act=android.intent.action.MAIN flag=270532608 cmp=ComponentInfo{bbl.intl.bambulab.com/com.bambulab.bambulab.MainActivity} }
+                                                                                                     mainTaskId=1233   userId=0   windowMode=1   baseIntent=Intent { act=android.intent.action.MAIN flag=270532608 cmp=ComponentInfo{app.revanced.android.apps.youtube.music/com.google.android.apps.youtube.music.activities.MusicActivity} }
+                                                                                                     mainTaskId=1232   userId=0   windowMode=1   baseIntent=Intent { act=android.intent.action.VIEW flag=268435456 cmp=ComponentInfo{com.android.vending/com.google.android.finsky.activities.MainActivityPrivate} }
+                                                                                                     mainTaskId=1223   userId=0   windowMode=1   baseIntent=Intent { act=android.intent.action.MAIN flag=270532608 cmp=ComponentInfo{app.revanced.android.youtube/com.google.android.youtube.app.honeycomb.Shell$HomeActivity} }
+                                                                                                     mainTaskId=1231   userId=0   windowMode=1   baseIntent=Intent { act=android.settings.SETTINGS flag=335544320 cmp=ComponentInfo{com.android.settings/com.android.settings.MiuiSettings} }
+                                                                                                     mainTaskId=1229   userId=0   windowMode=1   baseIntent=Intent { act=null flag=268435456 cmp=ComponentInfo{com.google.android.deskclock/com.android.deskclock.DeskClock} }
+                                                                                                     mainTaskId=1169   userId=0   windowMode=1   baseIntent=Intent { act=android.intent.action.MAIN flag=270532608 cmp=ComponentInfo{org.adblockplus.browser/com.google.android.apps.chrome.Main} }
+2025-06-11 18:21:31.424  3511-3511  nativeloader            com.example.fairr                    D  Configuring clns-7 for other apk /data/app/~~5kY_-ChYbPD9qKFrojRzLw==/com.example.fairr-1_cdnoSi8WuRARvjZ6Axsg==/base.apk. target_sdk_version=34, uses_libraries=, library_path=/data/app/~~5kY_-ChYbPD9qKFrojRzLw==/com.example.fairr-1_cdnoSi8WuRARvjZ6Axsg==/lib/arm64:/data/app/~~5kY_-ChYbPD9qKFrojRzLw==/com.example.fairr-1_cdnoSi8WuRARvjZ6Axsg==/base.apk!/lib/arm64-v8a, permitted_path=/data:/mnt/expand:/data/user/0/com.example.fairr
+2025-06-11 18:21:31.434  3511-3511  GraphicsEnvironment     com.example.fairr                    V  Currently set values for:
+2025-06-11 18:21:31.434  3511-3511  GraphicsEnvironment     com.example.fairr                    V    angle_gl_driver_selection_pkgs=[com.android.angle, com.linecorp.b612.android, com.campmobile.snow, com.google.android.apps.tachyon]
+2025-06-11 18:21:31.434  3511-3511  GraphicsEnvironment     com.example.fairr                    V    angle_gl_driver_selection_values=[angle, native, native, native]
+2025-06-11 18:21:31.434  3511-3511  GraphicsEnvironment     com.example.fairr                    V  com.example.fairr is not listed in per-application setting
+2025-06-11 18:21:31.434  3511-3511  GraphicsEnvironment     com.example.fairr                    V  App is not on the allowlist for updatable production driver.
+2025-06-11 18:21:31.436  3511-10262 ActivityThread          com.example.fairr                    I  TrafficStats init done
+2025-06-11 18:21:31.437  3511-10262 ForceDarkHelperStubImpl com.example.fairr                    I  initialize for com.example.fairr , ForceDarkOrigin
+2025-06-11 18:21:31.439  3511-10262 nativeloader            com.example.fairr                    D  Load libforcedarkimpl.so using system ns (caller=/system_ext/framework/miui-framework.jar): ok
+2025-06-11 18:21:31.439  3511-10262 HWUI                    com.example.fairr                    D  JNI_OnLoad success
+2025-06-11 18:21:31.439  3511-10262 MiuiForceDarkConfig     com.example.fairr                    I  setConfig density:3.250000, mainRule:0, secondaryRule:0, tertiaryRule:0
+2025-06-11 18:21:31.450  3511-10262 ActivityThread          com.example.fairr                    I  Miui Feature Init done
+2025-06-11 18:21:31.459  3511-3511  FirebaseApp             com.example.fairr                    I  Device unlocked: initializing all Firebase APIs for app [DEFAULT]
+2025-06-11 18:21:31.467  3511-3511  FirebaseInitProvider    com.example.fairr                    I  FirebaseApp initialization successful
+2025-06-11 18:21:31.478  3511-3511  MbrainDebugManagerImpl  com.example.fairr                    D  getService
+2025-06-11 18:21:31.478  3511-3511  MbrainDebugManagerImpl  com.example.fairr                    D  IsMBrainSupport=false
+2025-06-11 18:21:31.483  3511-10297 m.example.fairr         com.example.fairr                    W  ClassLoaderContext classpath size mismatch. expected=1, found=0 (DLC[];PCL[base.apk*2024567152]{PCL[/system/framework/org.apache.http.legacy.jar*4025584831]#PCL[/system/framework/com.android.media.remotedisplay.jar*2042759013]#PCL[/system/framework/com.android.location.provider.jar*3414091812]#PCL[/system_ext/framework/androidx.window.extensions.jar*3170712352]#PCL[/system_ext/framework/androidx.window.sidecar.jar*150681844]} | DLC[];PCL[])
+2025-06-11 18:21:31.485  3511-10297 DynamiteModule          com.example.fairr                    I  Considering local module com.google.android.gms.measurement.dynamite:100 and remote module com.google.android.gms.measurement.dynamite:149
+2025-06-11 18:21:31.485  3511-10297 DynamiteModule          com.example.fairr                    I  Selected remote version of com.google.android.gms.measurement.dynamite, version >= 149
+2025-06-11 18:21:31.485  3511-10297 DynamiteModule          com.example.fairr                    V  Dynamite loader version >= 2, using loadModule2NoCrashUtils
+2025-06-11 18:21:31.496  3511-10297 System                  com.example.fairr                    W  ClassLoader referenced unknown path: 
+2025-06-11 18:21:31.497  3511-10297 nativeloader            com.example.fairr                    D  Configuring clns-8 for other apk . target_sdk_version=36, uses_libraries=, library_path=/data/app/~~fTjIkS-VBsTU8xsqmMPhSw==/com.google.android.gms-dixIoe6_0HVx65mruGALUA==/lib/arm64:/data/app/~~fTjIkS-VBsTU8xsqmMPhSw==/com.google.android.gms-dixIoe6_0HVx65mruGALUA==/base.apk!/lib/arm64-v8a, permitted_path=/data:/mnt/expand:/data/user/0/com.google.android.gms
+2025-06-11 18:21:31.500  3511-3511  libc                    com.example.fairr                    W  Access denied finding property "ro.vendor.perf.scroll_opt"
+2025-06-11 18:21:31.503  3511-3511  nativeloader            com.example.fairr                    D  Load libpowerhalwrap_jni.so using system ns (caller=/system_ext/framework/mediatek-framework.jar): ok
+2025-06-11 18:21:31.503  3511-3511  PowerHalWrapper         com.example.fairr                    I  PowerHalWrapper.getInstance 
+2025-06-11 18:21:31.504  3511-3511  M-ProMotion             com.example.fairr                    I  M-ProMotion is disabled
+2025-06-11 18:21:31.506  3511-10297 m.example.fairr         com.example.fairr                    W  ClassLoaderContext classpath size mismatch. expected=1, found=7 (DLC[];PCL[base.apk*2024567152]{PCL[/system/framework/org.apache.http.legacy.jar*4025584831]#PCL[/system/framework/com.android.media.remotedisplay.jar*2042759013]#PCL[/system/framework/com.android.location.provider.jar*3414091812]#PCL[/system_ext/framework/androidx.window.extensions.jar*3170712352]#PCL[/system_ext/framework/androidx.window.sidecar.jar*150681844]} | DLC[];PCL[/data/data/com.example.fairr/code_cache/.overlay/base.apk/classes11.dex*1117618283:/data/data/com.example.fairr/code_cache/.overlay/base.apk/classes13.dex*715623791:/data/data/com.example.fairr/code_cache/.overlay/base.apk/classes3.dex*12721898:/data/data/com.example.fairr/code_cache/.overlay/base.apk/classes4.dex*2654741167:/data/data/com.example.fairr/code_cache/.overlay/base.apk/classes7.dex*2583081465:/data/data/com.example.fairr/code_cache/.overlay/base.apk/classes8.dex*291266185:/data/app/~~5kY_-ChYbPD9qKFrojRzLw==/com.example.fairr-1_cdnoSi8WuRARvjZ6Axsg==/base.apk*1457333362]{PCL[/system_ext/framework/androidx.window.extensions.jar*3170712352]#PCL[/system_ext/framework/androidx.window.sidecar.jar*150681844]})
+2025-06-11 18:21:31.509  3511-10262 ActivityThread          com.example.fairr                    I  HardwareRenderer preload  done
+2025-06-11 18:21:31.513  3511-10312 vulkan                  com.example.fairr                    D  searching for layers in '/data/app/~~5kY_-ChYbPD9qKFrojRzLw==/com.example.fairr-1_cdnoSi8WuRARvjZ6Axsg==/lib/arm64'
+2025-06-11 18:21:31.513  3511-10312 vulkan                  com.example.fairr                    D  searching for layers in '/data/app/~~5kY_-ChYbPD9qKFrojRzLw==/com.example.fairr-1_cdnoSi8WuRARvjZ6Axsg==/base.apk!/lib/arm64-v8a'
+2025-06-11 18:21:31.513  3511-10312 vulkan                  com.example.fairr                    D  searching for layers in '/data/app/~~5kY_-ChYbPD9qKFrojRzLw==/com.example.fairr-1_cdnoSi8WuRARvjZ6Axsg==/lib/arm64'
+2025-06-11 18:21:31.513  3511-10312 vulkan                  com.example.fairr                    D  searching for layers in '/data/app/~~5kY_-ChYbPD9qKFrojRzLw==/com.example.fairr-1_cdnoSi8WuRARvjZ6Axsg==/base.apk!/lib/arm64-v8a'
+2025-06-11 18:21:31.517  3511-10312 MMUD                    com.example.fairr                    D  mtk_memory_debug_init com.example.fairr 0xb4000076b52c1230
+2025-06-11 18:21:31.517  3511-10312 MMUD                    com.example.fairr                    I  [MEMPROF] Memory instrumentation via debugfs (Experimental) enabled 0
+2025-06-11 18:21:31.549  3511-10315 m.example.fairr         com.example.fairr                    E  No package ID 6a found for resource ID 0x6a0b000f.
+2025-06-11 18:21:31.550  3511-10315 FA                      com.example.fairr                    I  App measurement initialized, version: 127007
+2025-06-11 18:21:31.550  3511-10315 FA                      com.example.fairr                    I  To enable debug logging run: adb shell setprop log.tag.FA VERBOSE
+2025-06-11 18:21:31.550  3511-10315 FA                      com.example.fairr                    I  To enable faster debug mode event logging run:
+                                                                                                      adb shell setprop debug.firebase.analytics.app com.example.fairr
+2025-06-11 18:21:31.564  3511-3511  libc                    com.example.fairr                    W  Access denied finding property "ro.vendor.df.effect.conflict"
+2025-06-11 18:21:31.565  3511-3511  SecurityManager         com.example.fairr                    D  checkAccessControl flag0
+2025-06-11 18:21:31.567  3511-10310 PowerHalWrapper         com.example.fairr                    I  PowerHalWrapper.getInstance 
+2025-06-11 18:21:31.569  3511-3511  SurfaceFactory          com.example.fairr                    I  [static] sSurfaceFactory = com.mediatek.view.impl.SurfaceFactoryImpl@f4f5cc8
+2025-06-11 18:21:31.582  3511-3511  MI-PreRender            com.example.fairr                    E  init cloud whiteList failed
+2025-06-11 18:21:31.590  3511-10312 libc                    com.example.fairr                    W  Access denied finding property "ro.vendor.display.iris_x7.support"
+2025-06-11 18:21:31.595  3511-3511  VRI[MainActivity]       com.example.fairr                    D  hardware acceleration = true, forceHwAccelerated = false
+2025-06-11 18:21:31.602  3511-3511  InputEventReceiver      com.example.fairr                    D  Input log is disabled in InputEventReceiver.
+2025-06-11 18:21:31.611  3511-10315 FA                      com.example.fairr                    I  Tag Manager is not found and thus will not be used
+2025-06-11 18:21:31.618  3511-10314 MMUD                    com.example.fairr                    D  get_leak_baseline 3246391296
+2025-06-11 18:21:31.791  3511-3511  m.example.fairr         com.example.fairr                    W  Method boolean androidx.compose.runtime.snapshots.SnapshotStateList.conditionalUpdate(boolean, kotlin.jvm.functions.Function1) failed lock verification and will run slower.
+                                                                                                    Common causes for lock verification issues are non-optimized dex code
+                                                                                                    and incorrect proguard optimizations.
+2025-06-11 18:21:31.791  3511-3511  m.example.fairr         com.example.fairr                    W  Method boolean androidx.compose.runtime.snapshots.SnapshotStateList.conditionalUpdate$default(androidx.compose.runtime.snapshots.SnapshotStateList, boolean, kotlin.jvm.functions.Function1, int, java.lang.Object) failed lock verification and will run slower.
+2025-06-11 18:21:31.791  3511-3511  m.example.fairr         com.example.fairr                    W  Method java.lang.Object androidx.compose.runtime.snapshots.SnapshotStateList.mutate(kotlin.jvm.functions.Function1) failed lock verification and will run slower.
+2025-06-11 18:21:31.791  3511-3511  m.example.fairr         com.example.fairr                    W  Method void androidx.compose.runtime.snapshots.SnapshotStateList.update(boolean, kotlin.jvm.functions.Function1) failed lock verification and will run slower.
+2025-06-11 18:21:31.791  3511-3511  m.example.fairr         com.example.fairr                    W  Method void androidx.compose.runtime.snapshots.SnapshotStateList.update$default(androidx.compose.runtime.snapshots.SnapshotStateList, boolean, kotlin.jvm.functions.Function1, int, java.lang.Object) failed lock verification and will run slower.
+2025-06-11 18:21:31.871  3511-3511  BufferQueueConsumer     com.example.fairr                    D  [](id:db700000000,api:0,p:-1,c:3511) connect: controlledByApp=false
+2025-06-11 18:21:31.873  3511-3511  BLASTBufferQueue        com.example.fairr                    D  [VRI[MainActivity]#0](f:0,a:0) constructor()
+2025-06-11 18:21:31.873  3511-3511  BLASTBufferQueue        com.example.fairr                    D  [VRI[MainActivity]#0](f:0,a:0) update width=1220 height=2712 format=-1 mTransformHint=0
+2025-06-11 18:21:31.884  3511-3511  VRI[MainActivity]       com.example.fairr                    D  vri.reportNextDraw android.view.ViewRootImpl.performTraversals:4974 android.view.ViewRootImpl.doTraversal:3561 android.view.ViewRootImpl$TraversalRunnable.run:11772 android.view.Choreographer$CallbackRecord.run:1821 android.view.Choreographer$CallbackRecord.run:1830 
+2025-06-11 18:21:31.886  3511-3511  VRI[MainActivity]       com.example.fairr                    D  Setup new sync=wmsSync-VRI[MainActivity]#0
+2025-06-11 18:21:31.886  3511-3511  UserSceneDetector       com.example.fairr                    D  invoke error.
+2025-06-11 18:21:31.903  3511-10312 HWUI                    com.example.fairr                    D  makeCurrent grContext:0xb4000075ec412410 reset mTextureAvailable
+2025-06-11 18:21:31.904  3511-10312 m.example.fairr         com.example.fairr                    D  MiuiProcessManagerServiceStub setSchedFifo
+2025-06-11 18:21:31.904  3511-10312 MiuiProcessManagerImpl  com.example.fairr                    I  setSchedFifo pid:3511, mode:3
+2025-06-11 18:21:31.906  3511-10312 MAGT_SYNC_FRAME         com.example.fairr                    D  MAGT Frame Sync [MEM]: create object, fd = 207, size = 1600
+2025-06-11 18:21:31.906  3511-10312 MAGT_SYNC_FRAME         com.example.fairr                    D  MAGT Frame Sync [MEM]: map object, fd = 207, size = 1600, addr = 0x76b88a9000
+2025-06-11 18:21:31.908  3511-10312 GrallocExtra            com.example.fairr                    I  gralloc_extra_query:is_SW3D 0
+2025-06-11 18:21:31.909  3511-10312 libc                    com.example.fairr                    W  Access denied finding property "ro.vendor.display.iris_x7.support"
+2025-06-11 18:21:31.917  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:31.918  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:31.918  3511-10312 GrallocExtra            com.example.fairr                    I  gralloc_extra_query:is_SW3D 0
+2025-06-11 18:21:31.918  3511-10312 libc                    com.example.fairr                    W  Access denied finding property "ro.vendor.display.iris_x7.support"
+2025-06-11 18:21:31.918  3511-10312 BLASTBufferQueue        com.example.fairr                    D  [VRI[MainActivity]#0](f:0,a:1) acquireNextBufferLocked size=1220x2712 mFrameNumber=1 applyTransaction=true mTimestamp=64382821023606(auto) mPendingTransactions.size=0 graphicBufferId=15079630176260 transform=0
+2025-06-11 18:21:31.919  3511-10342 LibMBrainProxy          com.example.fairr                    D  Init Paramters
+2025-06-11 18:21:31.919  3511-10342 m.example.fairr         com.example.fairr                    W  AIBinder_linkToDeath is being called with a non-null cookie and no onUnlink callback set. This might not be intended. AIBinder_DeathRecipient_setOnUnlinked should be called first.
+2025-06-11 18:21:31.919  3511-10342 LibMBrainProxy          com.example.fairr                    D  SDK(1.1.1) connect to server
+2025-06-11 18:21:31.920  3511-10342 LibMBrainProxy          com.example.fairr                    D  Init MBrainSDK
+2025-06-11 18:21:31.920  3511-3511  VRI[MainActivity]       com.example.fairr                    D  vri.reportDrawFinished
+2025-06-11 18:21:31.920  3511-10342 LibMBrainProxy          com.example.fairr                    D  MBrain support? 0
+2025-06-11 18:21:31.921  3511-3511  Looper                  com.example.fairr                    W  PerfMonitor doFrame : time=318ms vsyncFrame=1181746 latency=1ms procState=-1 historyMsgCount=3 (msgIndex=1 wall=95ms seq=6 running=63ms runnable=10ms late=9ms h=android.app.ActivityThread$H w=159)
+2025-06-11 18:21:31.931  3511-3511  Choreographer           com.example.fairr                    I  Skipped 34 frames!  The application may be doing too much work on its main thread.
+2025-06-11 18:21:31.932  3511-3511  UserSceneDetector       com.example.fairr                    D  invoke error.
+2025-06-11 18:21:31.946  3511-3511  HandWritingStubImpl     com.example.fairr                    I  refreshLastKeyboardType: 1
+2025-06-11 18:21:31.946  3511-3511  HandWritingStubImpl     com.example.fairr                    I  getCurrentKeyboardType: 1
+2025-06-11 18:21:31.951  3511-3511  HandWritingStubImpl     com.example.fairr                    I  getCurrentKeyboardType: 1
+2025-06-11 18:21:31.981  3511-10312 libc                    com.example.fairr                    W  Access denied finding property "ro.vendor.display.iris_x7.support"
+2025-06-11 18:21:31.981  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:31.981  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:31.985  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:31.985  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:31.991  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:31.991  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.000  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.000  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.007  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.007  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.015  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.016  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.024  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.024  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.033  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.033  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.041  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.041  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.049  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.049  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.058  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.058  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.065  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.066  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.074  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.074  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.083  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.083  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.092  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.092  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.097  3511-10220 m.example.fairr         com.example.fairr                    I  Compiler allocated 6923KB to compile void android.view.ViewRootImpl.performTraversals()
+2025-06-11 18:21:32.099  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.099  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.108  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.108  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.119  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.119  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.125  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.126  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.133  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.133  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.141  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.141  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.149  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.149  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.158  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.158  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.166  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.166  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.174  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.174  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.183  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.183  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.192  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.192  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.203  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.203  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.209  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.209  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.216  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.216  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.227  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.227  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.233  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.233  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.241  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.241  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.250  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.250  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.258  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.258  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.266  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.266  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.276  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.276  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.283  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.283  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.292  3511-10312 libc                    com.example.fairr                    W  Access denied finding property "ro.vendor.display.iris_x7.support"
+2025-06-11 18:21:32.293  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.293  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.299  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.299  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.307  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.307  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.316  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.316  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.324  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.324  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.333  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.333  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.341  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.341  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.348  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.349  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.357  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.358  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.365  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.365  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.373  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.373  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.381  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.382  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.391  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.391  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.398  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.398  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.407  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.407  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.415  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.415  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.423  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.423  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.432  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.432  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.440  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.440  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.449  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.449  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.457  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.457  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.466  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.466  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.474  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.474  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.482  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.482  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.490  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.490  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.499  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.499  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.507  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.507  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.515  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.515  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.524  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.524  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.531  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.531  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.539  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.539  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.548  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.548  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.556  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.556  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.565  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.565  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.574  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.574  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.581  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.581  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.590  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.590  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.599  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.599  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.606  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.606  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.614  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.615  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.622  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.622  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.631  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.632  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.640  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.640  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.648  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.648  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.656  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.656  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.665  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.665  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.674  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.674  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.681  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.681  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.690  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.690  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.698  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.699  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.707  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.707  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:32.714  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:32.714  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:33.982  3511-3511  CompatChangeReporter    com.example.fairr                    D  Compat change id reported: 3400644; UID 10295; state: ENABLED
+2025-06-11 18:21:34.045  3511-3511  FirebaseAuth            com.example.fairr                    D  Notifying id token listeners about user ( W9Ij00QlHdMi9mYeOPrcIujv1Qv2 ).
+2025-06-11 18:21:34.077  3511-10286 DynamiteModule          com.example.fairr                    W  Local module descriptor class for com.google.android.gms.providerinstaller.dynamite not found.
+2025-06-11 18:21:34.084  3511-10286 DynamiteModule          com.example.fairr                    I  Considering local module com.google.android.gms.providerinstaller.dynamite:0 and remote module com.google.android.gms.providerinstaller.dynamite:0
+2025-06-11 18:21:34.085  3511-10286 ProviderInstaller       com.example.fairr                    W  Failed to load providerinstaller module: No acceptable module com.google.android.gms.providerinstaller.dynamite found. Local version is 0 and remote version is 0.
+2025-06-11 18:21:34.086  3511-10286 ApplicationLoaders      com.example.fairr                    D  Returning zygote-cached class loader: /system/framework/org.apache.http.legacy.jar
+2025-06-11 18:21:34.089  3511-10286 nativeloader            com.example.fairr                    D  Configuring clns-9 for other apk /system/framework/com.android.media.remotedisplay.jar. target_sdk_version=36, uses_libraries=ALL, library_path=/data/app/~~fTjIkS-VBsTU8xsqmMPhSw==/com.google.android.gms-dixIoe6_0HVx65mruGALUA==/lib/arm64:/data/app/~~fTjIkS-VBsTU8xsqmMPhSw==/com.google.android.gms-dixIoe6_0HVx65mruGALUA==/base.apk!/lib/arm64-v8a, permitted_path=/data:/mnt/expand:/data/user/0/com.google.android.gms
+2025-06-11 18:21:34.089  3511-10286 nativeloader            com.example.fairr                    D  Extending system_exposed_libraries: libapuwareapusys.mtk.so:libapuwareapusys_v2.mtk.so:libapuwarexrp.mtk.so:libapuwarexrp_v2.mtk.so:libapuwareutils.mtk.so:libapuwareutils_v2.mtk.so:libapuwarehmp.mtk.so:libneuron_graph_delegate.mtk.so:libneuronusdk_adapter.mtk.so:libtflite_mtk.mtk.so:libarmnn_ndk.mtk.so:libcmdl_ndk.mtk.so:libnir_neon_driver_ndk.mtk.so:libmvpu_runtime.mtk.so:libmvpu_runtime_pub.mtk.so:libmvpu_engine_pub.mtk.so:libmvpu_pattern_pub.mtk.so:libmvpuop_mtk_cv.mtk.so:libmvpuop_mtk_nn.mtk.so:libmvpu_runtime_25.mtk.so:libmvpu_runtime_25_pub.mtk.so:libmvpu_engine_25_pub.mtk.so:libmvpu_pattern_25_pub.mtk.so:libmvpuop25_mtk_cv.mtk.so:libmvpuop25_mtk_nn.mtk.so:libmvpu_config.mtk.so:libteeservice_client.trustonic.so:libmisys_jni.xiaomi.so:libpag.hyperos.so:libffavc.hyperos.so
+2025-06-11 18:21:34.093  3511-10286 m.example.fairr         com.example.fairr                    W  Loading /data/misc/apexdata/com.android.art/dalvik-cache/arm64/system@framework@com.android.location.provider.jar@classes.odex non-executable as it requires an image which we failed to load
+2025-06-11 18:21:34.094  3511-10286 nativeloader            com.example.fairr                    D  Configuring clns-10 for other apk /system/framework/com.android.location.provider.jar. target_sdk_version=36, uses_libraries=ALL, library_path=/data/app/~~fTjIkS-VBsTU8xsqmMPhSw==/com.google.android.gms-dixIoe6_0HVx65mruGALUA==/lib/arm64:/data/app/~~fTjIkS-VBsTU8xsqmMPhSw==/com.google.android.gms-dixIoe6_0HVx65mruGALUA==/base.apk!/lib/arm64-v8a, permitted_path=/data:/mnt/expand:/data/user/0/com.google.android.gms
+2025-06-11 18:21:34.094  3511-10286 nativeloader            com.example.fairr                    D  Extending system_exposed_libraries: libapuwareapusys.mtk.so:libapuwareapusys_v2.mtk.so:libapuwarexrp.mtk.so:libapuwarexrp_v2.mtk.so:libapuwareutils.mtk.so:libapuwareutils_v2.mtk.so:libapuwarehmp.mtk.so:libneuron_graph_delegate.mtk.so:libneuronusdk_adapter.mtk.so:libtflite_mtk.mtk.so:libarmnn_ndk.mtk.so:libcmdl_ndk.mtk.so:libnir_neon_driver_ndk.mtk.so:libmvpu_runtime.mtk.so:libmvpu_runtime_pub.mtk.so:libmvpu_engine_pub.mtk.so:libmvpu_pattern_pub.mtk.so:libmvpuop_mtk_cv.mtk.so:libmvpuop_mtk_nn.mtk.so:libmvpu_runtime_25.mtk.so:libmvpu_runtime_25_pub.mtk.so:libmvpu_engine_25_pub.mtk.so:libmvpu_pattern_25_pub.mtk.so:libmvpuop25_mtk_cv.mtk.so:libmvpuop25_mtk_nn.mtk.so:libmvpu_config.mtk.so:libteeservice_client.trustonic.so:libmisys_jni.xiaomi.so:libpag.hyperos.so:libffavc.hyperos.so
+2025-06-11 18:21:34.095  3511-10286 ApplicationLoaders      com.example.fairr                    D  Returning zygote-cached class loader: /system_ext/framework/androidx.window.extensions.jar
+2025-06-11 18:21:34.095  3511-10286 ApplicationLoaders      com.example.fairr                    D  Returning zygote-cached class loader: /system_ext/framework/androidx.window.sidecar.jar
+2025-06-11 18:21:34.098  3511-10286 m.example.fairr         com.example.fairr                    W  Loading /data/app/~~fTjIkS-VBsTU8xsqmMPhSw==/com.google.android.gms-dixIoe6_0HVx65mruGALUA==/oat/arm64/base.odex non-executable as it requires an image which we failed to load
+2025-06-11 18:21:34.102  3511-10286 nativeloader            com.example.fairr                    D  Configuring clns-11 for other apk /data/app/~~fTjIkS-VBsTU8xsqmMPhSw==/com.google.android.gms-dixIoe6_0HVx65mruGALUA==/base.apk. target_sdk_version=36, uses_libraries=, library_path=/data/app/~~fTjIkS-VBsTU8xsqmMPhSw==/com.google.android.gms-dixIoe6_0HVx65mruGALUA==/lib/arm64:/data/app/~~fTjIkS-VBsTU8xsqmMPhSw==/com.google.android.gms-dixIoe6_0HVx65mruGALUA==/base.apk!/lib/arm64-v8a, permitted_path=/data:/mnt/expand:/data/user/0/com.google.android.gms
+2025-06-11 18:21:34.104  3511-10286 ProviderInstaller       com.example.fairr                    W  Failed to report request stats: com.google.android.gms.common.security.ProviderInstallerImpl.reportRequestStats [class android.content.Context, long, long]
+2025-06-11 18:21:34.112  3511-10399 m.example.fairr         com.example.fairr                    W  Accessing hidden method Ldalvik/system/VMStack;->getStackClass2()Ljava/lang/Class; (unsupported, reflection, allowed)
+2025-06-11 18:21:34.129  3511-10286 nativeloader            com.example.fairr                    D  Load /data/app/~~fTjIkS-VBsTU8xsqmMPhSw==/com.google.android.gms-dixIoe6_0HVx65mruGALUA==/base.apk!/lib/arm64-v8a/libconscrypt_gmscore_jni.so using ns clns-11 from class loader (caller=/data/app/~~fTjIkS-VBsTU8xsqmMPhSw==/com.google.android.gms-dixIoe6_0HVx65mruGALUA==/base.apk): ok
+2025-06-11 18:21:34.130  3511-10286 NativeCrypto            com.example.fairr                    V  Registering com/google/android/gms/org/conscrypt/NativeCrypto's 315 native methods...
+2025-06-11 18:21:34.134  3511-10286 m.example.fairr         com.example.fairr                    W  Accessing hidden method Ljava/security/spec/ECParameterSpec;->getCurveName()Ljava/lang/String; (unsupported, reflection, allowed)
+2025-06-11 18:21:34.149  3511-10286 ProviderInstaller       com.example.fairr                    I  Installed default security provider GmsCore_OpenSSL
+2025-06-11 18:21:34.184  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:34.184  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:34.189  3511-10396 GoogleApiManager        com.example.fairr                    E  Failed to get service from broker.  (Ask Gemini)
+                                                                                                    java.lang.SecurityException: Unknown calling package name 'com.google.android.gms'.
+                                                                                                    	at android.os.Parcel.createExceptionOrNull(Parcel.java:3256)
+                                                                                                    	at android.os.Parcel.createException(Parcel.java:3240)
+                                                                                                    	at android.os.Parcel.readException(Parcel.java:3223)
+                                                                                                    	at android.os.Parcel.readException(Parcel.java:3165)
+                                                                                                    	at axqj.a(:com.google.android.gms@252234035@25.22.34 (260400-769260661):36)
+                                                                                                    	at axoq.z(:com.google.android.gms@252234035@25.22.34 (260400-769260661):143)
+                                                                                                    	at awvv.run(:com.google.android.gms@252234035@25.22.34 (260400-769260661):42)
+                                                                                                    	at android.os.Handler.handleCallback(Handler.java:959)
+                                                                                                    	at android.os.Handler.dispatchMessage(Handler.java:100)
+                                                                                                    	at cgvu.mH(:com.google.android.gms@252234035@25.22.34 (260400-769260661):1)
+                                                                                                    	at cgvu.dispatchMessage(:com.google.android.gms@252234035@25.22.34 (260400-769260661):5)
+                                                                                                    	at android.os.Looper.loopOnce(Looper.java:249)
+                                                                                                    	at android.os.Looper.loop(Looper.java:337)
+                                                                                                    	at android.os.HandlerThread.run(HandlerThread.java:85)
+2025-06-11 18:21:34.191  3511-10394 FlagRegistrar           com.example.fairr                    W  Failed to register com.google.android.gms.providerinstaller#com.example.fairr (Ask Gemini)
+                                                                                                    ffzz: 17: 17: API: Phenotype.API is not available on this device. Connection failed with: ConnectionResult{statusCode=DEVELOPER_ERROR, resolution=null, message=null}
+                                                                                                    	at fgab.a(:com.google.android.gms@252234035@25.22.34 (260400-769260661):13)
+                                                                                                    	at gblr.d(:com.google.android.gms@252234035@25.22.34 (260400-769260661):3)
+                                                                                                    	at gblt.run(:com.google.android.gms@252234035@25.22.34 (260400-769260661):130)
+                                                                                                    	at gboa.execute(:com.google.android.gms@252234035@25.22.34 (260400-769260661):1)
+                                                                                                    	at gbmb.f(:com.google.android.gms@252234035@25.22.34 (260400-769260661):1)
+                                                                                                    	at gbmb.m(:com.google.android.gms@252234035@25.22.34 (260400-769260661):99)
+                                                                                                    	at gbmb.r(:com.google.android.gms@252234035@25.22.34 (260400-769260661):17)
+                                                                                                    	at eyix.hX(:com.google.android.gms@252234035@25.22.34 (260400-769260661):35)
+                                                                                                    	at empc.run(:com.google.android.gms@252234035@25.22.34 (260400-769260661):12)
+                                                                                                    	at gboa.execute(:com.google.android.gms@252234035@25.22.34 (260400-769260661):1)
+                                                                                                    	at empd.b(:com.google.android.gms@252234035@25.22.34 (260400-769260661):18)
+                                                                                                    	at emps.b(:com.google.android.gms@252234035@25.22.34 (260400-769260661):36)
+                                                                                                    	at empu.d(:com.google.android.gms@252234035@25.22.34 (260400-769260661):25)
+                                                                                                    	at awtd.c(:com.google.android.gms@252234035@25.22.34 (260400-769260661):9)
+                                                                                                    	at awvt.q(:com.google.android.gms@252234035@25.22.34 (260400-769260661):48)
+                                                                                                    	at awvt.d(:com.google.android.gms@252234035@25.22.34 (260400-769260661):10)
+                                                                                                    	at awvt.g(:com.google.android.gms@252234035@25.22.34 (260400-769260661):185)
+                                                                                                    	at awvt.onConnectionFailed(:com.google.android.gms@252234035@25.22.34 (260400-769260661):2)
+                                                                                                    	at awvv.run(:com.google.android.gms@252234035@25.22.34 (260400-769260661):70)
+                                                                                                    	at android.os.Handler.handleCallback(Handler.java:959)
+                                                                                                    	at android.os.Handler.dispatchMessage(Handler.java:100)
+                                                                                                    	at cgvu.mH(:com.google.android.gms@252234035@25.22.34 (260400-769260661):1)
+                                                                                                    	at cgvu.dispatchMessage(:com.google.android.gms@252234035@25.22.34 (260400-769260661):5)
+                                                                                                    	at android.os.Looper.loopOnce(Looper.java:249)
+                                                                                                    	at android.os.Looper.loop(Looper.java:337)
+                                                                                                    	at android.os.HandlerThread.run(HandlerThread.java:85)
+                                                                                                    Caused by: awrr: 17: API: Phenotype.API is not available on this device. Connection failed with: ConnectionResult{statusCode=DEVELOPER_ERROR, resolution=null, message=null}
+                                                                                                    	at axoc.a(:com.google.android.gms@252234035@25.22.34 (260400-769260661):15)
+                                                                                                    	at awtg.a(:com.google.android.gms@252234035@25.22.34 (260400-769260661):1)
+                                                                                                    	at awtd.c(:com.google.android.gms@252234035@25.22.34 (260400-769260661):5)
+                                                                                                    	at awvt.q(:com.google.android.gms@252234035@25.22.34 (260400-769260661):48) 
+                                                                                                    	at awvt.d(:com.google.android.gms@252234035@25.22.34 (260400-769260661):10) 
+                                                                                                    	at awvt.g(:com.google.android.gms@252234035@25.22.34 (260400-769260661):185) 
+                                                                                                    	at awvt.onConnectionFailed(:com.google.android.gms@252234035@25.22.34 (260400-769260661):2) 
+                                                                                                    	at awvv.run(:com.google.android.gms@252234035@25.22.34 (260400-769260661):70) 
+                                                                                                    	at android.os.Handler.handleCallback(Handler.java:959) 
+                                                                                                    	at android.os.Handler.dispatchMessage(Handler.java:100) 
+                                                                                                    	at cgvu.mH(:com.google.android.gms@252234035@25.22.34 (260400-769260661):1) 
+                                                                                                    	at cgvu.dispatchMessage(:com.google.android.gms@252234035@25.22.34 (260400-769260661):5) 
+                                                                                                    	at android.os.Looper.loopOnce(Looper.java:249) 
+                                                                                                    	at android.os.Looper.loop(Looper.java:337) 
+                                                                                                    	at android.os.HandlerThread.run(HandlerThread.java:85) 
+2025-06-11 18:21:34.215  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:34.216  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:34.227  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:34.227  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:34.227  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:34.228  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:34.231  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:34.231  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:34.239  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:34.239  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:34.247  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:34.247  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:34.256  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:34.256  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:34.265  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:34.265  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:34.271  3511-10312 LB                      com.example.fairr                    E  fail to open file: No such file or directory
+2025-06-11 18:21:34.271  3511-10312 LB                      com.example.fairr                    E  fail to open node: No such file or directory
+2025-06-11 18:21:35.179  3511-3511  MIUIInput               com.example.fairr                    I  [MotionEvent] ViewRootImpl windowName 'com.example.fairr/com.example.fairr.MainActivity', { action=ACTION_DOWN, id[0]=0, pointerCount=1, eventTime=64386072, downTime=64386072, phoneEventTime=18:21:35.169 } moveCount:0
+2025-06-11 18:21:35.226  3511-3511  MIUIInput               com.example.fairr                    I  [MotionEvent] ViewRootImpl windowName 'com.example.fairr/com.example.fairr.MainActivity', { action=ACTION_UP, id[0]=0, pointerCount=1, eventTime=64386126, downTime=64386072, phoneEventTime=18:21:35.224 } moveCount:0
+2025-06-11 18:21:35.335  3511-3511  CompatChangeReporter    com.example.fairr                    D  Compat change id reported: 289878283; UID 10295; state: ENABLED
+2025-06-11 18:21:36.404  3511-3511  MIUIInput               com.example.fairr                    I  [MotionEvent] ViewRootImpl windowName 'com.example.fairr/com.example.fairr.MainActivity', { action=ACTION_DOWN, id[0]=0, pointerCount=1, eventTime=64387304, downTime=64387304, phoneEventTime=18:21:36.401 } moveCount:0
+2025-06-11 18:21:36.463  3511-3511  MIUIInput               com.example.fairr                    I  [MotionEvent] ViewRootImpl windowName 'com.example.fairr/com.example.fairr.MainActivity', { action=ACTION_UP, id[0]=0, pointerCount=1, eventTime=64387362, downTime=64387304, phoneEventTime=18:21:36.460 } moveCount:1
+2025-06-11 18:21:36.908  3511-10436 ProfileInstaller        com.example.fairr                    D  Installing profile for com.example.fairr
+2025-06-11 18:21:36.911  3511-3511  MIUIInput               com.example.fairr                    I  [MotionEvent] ViewRootImpl windowName 'com.example.fairr/com.example.fairr.MainActivity', { action=ACTION_DOWN, id[0]=0, pointerCount=1, eventTime=64387811, downTime=64387811, phoneEventTime=18:21:36.908 } moveCount:0
+2025-06-11 18:21:36.979  3511-3511  MIUIInput               com.example.fairr                    I  [MotionEvent] ViewRootImpl windowName 'com.example.fairr/com.example.fairr.MainActivity', { action=ACTION_UP, id[0]=0, pointerCount=1, eventTime=64387878, downTime=64387811, phoneEventTime=18:21:36.976 } moveCount:0
+2025-06-11 18:21:37.079  3511-10312 m.example.fairr         com.example.fairr                    E  FrameInsert open fail: No such file or directory
+2025-06-11 18:21:37.092  3511-10262 ActivityThread          com.example.fairr                    I  HardwareRenderer preload  done
+2025-06-11 18:21:37.114  3511-3511  SecurityManager         com.example.fairr                    D  checkAccessControl flag0
+2025-06-11 18:21:37.118  3511-10312 libc                    com.example.fairr                    W  Access denied finding property "ro.vendor.display.iris_x7.support"
+2025-06-11 18:21:37.118  3511-3511  VRI[SignInHubActivity]  com.example.fairr                    D  hardware acceleration = true, forceHwAccelerated = false
+2025-06-11 18:21:37.120  3511-3511  InputEventReceiver      com.example.fairr                    D  Input log is disabled in InputEventReceiver.
+2025-06-11 18:21:37.133  3511-3511  BufferQueueConsumer     com.example.fairr                    D  [](id:db700000001,api:0,p:-1,c:3511) connect: controlledByApp=false
+2025-06-11 18:21:37.133  3511-3511  BLASTBufferQueue        com.example.fairr                    D  [VRI[SignInHubActivity]#1](f:0,a:0) constructor()
+2025-06-11 18:21:37.133  3511-3511  BLASTBufferQueue        com.example.fairr                    D  [VRI[SignInHubActivity]#1](f:0,a:0) update width=1220 height=2712 format=-2 mTransformHint=0
+2025-06-11 18:21:37.134  3511-3511  VRI[SignInHubActivity]  com.example.fairr                    D  vri.reportNextDraw android.view.ViewRootImpl.performTraversals:4974 android.view.ViewRootImpl.doTraversal:3561 android.view.ViewRootImpl$TraversalRunnable.run:11772 android.view.Choreographer$CallbackRecord.run:1821 android.view.Choreographer$CallbackRecord.run:1830 
+2025-06-11 18:21:37.134  3511-3511  VRI[SignInHubActivity]  com.example.fairr                    D  Setup new sync=wmsSync-VRI[SignInHubActivity]#2
+2025-06-11 18:21:37.136  3511-10312 HWUI                    com.example.fairr                    D  makeCurrent grContext:0xb4000075ec412410 reset mTextureAvailable
+2025-06-11 18:21:37.138  3511-10312 BLASTBufferQueue        com.example.fairr                    D  [VRI[SignInHubActivity]#1](f:0,a:1) acquireNextBufferLocked size=1220x2712 mFrameNumber=1 applyTransaction=true mTimestamp=64388041092222(auto) mPendingTransactions.size=0 graphicBufferId=15079630176261 transform=0
+2025-06-11 18:21:37.138  3511-3511  VRI[SignInHubActivity]  com.example.fairr                    D  vri.reportDrawFinished
+2025-06-11 18:21:37.230  3511-3511  MiuiMultiWindowUtils    com.example.fairr                    D  freeform resolution args raw data:{  "wide_default":{    "freeform_args": {        "vertical_portrait":{"aspect_ratio":0.626, "original_ratio":0.5643,"original_scale":0.74,"top_margin":0.168,"left_margin":0.484},        "horizontal_portrait":{"aspect_ratio":0.626, "original_ratio":0.5643,"original_scale":0.74,"top_margin":0.1222,"left_margin":0.59745},        "vertical_landscape":{"aspect_ratio":1.6, "original_ratio":1,"original_scale":0.604,"top_margin":0.2596,"left_margin":0.2624},        "horizontal_landscape":{"aspect_ratio":1.6, "original_ratio":1,"original_scale":0.604,"top_margin":0.213,"left_margin":0.3758}    },    "mini_freeform_args":{        "vertical_portrait":{"original_ratio":0.147},        "horizontal_portrait":{"original_ratio":0.147},        "vertical_landscape":{"original_ratio":0.165},        "horizontal_landscape":{"original_ratio":0.165}    }  },  "narrow_default": {    "freeform_args": {        "vertical_portrait":{"aspect_ratio":0.626, "original_ratio":1,"original_scale":0.74,"top_margin":0.0753,"left_margin":-1},        "horizontal_portrait":{"aspect_ratio":0.626, "original_ratio":1,"original_scale":0.5756,"top_margin":-1,"left_margin":0.0753},        "vertical_landscape":{"aspect_ratio":1.6, "original_ratio":0.6847,"original_scale":0.587,"top_margin":0.0753,"left_margin":-1},        "horizontal_landscape":{"aspect_ratio":1.6, "original_ratio":0.6847,"original_scale":0.587,"top_margin":-1,"left_margin":0.0753}    },    "mini_freeform_args":{        "vertical_portrait":{"original_ratio":0.26},        "horizontal_portrait":{"original_ratio":0.26},        "vertical_landscape":{"original_ratio":0.293},        "horizontal_landscape":{"original_ratio":0.293}    }  },  "regular_default": {    "freeform_args": {      "vertical_portrait":{"aspect_ratio":0.625, "original_ratio":1,"original_scale":0.7,"top_margin":0.109,"left_margin":-1},      "horizontal_portrait":{"aspect_ratio":0.6667, "original_ratio":1,"original_scale":0.6102,"top_margin":-1,"left_margin":0.026},      "vertical_landscape":{"aspect_ratio":1.6, "original_ratio":1,"original_scale":0.4244,"top_margin":0.109,"left_margin":-1},      "horizontal_landscape":{"aspect_ratio":1.6, "original_ratio":1,"original_scale":0.4244,"top_margin":-1,"left_margin":0.026}    },    "mini_freeform_args":{      "vertical_portrait":{"original_ratio":0.25},      "horizontal_portrait":{"original_ratio":0.25},      "vertical_landscape":{"original_ratio":0.25},      "horizontal_landscape":{"original_ratio":0.25}    }  },  "pad_default": {    "freeform_args": {      "vertical_portrait":{"aspect_ratio":0.5625, "original_ratio":0.375,"original_scale":0.835,"top_margin":0.049,"left_margin":0.2775},      "horizontal_portrait":{"aspect_ratio":0.5625, "original_ratio":0.375,"original_scale":0.835,"top_margin":-1,"left_margin":0.6525},      "vertical_landscape":{"aspect_ratio":-1, "original_ratio":1,"original_scale":0.468,"top_margin":0.049,"left_margin":-1},      "horizontal_landscape":{"aspect_ratio":-1, "original_ratio":1,"original_scale":0.468,"top_margin":-1,"left_margin":0.4976}    },    "mini_freeform_args":{      "vertical_portrait":{"original_ratio":0.144},      "horizontal_portrait":{"original_ratio":0.144},      "vertical_landscape":{"original_ratio":0.2},      "horizontal_landscape":{"original_ratio":0.2}    }  }}
+2025-06-11 18:21:37.230  3511-3511  MiuiMultiWindowUtils    com.example.fairr                    D  initFreeFormResolutionArgs failed, device is rodin
+2025-06-11 18:21:37.230  3511-3511  IS_CTS_MODE             com.example.fairr                    D  false
+2025-06-11 18:21:37.230  3511-3511  MULTI_WIND...CH_ENABLED com.example.fairr                    D  false
+2025-06-11 18:21:37.273  3511-3511  SecurityManager         com.example.fairr                    D  checkAccessControl flag0
+2025-06-11 18:21:37.301  3511-3511  HandWritingStubImpl     com.example.fairr                    I  refreshLastKeyboardType: 1
+2025-06-11 18:21:37.301  3511-3511  HandWritingStubImpl     com.example.fairr                    I  getCurrentKeyboardType: 1
+2025-06-11 18:21:37.323  3511-3511  SecurityManager         com.example.fairr                    D  checkAccessControl flag0
+2025-06-11 18:21:37.328  3511-3511  VRI[SignInHubActivity]  com.example.fairr                    D  visibilityChanged oldVisibility=true newVisibility=false
+2025-06-11 18:21:37.329  3511-10324 System                  com.example.fairr                    W  Ignoring header X-Firebase-Locale because its value was null.
+2025-06-11 18:21:37.334  3511-3511  BLASTBufferQueue        com.example.fairr                    D  [VRI[SignInHubActivity]#1](f:0,a:1) destructor()
+2025-06-11 18:21:37.335  3511-3511  BufferQueueConsumer     com.example.fairr                    D  [VRI[SignInHubActivity]#1(BLAST Consumer)1](id:db700000001,api:0,p:-1,c:3511) disconnect
+2025-06-11 18:21:37.343  3511-3511  WindowOnBackDispatcher  com.example.fairr                    W  sendCancelIfRunning: isInProgress=false callback=android.app.Activity$$ExternalSyntheticLambda0@e13ed01
+2025-06-11 18:21:37.344  3511-3511  View                    com.example.fairr                    D  [Warning] assignParent to null: this = DecorView@45d6b64[SignInHubActivity]
+2025-06-11 18:21:37.351  3511-3511  HandWritingStubImpl     com.example.fairr                    I  refreshLastKeyboardType: 1
+2025-06-11 18:21:37.351  3511-3511  HandWritingStubImpl     com.example.fairr                    I  getCurrentKeyboardType: 1
+2025-06-11 18:21:37.352  3511-3511  ActivityThread          com.example.fairr                    D  Fail to check app heapsize due to java.lang.NoSuchMethodException: dalvik.system.VMRuntime.getBlockingGcCountForAlloc []
+2025-06-11 18:21:37.424  2476-3040  ActivityManagerWrapper  com.mi.android.globallauncher        E  getRecentTasksForceIncludingTaskIdIfValid: getRecentTasks: size=10
+                                                                                                     mainTaskId=1258   userId=0   windowMode=1   baseIntent=Intent { act=android.intent.action.MAIN flag=268435456 cmp=ComponentInfo{com.example.fairr/com.example.fairr.MainActivity} }
+                                                                                                     mainTaskId=1226   userId=0   windowMode=1   baseIntent=Intent { act=android.settings.BLUETOOTH_SETTINGS flag=335544320 cmp=ComponentInfo{com.android.settings/com.android.settings.Settings$BluetoothSettingsActivity} }
+                                                                                                     mainTaskId=1244   userId=0   windowMode=1   baseIntent=Intent { act=com.whatsapp.intent.action.OPEN flag=335544320 cmp=ComponentInfo{com.whatsapp/com.whatsapp.Conversation} }
+                                                                                                     mainTaskId=1243   userId=0   windowMode=1   baseIntent=Intent { act=android.intent.action.MAIN flag=270532608 cmp=ComponentInfo{bbl.intl.bambulab.com/com.bambulab.bambulab.MainActivity} }
+                                                                                                     mainTaskId=1233   userId=0   windowMode=1   baseIntent=Intent { act=android.intent.action.MAIN flag=270532608 cmp=ComponentInfo{app.revanced.android.apps.youtube.music/com.google.android.apps.youtube.music.activities.MusicActivity} }
+                                                                                                     mainTaskId=1232   userId=0   windowMode=1   baseIntent=Intent { act=android.intent.action.VIEW flag=268435456 cmp=ComponentInfo{com.android.vending/com.google.android.finsky.activities.MainActivityPrivate} }
+                                                                                                     mainTaskId=1223   userId=0   windowMode=1   baseIntent=Intent { act=android.intent.action.MAIN flag=270532608 cmp=ComponentInfo{app.revanced.android.youtube/com.google.android.youtube.app.honeycomb.Shell$HomeActivity} }
+                                                                                                     mainTaskId=1231   userId=0   windowMode=1   baseIntent=Intent { act=android.settings.SETTINGS flag=335544320 cmp=ComponentInfo{com.android.settings/com.android.settings.MiuiSettings} }
+                                                                                                     mainTaskId=1229   userId=0   windowMode=1   baseIntent=Intent { act=null flag=268435456 cmp=ComponentInfo{com.google.android.deskclock/com.android.deskclock.DeskClock} }
+                                                                                                     mainTaskId=1169   userId=0   windowMode=1   baseIntent=Intent { act=android.intent.action.MAIN flag=270532608 cmp=ComponentInfo{org.adblockplus.browser/com.google.android.apps.chrome.Main} }
+2025-06-11 18:21:37.429  3511-10324 m.example.fairr         com.example.fairr                    W  Accessing hidden field Ljava/net/Socket;->impl:Ljava/net/SocketImpl; (unsupported, reflection, allowed)
+2025-06-11 18:21:37.433  2476-3040  ActivityManagerWrapper  com.mi.android.globallauncher        E  getRecentTasksForceIncludingTaskIdIfValid: getRecentTasks: size=10
+                                                                                                     mainTaskId=1258   userId=0   windowMode=1   baseIntent=Intent { act=android.intent.action.MAIN flag=268435456 cmp=ComponentInfo{com.example.fairr/com.example.fairr.MainActivity} }
+                                                                                                     mainTaskId=1226   userId=0   windowMode=1   baseIntent=Intent { act=android.settings.BLUETOOTH_SETTINGS flag=335544320 cmp=ComponentInfo{com.android.settings/com.android.settings.Settings$BluetoothSettingsActivity} }
+                                                                                                     mainTaskId=1244   userId=0   windowMode=1   baseIntent=Intent { act=com.whatsapp.intent.action.OPEN flag=335544320 cmp=ComponentInfo{com.whatsapp/com.whatsapp.Conversation} }
+                                                                                                     mainTaskId=1243   userId=0   windowMode=1   baseIntent=Intent { act=android.intent.action.MAIN flag=270532608 cmp=ComponentInfo{bbl.intl.bambulab.com/com.bambulab.bambulab.MainActivity} }
+                                                                                                     mainTaskId=1233   userId=0   windowMode=1   baseIntent=Intent { act=android.intent.action.MAIN flag=270532608 cmp=ComponentInfo{app.revanced.android.apps.youtube.music/com.google.android.apps.youtube.music.activities.MusicActivity} }
+                                                                                                     mainTaskId=1232   userId=0   windowMode=1   baseIntent=Intent { act=android.intent.action.VIEW flag=268435456 cmp=ComponentInfo{com.android.vending/com.google.android.finsky.activities.MainActivityPrivate} }
+                                                                                                     mainTaskId=1223   userId=0   windowMode=1   baseIntent=Intent { act=android.intent.action.MAIN flag=270532608 cmp=ComponentInfo{app.revanced.android.youtube/com.google.android.youtube.app.honeycomb.Shell$HomeActivity} }
+                                                                                                     mainTaskId=1231   userId=0   windowMode=1   baseIntent=Intent { act=android.settings.SETTINGS flag=335544320 cmp=ComponentInfo{com.android.settings/com.android.settings.MiuiSettings} }
+                                                                                                     mainTaskId=1229   userId=0   windowMode=1   baseIntent=Intent { act=null flag=268435456 cmp=ComponentInfo{com.google.android.deskclock/com.android.deskclock.DeskClock} }
+                                                                                                     mainTaskId=1169   userId=0   windowMode=1   baseIntent=Intent { act=android.intent.action.MAIN flag=270532608 cmp=ComponentInfo{org.adblockplus.browser/com.google.android.apps.chrome.Main} }
+2025-06-11 18:21:37.512  3511-10324 m.example.fairr         com.example.fairr                    W  Accessing hidden method Ljava/security/spec/ECParameterSpec;->setCurveName(Ljava/lang/String;)V (unsupported, reflection, allowed)
+2025-06-11 18:21:37.961  3511-10324 System                  com.example.fairr                    W  Ignoring header X-Firebase-Locale because its value was null.
+2025-06-11 18:21:38.264  3511-10324 FirebaseAuth            com.example.fairr                    D  Notifying id token listeners about user ( W9Ij00QlHdMi9mYeOPrcIujv1Qv2 ).
+2025-06-11 18:21:40.223  3511-3511  WindowOnBackDispatcher  com.example.fairr                    W  sendCancelIfRunning: isInProgress=false callback=androidx.activity.OnBackPressedDispatcher$Api34Impl$createOnBackAnimationCallback$1@79cc135
+2025-06-11 18:21:40.269  3511-3511  GroupService            com.example.fairr                    D  Fetching groups for user: W9Ij00QlHdMi9mYeOPrcIujv1Qv2
+2025-06-11 18:21:40.451  3511-3511  Choreographer           com.example.fairr                    I  Skipped 33 frames!  The application may be doing too much work on its main thread.
+2025-06-11 18:21:40.452  3511-3511  UserSceneDetector       com.example.fairr                    D  invoke error.
+2025-06-11 18:21:40.516  3511-3511  GroupService            com.example.fairr                    D  Number of documents: 2
+2025-06-11 18:21:40.517  3511-3511  GroupService            com.example.fairr                    D  Processing group document: c0fa8fee-1dc6-4bc1-9677-26559f1f2a59
+2025-06-11 18:21:40.517  3511-3511  GroupService            com.example.fairr                    D  Group data: {createdAt=Timestamp(seconds=1749632669, nanoseconds=147000000), createdBy=W9Ij00QlHdMi9mYeOPrcIujv1Qv2, members={W9Ij00QlHdMi9mYeOPrcIujv1Qv2={joinedAt=Timestamp(seconds=1749632669, nanoseconds=147000000), name=Nori Lacsina, isAdmin=true, email=norie.lacsina@chewzie.me}}, inviteCode=6C895F, name=jgjfj, totalExpenses=555.0, description=, currency=PHP, memberIds=[W9Ij00QlHdMi9mYeOPrcIujv1Qv2]}
+2025-06-11 18:21:40.518  3511-3511  GroupService            com.example.fairr                    D  Processing group document: c97ff1cd-4213-48f1-93c4-2c7d57ee3182
+2025-06-11 18:21:40.518  3511-3511  GroupService            com.example.fairr                    D  Group data: {createdAt=Timestamp(seconds=1749636116, nanoseconds=963000000), createdBy=W9Ij00QlHdMi9mYeOPrcIujv1Qv2, inviteCode=260F57, members={W9Ij00QlHdMi9mYeOPrcIujv1Qv2={joinedAt=Timestamp(seconds=1749636116, nanoseconds=963000000), name=Nori Lacsina, isAdmin=true, email=norie.lacsina@chewzie.me}}, name=gggg, description=, currency=PHP, memberIds=[W9Ij00QlHdMi9mYeOPrcIujv1Qv2]}
+2025-06-11 18:21:40.518  3511-3511  GroupService            com.example.fairr                    D  Processed 2 groups
+2025-06-11 18:21:40.862  3511-10235 m.example.fairr         com.example.fairr                    W  Cleared Reference was only reachable from finalizer (only reported once)
+2025-06-11 18:21:40.872  3511-10387 Firestore               com.example.fairr                    W  (24.10.3) [Firestore]: Listen for Query(target=Query(expenses where groupId==c0fa8fee-1dc6-4bc1-9677-26559f1f2a59 order by -date, -__name__);limitType=LIMIT_TO_FIRST) failed: Status{code=FAILED_PRECONDITION, description=The query requires an index. You can create it here: https://console.firebase.google.com/v1/r/project/fairr-c71bb/firestore/indexes?create_composite=Ckxwcm9qZWN0cy9mYWlyci1jNzFiYi9kYXRhYmFzZXMvKGRlZmF1bHQpL2NvbGxlY3Rpb25Hcm91cHMvZXhwZW5zZXMvaW5kZXhlcy9fEAEaCwoHZ3JvdXBJZBABGggKBGRhdGUQAhoMCghfX25hbWVfXxAC, cause=null}
+2025-06-11 18:21:40.879  3511-3511  ExpenseRepository       com.example.fairr                    E  Error getting expenses (Ask Gemini)
+                                                                                                    com.google.firebase.firestore.FirebaseFirestoreException: FAILED_PRECONDITION: The query requires an index. You can create it here: https://console.firebase.google.com/v1/r/project/fairr-c71bb/firestore/indexes?create_composite=Ckxwcm9qZWN0cy9mYWlyci1jNzFiYi9kYXRhYmFzZXMvKGRlZmF1bHQpL2NvbGxlY3Rpb25Hcm91cHMvZXhwZW5zZXMvaW5kZXhlcy9fEAEaCwoHZ3JvdXBJZBABGggKBGRhdGUQAhoMCghfX25hbWVfXxAC
+                                                                                                    	at com.google.firebase.firestore.util.Util.exceptionFromStatus(Util.java:113)
+                                                                                                    	at com.google.firebase.firestore.core.EventManager.onError(EventManager.java:166)
+                                                                                                    	at com.google.firebase.firestore.core.SyncEngine.removeAndCleanupTarget(SyncEngine.java:604)
+                                                                                                    	at com.google.firebase.firestore.core.SyncEngine.handleRejectedListen(SyncEngine.java:440)
+                                                                                                    	at com.google.firebase.firestore.core.MemoryComponentProvider$RemoteStoreCallback.handleRejectedListen(MemoryComponentProvider.java:130)
+                                                                                                    	at com.google.firebase.firestore.remote.RemoteStore.processTargetError(RemoteStore.java:591)
+                                                                                                    	at com.google.firebase.firestore.remote.RemoteStore.handleWatchChange(RemoteStore.java:474)
+                                                                                                    	at com.google.firebase.firestore.remote.RemoteStore.access$100(RemoteStore.java:60)
+                                                                                                    	at com.google.firebase.firestore.remote.RemoteStore$1.onWatchChange(RemoteStore.java:183)
+                                                                                                    	at com.google.firebase.firestore.remote.WatchStream.onNext(WatchStream.java:109)
+                                                                                                    	at com.google.firebase.firestore.remote.WatchStream.onNext(WatchStream.java:38)
+                                                                                                    	at com.google.firebase.firestore.remote.AbstractStream$StreamObserver.lambda$onNext$1$com-google-firebase-firestore-remote-AbstractStream$StreamObserver(AbstractStream.java:119)
+                                                                                                    	at com.google.firebase.firestore.remote.AbstractStream$StreamObserver$$ExternalSyntheticLambda2.run(Unknown Source:4)
+                                                                                                    	at com.google.firebase.firestore.remote.AbstractStream$CloseGuardedRunner.run(AbstractStream.java:67)
+                                                                                                    	at com.google.firebase.firestore.remote.AbstractStream$StreamObserver.onNext(AbstractStream.java:110)
+                                                                                                    	at com.google.firebase.firestore.remote.FirestoreChannel$1.onMessage(FirestoreChannel.java:140)
+                                                                                                    	at io.grpc.internal.DelayedClientCall$DelayedListener.onMessage(DelayedClientCall.java:473)
+                                                                                                    	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1MessagesAvailable.runInternal(ClientCallImpl.java:660)
+                                                                                                    	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1MessagesAvailable.runInContext(ClientCallImpl.java:647)
+                                                                                                    	at io.grpc.internal.ContextRunnable.run(ContextRunnable.java:37)
+                                                                                                    	at io.grpc.internal.SerializingExecutor.run(SerializingExecutor.java:133)
+                                                                                                    	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:487)
+                                                                                                    	at java.util.concurrent.FutureTask.run(FutureTask.java:264)
+                                                                                                    	at java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:307)
+                                                                                                    	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+                                                                                                    	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:644)
+                                                                                                    	at com.google.firebase.firestore.util.AsyncQueue$SynchronizedShutdownAwareExecutor$DelayedStartFactory.run(AsyncQueue.java:235)
+                                                                                                    	at java.lang.Thread.run(Thread.java:1012)
+                                                                                                    Caused by: io.grpc.StatusException: FAILED_PRECONDITION: The query requires an index. You can create it here: https://console.firebase.google.com/v1/r/project/fairr-c71bb/firestore/indexes?create_composite=Ckxwcm9qZWN0cy9mYWlyci1jNzFiYi9kYXRhYmFzZXMvKGRlZmF1bHQpL2NvbGxlY3Rpb25Hcm91cHMvZXhwZW5zZXMvaW5kZXhlcy9fEAEaCwoHZ3JvdXBJZBABGggKBGRhdGUQAhoMCghfX25hbWVfXxAC
+                                                                                                    	at io.grpc.Status.asException(Status.java:545)
+                                                                                                    	at com.google.firebase.firestore.util.Util.exceptionFromStatus(Util.java:111)
+                                                                                                    	at com.google.firebase.firestore.core.EventManager.onError(EventManager.java:166) 
+                                                                                                    	at com.google.firebase.firestore.core.SyncEngine.removeAndCleanupTarget(SyncEngine.java:604) 
+                                                                                                    	at com.google.firebase.firestore.core.SyncEngine.handleRejectedListen(SyncEngine.java:440) 
+                                                                                                    	at com.google.firebase.firestore.core.MemoryComponentProvider$RemoteStoreCallback.handleRejectedListen(MemoryComponentProvider.java:130) 
+                                                                                                    	at com.google.firebase.firestore.remote.RemoteStore.processTargetError(RemoteStore.java:591) 
+                                                                                                    	at com.google.firebase.firestore.remote.RemoteStore.handleWatchChange(RemoteStore.java:474) 
+                                                                                                    	at com.google.firebase.firestore.remote.RemoteStore.access$100(RemoteStore.java:60) 
+                                                                                                    	at com.google.firebase.firestore.remote.RemoteStore$1.onWatchChange(RemoteStore.java:183) 
+                                                                                                    	at com.google.firebase.firestore.remote.WatchStream.onNext(WatchStream.java:109) 
+                                                                                                    	at com.google.firebase.firestore.remote.WatchStream.onNext(WatchStream.java:38) 
+                                                                                                    	at com.google.firebase.firestore.remote.AbstractStream$StreamObserver.lambda$onNext$1$com-google-firebase-firestore-remote-AbstractStream$StreamObserver(AbstractStream.java:119) 
+                                                                                                    	at com.google.firebase.firestore.remote.AbstractStream$StreamObserver$$ExternalSyntheticLambda2.run(Unknown Source:4) 
+                                                                                                    	at com.google.firebase.firestore.remote.AbstractStream$CloseGuardedRunner.run(AbstractStream.java:67) 
+                                                                                                    	at com.google.firebase.firestore.remote.AbstractStream$StreamObserver.onNext(AbstractStream.java:110) 
+                                                                                                    	at com.google.firebase.firestore.remote.FirestoreChannel$1.onMessage(FirestoreChannel.java:140) 
+                                                                                                    	at io.grpc.internal.DelayedClientCall$DelayedListener.onMessage(DelayedClientCall.java:473) 
+                                                                                                    	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1MessagesAvailable.runInternal(ClientCallImpl.java:660) 
+                                                                                                    	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1MessagesAvailable.runInContext(ClientCallImpl.java:647) 
+                                                                                                    	at io.grpc.internal.ContextRunnable.run(ContextRunnable.java:37) 
+                                                                                                    	at io.grpc.internal.SerializingExecutor.run(SerializingExecutor.java:133) 
+                                                                                                    	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:487) 
+                                                                                                    	at java.util.concurrent.FutureTask.run(FutureTask.java:264) 
+                                                                                                    	at java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:307) 
+                                                                                                    	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145) 
+                                                                                                    	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:644) 
+                                                                                                    	at com.google.firebase.firestore.util.AsyncQueue$SynchronizedShutdownAwareExecutor$DelayedStartFactory.run(AsyncQueue.java:235) 
+                                                                                                    	at java.lang.Thread.run(Thread.java:1012) 
+2025-06-11 18:21:41.180  3511-10387 Firestore               com.example.fairr                    W  (24.10.3) [Firestore]: Listen for Query(target=Query(expenses where groupId==c97ff1cd-4213-48f1-93c4-2c7d57ee3182 order by -date, -__name__);limitType=LIMIT_TO_FIRST) failed: Status{code=FAILED_PRECONDITION, description=The query requires an index. You can create it here: https://console.firebase.google.com/v1/r/project/fairr-c71bb/firestore/indexes?create_composite=Ckxwcm9qZWN0cy9mYWlyci1jNzFiYi9kYXRhYmFzZXMvKGRlZmF1bHQpL2NvbGxlY3Rpb25Hcm91cHMvZXhwZW5zZXMvaW5kZXhlcy9fEAEaCwoHZ3JvdXBJZBABGggKBGRhdGUQAhoMCghfX25hbWVfXxAC, cause=null}
+2025-06-11 18:21:41.213  3511-3511  ExpenseRepository       com.example.fairr                    E  Error getting expenses (Ask Gemini)
+                                                                                                    com.google.firebase.firestore.FirebaseFirestoreException: FAILED_PRECONDITION: The query requires an index. You can create it here: https://console.firebase.google.com/v1/r/project/fairr-c71bb/firestore/indexes?create_composite=Ckxwcm9qZWN0cy9mYWlyci1jNzFiYi9kYXRhYmFzZXMvKGRlZmF1bHQpL2NvbGxlY3Rpb25Hcm91cHMvZXhwZW5zZXMvaW5kZXhlcy9fEAEaCwoHZ3JvdXBJZBABGggKBGRhdGUQAhoMCghfX25hbWVfXxAC
+                                                                                                    	at com.google.firebase.firestore.util.Util.exceptionFromStatus(Util.java:113)
+                                                                                                    	at com.google.firebase.firestore.core.EventManager.onError(EventManager.java:166)
+                                                                                                    	at com.google.firebase.firestore.core.SyncEngine.removeAndCleanupTarget(SyncEngine.java:604)
+                                                                                                    	at com.google.firebase.firestore.core.SyncEngine.handleRejectedListen(SyncEngine.java:440)
+                                                                                                    	at com.google.firebase.firestore.core.MemoryComponentProvider$RemoteStoreCallback.handleRejectedListen(MemoryComponentProvider.java:130)
+                                                                                                    	at com.google.firebase.firestore.remote.RemoteStore.processTargetError(RemoteStore.java:591)
+                                                                                                    	at com.google.firebase.firestore.remote.RemoteStore.handleWatchChange(RemoteStore.java:474)
+                                                                                                    	at com.google.firebase.firestore.remote.RemoteStore.access$100(RemoteStore.java:60)
+                                                                                                    	at com.google.firebase.firestore.remote.RemoteStore$1.onWatchChange(RemoteStore.java:183)
+                                                                                                    	at com.google.firebase.firestore.remote.WatchStream.onNext(WatchStream.java:109)
+                                                                                                    	at com.google.firebase.firestore.remote.WatchStream.onNext(WatchStream.java:38)
+                                                                                                    	at com.google.firebase.firestore.remote.AbstractStream$StreamObserver.lambda$onNext$1$com-google-firebase-firestore-remote-AbstractStream$StreamObserver(AbstractStream.java:119)
+                                                                                                    	at com.google.firebase.firestore.remote.AbstractStream$StreamObserver$$ExternalSyntheticLambda2.run(Unknown Source:4)
+                                                                                                    	at com.google.firebase.firestore.remote.AbstractStream$CloseGuardedRunner.run(AbstractStream.java:67)
+                                                                                                    	at com.google.firebase.firestore.remote.AbstractStream$StreamObserver.onNext(AbstractStream.java:110)
+                                                                                                    	at com.google.firebase.firestore.remote.FirestoreChannel$1.onMessage(FirestoreChannel.java:140)
+                                                                                                    	at io.grpc.internal.DelayedClientCall$DelayedListener.onMessage(DelayedClientCall.java:473)
+                                                                                                    	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1MessagesAvailable.runInternal(ClientCallImpl.java:660)
+                                                                                                    	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1MessagesAvailable.runInContext(ClientCallImpl.java:647)
+                                                                                                    	at io.grpc.internal.ContextRunnable.run(ContextRunnable.java:37)
+                                                                                                    	at io.grpc.internal.SerializingExecutor.run(SerializingExecutor.java:133)
+                                                                                                    	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:487)
+                                                                                                    	at java.util.concurrent.FutureTask.run(FutureTask.java:264)
+                                                                                                    	at java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:307)
+                                                                                                    	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+                                                                                                    	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:644)
+                                                                                                    	at com.google.firebase.firestore.util.AsyncQueue$SynchronizedShutdownAwareExecutor$DelayedStartFactory.run(AsyncQueue.java:235)
+                                                                                                    	at java.lang.Thread.run(Thread.java:1012)
+                                                                                                    Caused by: io.grpc.StatusException: FAILED_PRECONDITION: The query requires an index. You can create it here: https://console.firebase.google.com/v1/r/project/fairr-c71bb/firestore/indexes?create_composite=Ckxwcm9qZWN0cy9mYWlyci1jNzFiYi9kYXRhYmFzZXMvKGRlZmF1bHQpL2NvbGxlY3Rpb25Hcm91cHMvZXhwZW5zZXMvaW5kZXhlcy9fEAEaCwoHZ3JvdXBJZBABGggKBGRhdGUQAhoMCghfX25hbWVfXxAC
+                                                                                                    	at io.grpc.Status.asException(Status.java:545)
+                                                                                                    	at com.google.firebase.firestore.util.Util.exceptionFromStatus(Util.java:111)
+                                                                                                    	at com.google.firebase.firestore.core.EventManager.onError(EventManager.java:166) 
+                                                                                                    	at com.google.firebase.firestore.core.SyncEngine.removeAndCleanupTarget(SyncEngine.java:604) 
+                                                                                                    	at com.google.firebase.firestore.core.SyncEngine.handleRejectedListen(SyncEngine.java:440) 
+                                                                                                    	at com.google.firebase.firestore.core.MemoryComponentProvider$RemoteStoreCallback.handleRejectedListen(MemoryComponentProvider.java:130) 
+                                                                                                    	at com.google.firebase.firestore.remote.RemoteStore.processTargetError(RemoteStore.java:591) 
+                                                                                                    	at com.google.firebase.firestore.remote.RemoteStore.handleWatchChange(RemoteStore.java:474) 
+                                                                                                    	at com.google.firebase.firestore.remote.RemoteStore.access$100(RemoteStore.java:60) 
+                                                                                                    	at com.google.firebase.firestore.remote.RemoteStore$1.onWatchChange(RemoteStore.java:183) 
+                                                                                                    	at com.google.firebase.firestore.remote.WatchStream.onNext(WatchStream.java:109) 
+                                                                                                    	at com.google.firebase.firestore.remote.WatchStream.onNext(WatchStream.java:38) 
+                                                                                                    	at com.google.firebase.firestore.remote.AbstractStream$StreamObserver.lambda$onNext$1$com-google-firebase-firestore-remote-AbstractStream$StreamObserver(AbstractStream.java:119) 
+                                                                                                    	at com.google.firebase.firestore.remote.AbstractStream$StreamObserver$$ExternalSyntheticLambda2.run(Unknown Source:4) 
+                                                                                                    	at com.google.firebase.firestore.remote.AbstractStream$CloseGuardedRunner.run(AbstractStream.java:67) 
+                                                                                                    	at com.google.firebase.firestore.remote.AbstractStream$StreamObserver.onNext(AbstractStream.java:110) 
+                                                                                                    	at com.google.firebase.firestore.remote.FirestoreChannel$1.onMessage(FirestoreChannel.java:140) 
+                                                                                                    	at io.grpc.internal.DelayedClientCall$DelayedListener.onMessage(DelayedClientCall.java:473) 
+                                                                                                    	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1MessagesAvailable.runInternal(ClientCallImpl.java:660) 
+                                                                                                    	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1MessagesAvailable.runInContext(ClientCallImpl.java:647) 
+                                                                                                    	at io.grpc.internal.ContextRunnable.run(ContextRunnable.java:37) 
+                                                                                                    	at io.grpc.internal.SerializingExecutor.run(SerializingExecutor.java:133) 
+                                                                                                    	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:487) 
+                                                                                                    	at java.util.concurrent.FutureTask.run(FutureTask.java:264) 
+                                                                                                    	at java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:307) 
+                                                                                                    	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145) 
+                                                                                                    	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:644) 
+                                                                                                    	at com.google.firebase.firestore.util.AsyncQueue$SynchronizedShutdownAwareExecutor$DelayedStartFactory.run(AsyncQueue.java:235) 
+                                                                                                    	at java.lang.Thread.run(Thread.java:1012) 
+2025-06-11 18:21:42.238  3511-3511  MIUIInput               com.example.fairr                    I  [MotionEvent] ViewRootImpl windowName 'com.example.fairr/com.example.fairr.MainActivity', { action=ACTION_DOWN, id[0]=0, pointerCount=1, eventTime=64393135, downTime=64393135, phoneEventTime=18:21:42.232 } moveCount:0
+2025-06-11 18:21:42.313  3511-3511  MIUIInput               com.example.fairr                    I  [MotionEvent] ViewRootImpl windowName 'com.example.fairr/com.example.fairr.MainActivity', { action=ACTION_UP, id[0]=0, pointerCount=1, eventTime=64393212, downTime=64393135, phoneEventTime=18:21:42.309 } moveCount:0
+2025-06-11 18:21:42.395  3511-3511  FriendService           com.example.fairr                    D  Processed 0 friend requests
+2025-06-11 18:21:42.778  3511-10387 Firestore               com.example.fairr                    W  (24.10.3) [Firestore]: Listen for Query(target=Query(friendRequests where receiverId==W9Ij00QlHdMi9mYeOPrcIujv1Qv2 and status==PENDING order by __name__);limitType=LIMIT_TO_FIRST) failed: Status{code=PERMISSION_DENIED, description=Missing or insufficient permissions., cause=null}
+2025-06-11 18:21:42.779  3511-3511  FriendService           com.example.fairr                    E  Error fetching friend requests (Ask Gemini)
+                                                                                                    com.google.firebase.firestore.FirebaseFirestoreException: PERMISSION_DENIED: Missing or insufficient permissions.
+                                                                                                    	at com.google.firebase.firestore.util.Util.exceptionFromStatus(Util.java:113)
+                                                                                                    	at com.google.firebase.firestore.core.EventManager.onError(EventManager.java:166)
+                                                                                                    	at com.google.firebase.firestore.core.SyncEngine.removeAndCleanupTarget(SyncEngine.java:604)
+                                                                                                    	at com.google.firebase.firestore.core.SyncEngine.handleRejectedListen(SyncEngine.java:440)
+                                                                                                    	at com.google.firebase.firestore.core.MemoryComponentProvider$RemoteStoreCallback.handleRejectedListen(MemoryComponentProvider.java:130)
+                                                                                                    	at com.google.firebase.firestore.remote.RemoteStore.processTargetError(RemoteStore.java:591)
+                                                                                                    	at com.google.firebase.firestore.remote.RemoteStore.handleWatchChange(RemoteStore.java:474)
+                                                                                                    	at com.google.firebase.firestore.remote.RemoteStore.access$100(RemoteStore.java:60)
+                                                                                                    	at com.google.firebase.firestore.remote.RemoteStore$1.onWatchChange(RemoteStore.java:183)
+                                                                                                    	at com.google.firebase.firestore.remote.WatchStream.onNext(WatchStream.java:109)
+                                                                                                    	at com.google.firebase.firestore.remote.WatchStream.onNext(WatchStream.java:38)
+                                                                                                    	at com.google.firebase.firestore.remote.AbstractStream$StreamObserver.lambda$onNext$1$com-google-firebase-firestore-remote-AbstractStream$StreamObserver(AbstractStream.java:119)
+                                                                                                    	at com.google.firebase.firestore.remote.AbstractStream$StreamObserver$$ExternalSyntheticLambda2.run(Unknown Source:4)
+                                                                                                    	at com.google.firebase.firestore.remote.AbstractStream$CloseGuardedRunner.run(AbstractStream.java:67)
+                                                                                                    	at com.google.firebase.firestore.remote.AbstractStream$StreamObserver.onNext(AbstractStream.java:110)
+                                                                                                    	at com.google.firebase.firestore.remote.FirestoreChannel$1.onMessage(FirestoreChannel.java:140)
+                                                                                                    	at io.grpc.internal.DelayedClientCall$DelayedListener.onMessage(DelayedClientCall.java:473)
+                                                                                                    	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1MessagesAvailable.runInternal(ClientCallImpl.java:660)
+                                                                                                    	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1MessagesAvailable.runInContext(ClientCallImpl.java:647)
+                                                                                                    	at io.grpc.internal.ContextRunnable.run(ContextRunnable.java:37)
+                                                                                                    	at io.grpc.internal.SerializingExecutor.run(SerializingExecutor.java:133)
+                                                                                                    	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:487)
+                                                                                                    	at java.util.concurrent.FutureTask.run(FutureTask.java:264)
+                                                                                                    	at java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:307)
+                                                                                                    	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145)
+                                                                                                    	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:644)
+                                                                                                    	at com.google.firebase.firestore.util.AsyncQueue$SynchronizedShutdownAwareExecutor$DelayedStartFactory.run(AsyncQueue.java:235)
+                                                                                                    	at java.lang.Thread.run(Thread.java:1012)
+                                                                                                    Caused by: io.grpc.StatusException: PERMISSION_DENIED: Missing or insufficient permissions.
+                                                                                                    	at io.grpc.Status.asException(Status.java:545)
+                                                                                                    	at com.google.firebase.firestore.util.Util.exceptionFromStatus(Util.java:111)
+                                                                                                    	at com.google.firebase.firestore.core.EventManager.onError(EventManager.java:166) 
+                                                                                                    	at com.google.firebase.firestore.core.SyncEngine.removeAndCleanupTarget(SyncEngine.java:604) 
+                                                                                                    	at com.google.firebase.firestore.core.SyncEngine.handleRejectedListen(SyncEngine.java:440) 
+                                                                                                    	at com.google.firebase.firestore.core.MemoryComponentProvider$RemoteStoreCallback.handleRejectedListen(MemoryComponentProvider.java:130) 
+                                                                                                    	at com.google.firebase.firestore.remote.RemoteStore.processTargetError(RemoteStore.java:591) 
+                                                                                                    	at com.google.firebase.firestore.remote.RemoteStore.handleWatchChange(RemoteStore.java:474) 
+                                                                                                    	at com.google.firebase.firestore.remote.RemoteStore.access$100(RemoteStore.java:60) 
+                                                                                                    	at com.google.firebase.firestore.remote.RemoteStore$1.onWatchChange(RemoteStore.java:183) 
+                                                                                                    	at com.google.firebase.firestore.remote.WatchStream.onNext(WatchStream.java:109) 
+                                                                                                    	at com.google.firebase.firestore.remote.WatchStream.onNext(WatchStream.java:38) 
+                                                                                                    	at com.google.firebase.firestore.remote.AbstractStream$StreamObserver.lambda$onNext$1$com-google-firebase-firestore-remote-AbstractStream$StreamObserver(AbstractStream.java:119) 
+                                                                                                    	at com.google.firebase.firestore.remote.AbstractStream$StreamObserver$$ExternalSyntheticLambda2.run(Unknown Source:4) 
+                                                                                                    	at com.google.firebase.firestore.remote.AbstractStream$CloseGuardedRunner.run(AbstractStream.java:67) 
+                                                                                                    	at com.google.firebase.firestore.remote.AbstractStream$StreamObserver.onNext(AbstractStream.java:110) 
+                                                                                                    	at com.google.firebase.firestore.remote.FirestoreChannel$1.onMessage(FirestoreChannel.java:140) 
+                                                                                                    	at io.grpc.internal.DelayedClientCall$DelayedListener.onMessage(DelayedClientCall.java:473) 
+                                                                                                    	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1MessagesAvailable.runInternal(ClientCallImpl.java:660) 
+                                                                                                    	at io.grpc.internal.ClientCallImpl$ClientStreamListenerImpl$1MessagesAvailable.runInContext(ClientCallImpl.java:647) 
+                                                                                                    	at io.grpc.internal.ContextRunnable.run(ContextRunnable.java:37) 
+                                                                                                    	at io.grpc.internal.SerializingExecutor.run(SerializingExecutor.java:133) 
+                                                                                                    	at java.util.concurrent.Executors$RunnableAdapter.call(Executors.java:487) 
+                                                                                                    	at java.util.concurrent.FutureTask.run(FutureTask.java:264) 
+                                                                                                    	at java.util.concurrent.ScheduledThreadPoolExecutor$ScheduledFutureTask.run(ScheduledThreadPoolExecutor.java:307) 
+                                                                                                    	at java.util.concurrent.ThreadPoolExecutor.runWorker(ThreadPoolExecutor.java:1145) 
+                                                                                                    	at java.util.concurrent.ThreadPoolExecutor$Worker.run(ThreadPoolExecutor.java:644) 
+                                                                                                    	at com.google.firebase.firestore.util.AsyncQueue$SynchronizedShutdownAwareExecutor$DelayedStartFactory.run(AsyncQueue.java:235) 
+                                                                                                    	at java.lang.Thread.run(Thread.java:1012) 
+2025-06-11 18:21:42.789  3511-3511  FriendService           com.example.fairr                    D  Processed 0 friends
+2025-06-11 18:21:44.130  3511-10396 GoogleApiManager        com.example.fairr                    E  Failed to get service from broker.  (Ask Gemini)
+                                                                                                    java.lang.SecurityException: Unknown calling package name 'com.google.android.gms'.
+                                                                                                    	at android.os.Parcel.createExceptionOrNull(Parcel.java:3256)
+                                                                                                    	at android.os.Parcel.createException(Parcel.java:3240)
+                                                                                                    	at android.os.Parcel.readException(Parcel.java:3223)
+                                                                                                    	at android.os.Parcel.readException(Parcel.java:3165)
+                                                                                                    	at axqj.a(:com.google.android.gms@252234035@25.22.34 (260400-769260661):36)
+                                                                                                    	at axoq.z(:com.google.android.gms@252234035@25.22.34 (260400-769260661):143)
+                                                                                                    	at awvv.run(:com.google.android.gms@252234035@25.22.34 (260400-769260661):42)
+                                                                                                    	at android.os.Handler.handleCallback(Handler.java:959)
+                                                                                                    	at android.os.Handler.dispatchMessage(Handler.java:100)
+                                                                                                    	at cgvu.mH(:com.google.android.gms@252234035@25.22.34 (260400-769260661):1)
+                                                                                                    	at cgvu.dispatchMessage(:com.google.android.gms@252234035@25.22.34 (260400-769260661):5)
+                                                                                                    	at android.os.Looper.loopOnce(Looper.java:249)
+                                                                                                    	at android.os.Looper.loop(Looper.java:337)
+                                                                                                    	at android.os.HandlerThread.run(HandlerThread.java:85)
