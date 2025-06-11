@@ -36,6 +36,7 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fairr.ui.components.*
 import com.example.fairr.ui.theme.*
 import com.google.accompanist.systemuicontroller.rememberSystemUiController

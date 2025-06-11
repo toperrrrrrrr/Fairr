@@ -31,22 +31,18 @@ class FriendService @Inject constructor() {
         val currentUser = auth.currentUser
             ?: throw IllegalStateException("User not authenticated")
 
+        // Query for friends where user is either userId or friendId
         val subscription = friendsCollection
             .whereEqualTo("userId", currentUser.uid)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    Log.e(TAG, "Error fetching friends", error)
+                    Log.e(TAG, "Error fetching friends as userId", error)
                     close(error)
                     return@addSnapshotListener
                 }
 
-                if (snapshot == null) {
-                    Log.d(TAG, "No friends found (snapshot is null)")
-                    trySend(emptyList())
-                    return@addSnapshotListener
-                }
-
-                val friends = snapshot.documents.mapNotNull { doc ->
+                // Get friends where user is userId
+                val friendsAsUser = snapshot?.documents?.mapNotNull { doc ->
                     try {
                         Friend(
                             id = doc.getString("friendId") ?: return@mapNotNull null,
@@ -60,10 +56,38 @@ class FriendService @Inject constructor() {
                         Log.e(TAG, "Error parsing friend document", e)
                         null
                     }
-                }
+                } ?: emptyList()
 
-                Log.d(TAG, "Processed ${friends.size} friends")
-                trySend(friends)
+                // Query for friends where user is friendId
+                friendsCollection
+                    .whereEqualTo("friendId", currentUser.uid)
+                    .get()
+                    .addOnSuccessListener { friendIdSnapshot ->
+                        val friendsAsFriend = friendIdSnapshot.documents.mapNotNull { doc ->
+                            try {
+                                Friend(
+                                    id = doc.getString("userId") ?: return@mapNotNull null,
+                                    name = doc.getString("name") ?: "Unknown",
+                                    email = doc.getString("email") ?: "",
+                                    photoUrl = doc.getString("photoUrl"),
+                                    status = FriendStatus.valueOf(doc.getString("status") ?: FriendStatus.PENDING.name),
+                                    addedAt = doc.getLong("addedAt") ?: System.currentTimeMillis()
+                                )
+                            } catch (e: Exception) {
+                                Log.e(TAG, "Error parsing friend document", e)
+                                null
+                            }
+                        }
+
+                        // Combine both lists
+                        val allFriends = (friendsAsUser + friendsAsFriend).distinctBy { it.id }
+                        Log.d(TAG, "Processed ${allFriends.size} friends")
+                        trySend(allFriends)
+                    }
+                    .addOnFailureListener { e ->
+                        Log.e(TAG, "Error fetching friends as friendId", e)
+                        trySend(friendsAsUser) // Still send the first list if second query fails
+                    }
             }
 
         awaitClose { subscription.remove() }

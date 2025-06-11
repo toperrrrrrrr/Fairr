@@ -38,7 +38,7 @@ service cloud.firestore {
 
     // Friends collection rules
     match /friends/{friendId} {
-      allow read: if request.auth != null && (
+      allow read, list: if request.auth != null && (
         resource.data.userId == request.auth.uid ||
         resource.data.friendId == request.auth.uid
       );
@@ -51,7 +51,10 @@ service cloud.firestore {
     // Friend requests collection rules
     match /friendRequests/{requestId} {
       // Allow reading friend requests they're involved in
-      allow read: if request.auth != null;
+      allow read, list: if request.auth != null && (
+        resource.data.senderId == request.auth.uid ||
+        resource.data.receiverId == request.auth.uid
+      );
       
       // Allow creating friend requests if user is the sender
       allow create: if request.auth != null && 
