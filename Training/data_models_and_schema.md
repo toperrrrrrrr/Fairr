@@ -1,67 +1,80 @@
-# Data Models and Schema
+# Data Models & Firestore Schema
 
-This document outlines the data models and schema used in the Fairr application for both remote (Firebase Firestore) and local (Room) storage.
+This document outlines the target data schema for the Fairr application. It is designed for performance and scalability, leveraging denormalization to optimize for common read patterns.
 
-## Firebase Firestore Schema
+## 1. Core Collections
 
-Firestore is used as the primary remote database. The schema is designed to be scalable and support real-time updates. The models below are based on the data classes found in the codebase.
-
-### `users` collection
-
-Stores public information about users. Based on the `UserProfile` data class.
-
-- **Document ID**: `userId` (from Firebase Authentication)
+### `users`
+Stores public user profiles.
+- **Document ID**: `userId` (from Firebase Auth)
 - **Fields**:
-  - `id`: `string` - The user's unique ID.
-  - `fullName`: `string` - The user's full name.
-  - `email`: `string` - The user's email address.
-  - `profileImageUrl`: `string` (optional) - URL to the user's profile picture.
-  - `phoneNumber`: `string` (optional) - The user's phone number.
-  - `joinDate`: `string` - The date the user joined.
-  - `totalGroups`: `int` - The number of groups the user is a member of.
-  - `totalExpenses`: `int` - The total number of expenses created by the user.
-  - `isEmailVerified`: `boolean` - Flag indicating if the user's email is verified.
+  - `id`: `string`
+  - `fullName`: `string`
+  - `email`: `string`
+  - `profileImageUrl`: `string` (optional)
 
-### `groups` collection
-
-Stores information about each expense group. Based on the `Group` data class.
-
-- **Document ID**: Auto-generated ID
+### `groups`
+Stores information about each expense-sharing group.
+- **Document ID**: Auto-generated
 - **Fields**:
-  - `id`: `string` - The unique ID of the group.
-  - `name`: `string` - The name of the group.
-  - `description`: `string` - A short description of the group.
-  - `currency`: `string` - The default currency for the group (e.g., "PHP").
-  - `createdBy`: `string` - The `userId` of the user who created the group.
-  - `members`: `array` of `object` - A list of `GroupMember` objects.
-  - `inviteCode`: `string` - A code to invite new members to the group.
-  - `createdAt`: `long` - The timestamp when the group was created.
+  - `id`: `string`
+  - `name`: `string`
+  - `description`: `string`
+  - `currency`: `string` (e.g., "USD")
+  - `createdBy`: `string` (userId)
+  - `memberIds`: `array` of `string` (list of userIds)
+  - `memberInfo`: `map` (Denormalized map of userId to user's name and image URL for fast display of member lists).
+  - `inviteCode`: `string`
+  - `createdAt`: `timestamp`
 
-### `expenses` collection
-
-Stores individual expense records. Based on the `Expense` data class.
-
-- **Document ID**: Auto-generated ID
+### `expenses`
+Stores individual expense records.
+- **Document ID**: Auto-generated
 - **Fields**:
-  - `id`: `string` - The unique ID of the expense.
-  - `groupId`: `string` - The ID of the group this expense belongs to.
-  - `description`: `string` - A description of the expense.
-  - `amount`: `double` - The total amount of the expense.
-  - `currency`: `string` - The currency of the expense (e.g., "USD").
-  - `date`: `timestamp` - The date and time the expense was recorded.
-  - `paidBy`: `string` - The `userId` of the member who paid for the expense.
-  - `paidByName`: `string` - The name of the member who paid.
-  - `splitBetween`: `array` of `object` - A list of `ExpenseSplit` objects detailing how the expense is split.
-  - `category`: `enum` - The category of the expense (e.g., `OTHER`).
-  - `notes`: `string` - Additional notes about the expense.
-  - `attachments`: `array` of `string` - A list of URLs to attachments (e.g., receipts).
+  - `id`: `string`
+  - `groupId`: `string`
+  - `description`: `string`
+  - `amount`: `double`
+  - `date`: `timestamp`
+  - `paidById`: `string` (userId)
+  - `paidByName`: `string` (**Denormalized** for performance to avoid extra user profile lookups when displaying expense lists).
+  - `splitType`: `string` (e.g., "EQUAL", "EXACT", "PERCENTAGE")
+  - `splitBetween`: `map` (Details of the split, e.g., `{"userId1": 25.00, "userId2": 15.00}`)
+  - `category`: `string`
+  - `receiptUrl`: `string` (optional)
 
-## Room Database Schema (Local)
+## 2. Supporting Collections
 
-The local Room database is used for offline caching. The schema mirrors the Firestore collections to provide a seamless offline experience.
+### `settlements` (New)
+Tracks payments made between users to settle up their debts.
+- **Purpose**: To provide a record of debt resolutions, which is critical for accurate balance calculations.
+- **Document ID**: Auto-generated
+- **Fields**:
+  - `groupId`: `string`
+  - `fromUserId`: `string`
+  - `toUserId`: `string`
+  - `amount`: `double`
+  - `method`: `string` (e.g., "Cash", "Venmo")
+  - `createdAt`: `timestamp`
 
-- **`UserEntity`**: Caches user profile information.
+## 3. Pre-computed Data Collections (for Performance)
+
+### `group_summaries` (New)
+Stores pre-calculated data for groups to enable fast dashboard loading.
+- **Purpose**: To be calculated and updated by a Firebase Function whenever an expense or settlement is modified. The client app reads from this document instead of performing heavy calculations.
+- **Document ID**: `groupId` (to match the group it summarizes)
+- **Fields**:
+  - `groupId`: `string`
+  - `totalSpending`: `double`
+  - `lastActivity`: `timestamp`
+  - `balances`: `map` (A map of `userId` to their current balance, e.g., `{"userA": 50.25, "userB": -30.00}`)
+
+## 4. Local Database Schema (Room)
+
+The local Room database is used for offline caching, following the strategy outlined in the `architecture_deep_dive.md`.
+
+- **`UserEntity`**: Caches user profiles.
 - **`GroupEntity`**: Caches group details.
-- **`ExpenseEntity`**: Caches expenses for offline viewing and editing.
+- **`ExpenseEntity`**: Caches expenses.
 
-Each entity will have fields corresponding to the Firestore documents, with annotations for Room (e.g., `@Entity`, `@PrimaryKey`). This allows the app to function offline and sync with Firestore when a connection is available.
+These entities will mirror the Firestore models, allowing the Repository layer to serve cached data first for a fast, offline-first user experience.

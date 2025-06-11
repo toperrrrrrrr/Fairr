@@ -10,12 +10,7 @@ import com.example.fairr.data.friends.FriendService
 import com.example.fairr.ui.model.Friend
 import com.example.fairr.ui.model.FriendRequest
 import dagger.hilt.android.lifecycle.HiltViewModel
-import kotlinx.coroutines.flow.MutableSharedFlow
-import kotlinx.coroutines.flow.SharingStarted
-import kotlinx.coroutines.flow.StateFlow
-import kotlinx.coroutines.flow.asSharedFlow
-import kotlinx.coroutines.flow.catch
-import kotlinx.coroutines.flow.stateIn
+import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
@@ -49,23 +44,17 @@ class FriendsViewModel @Inject constructor(
     private fun loadFriendsAndRequests() {
         viewModelScope.launch {
             try {
-                friendService.getUserFriends()
-                    .catch { e ->
-                        uiState = FriendsUiState.Error(e.message ?: "Failed to load friends")
-                    }
-                    .collect { friends ->
-                        val requests = try {
-                            friendService.getPendingFriendRequests()
-                                .stateIn(
-                                    viewModelScope,
-                                    SharingStarted.WhileSubscribed(5000),
-                                    emptyList()
-                                ).value
-                        } catch (e: Exception) {
-                            emptyList()
-                        }
-                        uiState = FriendsUiState.Success(friends, requests)
-                    }
+                // Combine both friends and requests flows
+                combine(
+                    friendService.getUserFriends(),
+                    friendService.getPendingFriendRequests()
+                ) { friends, requests ->
+                    FriendsUiState.Success(friends, requests)
+                }.catch { e ->
+                    uiState = FriendsUiState.Error(e.message ?: "Failed to load friends")
+                }.collect { state ->
+                    uiState = state
+                }
             } catch (e: Exception) {
                 uiState = FriendsUiState.Error(e.message ?: "Failed to load friends")
             }
@@ -102,7 +91,6 @@ class FriendsViewModel @Inject constructor(
             when (val result = friendService.acceptFriendRequest(requestId)) {
                 is FriendResult.Success -> {
                     _userMessage.emit(result.message)
-                    loadFriendsAndRequests()
                 }
                 is FriendResult.Error -> {
                     _userMessage.emit(result.message)
@@ -116,7 +104,6 @@ class FriendsViewModel @Inject constructor(
             when (val result = friendService.rejectFriendRequest(requestId)) {
                 is FriendResult.Success -> {
                     _userMessage.emit(result.message)
-                    loadFriendsAndRequests()
                 }
                 is FriendResult.Error -> {
                     _userMessage.emit(result.message)
@@ -130,7 +117,6 @@ class FriendsViewModel @Inject constructor(
             when (val result = friendService.removeFriend(friendId)) {
                 is FriendResult.Success -> {
                     _userMessage.emit(result.message)
-                    loadFriendsAndRequests()
                 }
                 is FriendResult.Error -> {
                     _userMessage.emit(result.message)

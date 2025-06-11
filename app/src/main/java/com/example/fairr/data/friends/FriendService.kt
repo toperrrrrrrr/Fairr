@@ -218,6 +218,10 @@ class FriendService @Inject constructor() {
             val senderId = requestDoc.getString("senderId")
                 ?: return FriendResult.Error("Invalid friend request data")
 
+            // Create deterministic document IDs for friend entries
+            val currentUserFriendId = "${currentUser.uid}_${senderId}"
+            val senderFriendId = "${senderId}_${currentUser.uid}"
+
             // Create friend entries for both users
             val currentUserFriend = hashMapOf(
                 "userId" to currentUser.uid,
@@ -240,8 +244,9 @@ class FriendService @Inject constructor() {
             )
 
             firestore.runBatch { batch ->
-                batch.set(friendsCollection.document(), currentUserFriend)
-                batch.set(friendsCollection.document(), senderFriend)
+                // Use deterministic document IDs for friend entries
+                batch.set(friendsCollection.document(currentUserFriendId), currentUserFriend)
+                batch.set(friendsCollection.document(senderFriendId), senderFriend)
                 batch.update(
                     friendRequestsCollection.document(requestId),
                     "status", FriendStatus.ACCEPTED.name
