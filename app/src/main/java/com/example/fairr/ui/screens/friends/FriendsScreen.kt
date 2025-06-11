@@ -84,9 +84,22 @@ fun FriendsScreen(
                     // Friend requests section
                     if (uiState.pendingRequests.isNotEmpty()) {
                         FriendRequestsSection(
+                            title = "Pending Friend Requests",
                             requests = uiState.pendingRequests,
+                            showActions = true,
                             onAccept = viewModel::acceptFriendRequest,
                             onReject = viewModel::rejectFriendRequest
+                        )
+                    }
+
+                    // Accepted requests section
+                    if (uiState.acceptedRequests.isNotEmpty()) {
+                        FriendRequestsSection(
+                            title = "Accepted Friend Requests",
+                            requests = uiState.acceptedRequests,
+                            showActions = false,
+                            onAccept = { }, // No actions for accepted requests
+                            onReject = { }
                         )
                     }
 
@@ -153,7 +166,9 @@ private fun AddFriendSection(
 
 @Composable
 private fun FriendRequestsSection(
+    title: String,
     requests: List<FriendRequest>,
+    showActions: Boolean,
     onAccept: (String) -> Unit,
     onReject: (String) -> Unit
 ) {
@@ -168,7 +183,7 @@ private fun FriendRequestsSection(
                 .fillMaxWidth()
         ) {
             Text(
-                text = "Friend Requests",
+                text = title,
                 style = MaterialTheme.typography.titleMedium
             )
             Spacer(modifier = Modifier.height(8.dp))
@@ -176,6 +191,7 @@ private fun FriendRequestsSection(
                 items(requests) { request ->
                     FriendRequestItem(
                         request = request,
+                        showActions = showActions,
                         onAccept = { onAccept(request.id) },
                         onReject = { onReject(request.id) }
                     )
@@ -188,6 +204,7 @@ private fun FriendRequestsSection(
 @Composable
 private fun FriendRequestItem(
     request: FriendRequest,
+    showActions: Boolean,
     onAccept: () -> Unit,
     onReject: () -> Unit
 ) {
@@ -209,20 +226,22 @@ private fun FriendRequestItem(
                 color = MaterialTheme.colorScheme.onSurfaceVariant
             )
         }
-        Row {
-            IconButton(onClick = onAccept) {
-                Icon(
-                    Icons.Default.Check,
-                    contentDescription = "Accept",
-                    tint = MaterialTheme.colorScheme.primary
-                )
-            }
-            IconButton(onClick = onReject) {
-                Icon(
-                    Icons.Default.Close,
-                    contentDescription = "Reject",
-                    tint = MaterialTheme.colorScheme.error
-                )
+        if (showActions) {
+            Row {
+                IconButton(onClick = onAccept) {
+                    Icon(
+                        Icons.Default.Check,
+                        contentDescription = "Accept",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+                IconButton(onClick = onReject) {
+                    Icon(
+                        Icons.Default.Close,
+                        contentDescription = "Reject",
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                }
             }
         }
     }

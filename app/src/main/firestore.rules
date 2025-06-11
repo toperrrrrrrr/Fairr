@@ -6,9 +6,12 @@ service cloud.firestore {
     match /users/{userId} {
       // Allow reading any user document and querying by email for friend requests
       allow read: if request.auth != null;
+      
+      // Allow querying users by email for friend requests
       allow list: if request.auth != null && 
                   request.query.limit <= 10 && // Limit query size
-                  ('email' in request.query.filters); // Only allow queries that filter by email
+                  request.query.filters.size() == 1 && // Only one filter
+                  request.query.filters[0].field_path == 'email'; // Must filter by email field
       
       // Allow users to create and update their own data
       allow create: if request.auth != null && request.auth.uid == userId;
@@ -54,25 +57,47 @@ service cloud.firestore {
 
     // Friend requests collection rules
     match /friendRequests/{requestId} {
+      // Helper function to check if user is involved in request
+      function isInvolvedInRequest() {
+        return request.auth.uid == resource.data.senderId ||
+               request.auth.uid == resource.data.receiverId;
+      }
+
+      // Helper function to validate status
+      function isValidStatus() {
+        return request.resource.data.status in ['PENDING', 'ACCEPTED', 'BLOCKED'];
+      }
+
       // Allow reading friend requests they're involved in
-      allow read, list: if request.auth != null && (
-        resource.data.senderId == request.auth.uid ||
-        resource.data.receiverId == request.auth.uid
+      allow read: if request.auth != null && (
+        (resource == null) || // Allow reading non-existent documents
+        isInvolvedInRequest()
+      );
+      
+      // Allow listing friend requests with compound queries
+      allow list: if request.auth != null && (
+        // For querying pending requests
+        (request.query.filters.size() == 2 &&
+         'receiverId' in request.query.filters &&
+         request.query.filters.receiverId == request.auth.uid &&
+         'status' in request.query.filters) ||
+        // For other queries where user is involved
+        (resource != null && isInvolvedInRequest())
       );
       
       // Allow creating friend requests if user is the sender
       allow create: if request.auth != null && 
-                   request.resource.data.senderId == request.auth.uid;
+                   request.resource.data.senderId == request.auth.uid &&
+                   request.resource.data.status == 'PENDING' &&
+                   isValidStatus();
       
       // Allow updating friend requests if user is the receiver
       allow update: if request.auth != null && 
-                   resource.data.receiverId == request.auth.uid;
+                   resource.data.receiverId == request.auth.uid &&
+                   isValidStatus();
       
       // Allow deleting friend requests if user is either sender or receiver
-      allow delete: if request.auth != null && (
-        resource.data.senderId == request.auth.uid ||
-        resource.data.receiverId == request.auth.uid
-      );
+      allow delete: if request.auth != null && isInvolvedInRequest();
     }
   }
 } 

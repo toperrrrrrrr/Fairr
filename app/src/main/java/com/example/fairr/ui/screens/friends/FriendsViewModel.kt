@@ -9,6 +9,7 @@ import com.example.fairr.data.friends.FriendResult
 import com.example.fairr.data.friends.FriendService
 import com.example.fairr.ui.model.Friend
 import com.example.fairr.ui.model.FriendRequest
+import com.example.fairr.ui.model.FriendStatus
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -18,7 +19,8 @@ sealed class FriendsUiState {
     object Loading : FriendsUiState()
     data class Success(
         val friends: List<Friend> = emptyList(),
-        val pendingRequests: List<FriendRequest> = emptyList()
+        val pendingRequests: List<FriendRequest> = emptyList(),
+        val acceptedRequests: List<FriendRequest> = emptyList()
     ) : FriendsUiState()
     data class Error(val message: String) : FriendsUiState()
 }
@@ -47,9 +49,14 @@ class FriendsViewModel @Inject constructor(
                 // Combine both friends and requests flows
                 combine(
                     friendService.getUserFriends(),
-                    friendService.getPendingFriendRequests()
+                    friendService.getAllFriendRequests()
                 ) { friends, requests ->
-                    FriendsUiState.Success(friends, requests)
+                    val (pending, accepted) = requests.partition { it.status == FriendStatus.PENDING }
+                    FriendsUiState.Success(
+                        friends = friends,
+                        pendingRequests = pending,
+                        acceptedRequests = accepted
+                    )
                 }.catch { e ->
                     uiState = FriendsUiState.Error(e.message ?: "Failed to load friends")
                 }.collect { state ->

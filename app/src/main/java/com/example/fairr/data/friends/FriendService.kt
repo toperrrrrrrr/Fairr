@@ -138,6 +138,50 @@ class FriendService @Inject constructor() {
         awaitClose { subscription.remove() }
     }
 
+    fun getAllFriendRequests(): Flow<List<FriendRequest>> = callbackFlow {
+        val currentUser = auth.currentUser
+            ?: throw IllegalStateException("User not authenticated")
+
+        val subscription = friendRequestsCollection
+            .whereEqualTo("receiverId", currentUser.uid)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    Log.e(TAG, "Error fetching friend requests", error)
+                    close(error)
+                    return@addSnapshotListener
+                }
+
+                if (snapshot == null) {
+                    Log.d(TAG, "No friend requests found (snapshot is null)")
+                    trySend(emptyList())
+                    return@addSnapshotListener
+                }
+
+                val requests = snapshot.documents.mapNotNull { doc ->
+                    try {
+                        FriendRequest(
+                            id = doc.id,
+                            senderId = doc.getString("senderId") ?: return@mapNotNull null,
+                            senderName = doc.getString("senderName") ?: "Unknown",
+                            senderEmail = doc.getString("senderEmail") ?: "",
+                            senderPhotoUrl = doc.getString("senderPhotoUrl"),
+                            receiverId = doc.getString("receiverId") ?: return@mapNotNull null,
+                            status = FriendStatus.valueOf(doc.getString("status") ?: FriendStatus.PENDING.name),
+                            sentAt = doc.getLong("sentAt") ?: System.currentTimeMillis()
+                        )
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error parsing friend request document", e)
+                        null
+                    }
+                }
+
+                Log.d(TAG, "Processed ${requests.size} friend requests")
+                trySend(requests)
+            }
+
+        awaitClose { subscription.remove() }
+    }
+
     suspend fun sendFriendRequest(email: String): FriendResult {
         try {
             val currentUser = auth.currentUser
