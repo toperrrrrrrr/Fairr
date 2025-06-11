@@ -67,14 +67,20 @@ class GroupSettingsViewModel @Inject constructor(
         viewModelScope.launch {
             currentGroupId?.let { groupId ->
                 _uiState.update { it.copy(isLoading = true) }
-                when (val result = groupService.deleteGroup(groupId)) {
-                    is GroupResult.Success -> {
-                        _uiEvents.emit(GroupSettingsEvent.GroupDeleted)
+                try {
+                    when (val result = groupService.deleteGroup(groupId)) {
+                        is GroupResult.Success -> {
+                            _uiState.update { it.copy(isLoading = false) }
+                            _uiEvents.emit(GroupSettingsEvent.GroupDeleted)
+                        }
+                        is GroupResult.Error -> {
+                            _uiState.update { it.copy(isLoading = false, error = result.message) }
+                            _uiEvents.emit(GroupSettingsEvent.ShowError(result.message))
+                        }
                     }
-                    is GroupResult.Error -> {
-                        _uiState.update { it.copy(isLoading = false) }
-                        _uiEvents.emit(GroupSettingsEvent.ShowError(result.message))
-                    }
+                } catch (e: Exception) {
+                    _uiState.update { it.copy(isLoading = false, error = e.message) }
+                    _uiEvents.emit(GroupSettingsEvent.ShowError(e.message ?: "Failed to delete group"))
                 }
             }
         }

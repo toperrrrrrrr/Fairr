@@ -16,10 +16,4 @@ The following documents were found in the `/Training` directory but are not link
 | `project_progress.md` | **Deleted** | This file contained outdated status information and was superseded by the `technical_roadmap.md`. It has been deleted. |
 | `TO_REVIEW.md` | **Deleted** | This was a temporary checklist. All action items were completed or superseded by other documents. It has been deleted. |
 
----
 
-## 2. Source Code Orphans (`/app` Directory)
-
-*Analysis pending.*
-
-Automatically detecting orphaned source code files is complex and requires static analysis tools that can build a full dependency graph of the project. A manual review would be required to identify unused classes or modules with high confidence.

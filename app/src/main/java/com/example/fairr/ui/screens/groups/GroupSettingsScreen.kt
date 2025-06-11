@@ -86,7 +86,10 @@ fun GroupSettingsScreen(
                     // Show error message
                 }
                 is GroupSettingsEvent.GroupDeleted -> {
-                    navController.popBackStack()
+                    // Navigate to main screen and clear back stack
+                    navController.navigate("main") {
+                        popUpTo("main") { inclusive = true }
+                    }
                 }
             }
         }
