@@ -53,7 +53,8 @@ data class OnboardingPage(
 @OptIn(ExperimentalFoundationApi::class)
 @Composable
 fun OnboardingScreen(
-    onGetStarted: () -> Unit
+    onGetStarted: () -> Unit,
+    viewModel: OnboardingViewModel = hiltViewModel()
 ) {
     val systemUiController = rememberSystemUiController()
     val useDarkIcons = MaterialTheme.colorScheme.background.luminance() > 0.5f
@@ -193,7 +194,10 @@ fun OnboardingScreen(
                         pagerState.animateScrollToPage(pagerState.currentPage + 1)
                     }
                 },
-                onGetStarted = onGetStarted
+                onGetStarted = {
+                        viewModel.onGetStartedClick()
+                        onGetStarted()
+                    }
             )
             
             Spacer(modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars))

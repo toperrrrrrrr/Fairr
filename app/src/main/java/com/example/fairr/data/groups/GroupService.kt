@@ -279,7 +279,8 @@ class GroupService @Inject constructor(
                 return GroupResult.Error("Group not found")
             }
 
-            val membersMap = parseGroupData(groupDoc.data ?: emptyMap())
+            val data = groupDoc.data ?: emptyMap()
+            val membersMap = parseGroupData(data)
             if (membersMap.containsKey(currentUser.uid)) {
                 return GroupResult.Error("You are already a member of this group")
             }
@@ -290,8 +291,17 @@ class GroupService @Inject constructor(
                 false
             )
 
+            // Get existing memberIds array or create new one
+            val memberIds = (data["memberIds"] as? List<String> ?: emptyList()) + currentUser.uid
+
+            // Update both members map and memberIds array
             groupsCollection.document(groupId)
-                .update("members", membersMap + newMember)
+                .update(
+                    mapOf(
+                        "members.${currentUser.uid}" to newMember,
+                        "memberIds" to memberIds
+                    )
+                )
                 .await()
 
             GroupResult.Success(groupId)
