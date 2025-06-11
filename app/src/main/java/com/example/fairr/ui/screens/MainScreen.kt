@@ -21,6 +21,7 @@ import com.example.fairr.ui.screens.notifications.NotificationsScreen
 import com.example.fairr.ui.screens.settings.SettingsScreen
 import com.example.fairr.ui.screens.groups.GroupListScreen
 import com.example.fairr.ui.screens.profile.ProfileScreen
+import com.example.fairr.ui.screens.friends.FriendsScreen
 import com.example.fairr.ui.theme.*
 import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.fairr.ui.screens.groups.GroupListViewModel
@@ -29,6 +30,7 @@ import com.example.fairr.data.model.Group
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fairr.util.CurrencyFormatter
 import com.example.fairr.ui.components.ModernNavigationBar
+import com.example.fairr.ui.screens.friends.FriendsViewModel
 
 // Data class for group items
 private data class GroupItem(
@@ -84,10 +86,17 @@ fun MainScreen(
                     onNavigateToGroupDetail = onNavigateToGroupDetail,
                     onNavigateToJoinGroup = onNavigateToJoinGroup
                 )
-                2 -> NotificationsScreen(
+                2 -> {
+                    val friendsViewModel: FriendsViewModel = hiltViewModel()
+                    FriendsScreen(
+                        viewModel = friendsViewModel,
+                        onNavigateBack = { selectedTab = 0 }
+                    )
+                }
+                3 -> NotificationsScreen(
                     navController = navController
                 )
-                3 -> SettingsScreen(
+                4 -> SettingsScreen(
                     navController = navController,
                     onSignOut = onSignOut
                 )
