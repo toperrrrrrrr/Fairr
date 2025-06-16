@@ -25,6 +25,12 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.runtime.collectAsState
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.runtime.rememberCoroutineScope
+import kotlinx.coroutines.launch
+import com.example.fairr.data.model.NotificationType
 import com.example.fairr.ui.components.*
 import com.example.fairr.ui.theme.*
 
@@ -32,33 +38,12 @@ import com.example.fairr.ui.theme.*
 @Composable
 fun NotificationsScreen(
     navController: NavController,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: NotificationsViewModel = hiltViewModel()
 ) {
-    val notifications = remember {
-        listOf(
-            NotificationItem(
-                "1",
-                "New expense added",
-                "John added a new expense in Weekend Trip",
-                "2 hours ago",
-                NotificationType.EXPENSE
-            ),
-            NotificationItem(
-                "2",
-                "Group invitation",
-                "Sarah invited you to join Office Lunch group",
-                "5 hours ago",
-                NotificationType.INVITATION
-            ),
-            NotificationItem(
-                "3",
-                "Settlement reminder",
-                "You have pending settlements in Apartment Rent",
-                "1 day ago",
-                NotificationType.SETTLEMENT
-            )
-        )
-    }
+    val uiState by viewModel.uiState.collectAsState()
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     Scaffold(
         topBar = {
@@ -74,19 +59,41 @@ fun NotificationsScreen(
                     containerColor = MaterialTheme.colorScheme.background
                 )
             )
-        }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
-        if (notifications.isEmpty()) {
+        if (uiState.isLoading && uiState.notifications.isEmpty()) {
             Box(
                 modifier = modifier
                     .fillMaxSize()
-                    .padding(padding)
+                    .padding(padding),
+                contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "No notifications yet",
-                    style = MaterialTheme.typography.bodyLarge,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                CircularProgressIndicator()
+            }
+        } else if (uiState.notifications.isEmpty()) {
+            Box(
+                modifier = modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentAlignment = Alignment.Center
+            ) {
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+                    Icon(
+                        Icons.Default.Notifications,
+                        contentDescription = "No notifications",
+                        modifier = Modifier.size(64.dp),
+                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    Text(
+                        text = "No notifications yet",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
         } else {
             LazyColumn(
@@ -96,9 +103,31 @@ fun NotificationsScreen(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                items(notifications) { notification ->
-                    NotificationCard(notification = notification)
+                items(uiState.notifications) { notification ->
+                    NotificationCard(
+                        notification = notification,
+                        onApprove = { requestId ->
+                            viewModel.respondToJoinRequest(notification.id, requestId, true)
+                        },
+                        onReject = { requestId ->
+                            viewModel.respondToJoinRequest(notification.id, requestId, false)
+                        },
+                        onMarkAsRead = {
+                            viewModel.markAsRead(notification.id)
+                        },
+                        isProcessing = uiState.processingRequestId == notification.data["requestId"]
+                    )
                 }
+            }
+        }
+    }
+
+    // Handle snackbar messages
+    LaunchedEffect(viewModel.snackbarMessage) {
+        viewModel.snackbarMessage?.let { message ->
+            scope.launch {
+                snackbarHostState.showSnackbar(message)
+                viewModel.clearSnackbarMessage()
             }
         }
     }
@@ -106,58 +135,143 @@ fun NotificationsScreen(
 
 @Composable
 fun NotificationCard(
-    notification: NotificationItem,
+    notification: com.example.fairr.data.model.Notification,
+    onApprove: (String) -> Unit = {},
+    onReject: (String) -> Unit = {},
+    onMarkAsRead: () -> Unit = {},
+    isProcessing: Boolean = false,
     modifier: Modifier = Modifier
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
-        shape = MaterialTheme.shapes.medium
+        shape = MaterialTheme.shapes.medium,
+        colors = CardDefaults.cardColors(
+            containerColor = if (notification.isRead) 
+                MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.3f)
+            else 
+                MaterialTheme.colorScheme.surface
+        )
     ) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(16.dp)
         ) {
-            Text(
-                text = notification.title,
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.SemiBold,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-            
-            Spacer(modifier = Modifier.height(4.dp))
-            
-            Text(
-                text = notification.message,
-                style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Top
+            ) {
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = notification.title,
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
+                    
+                    Spacer(modifier = Modifier.height(4.dp))
+                    
+                    Text(
+                        text = notification.message,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+                
+                if (!notification.isRead) {
+                    Box(
+                        modifier = Modifier
+                            .size(8.dp)
+                            .background(
+                                MaterialTheme.colorScheme.primary,
+                                CircleShape
+                            )
+                    )
+                }
+            }
             
             Spacer(modifier = Modifier.height(8.dp))
             
             Text(
-                text = notification.timestamp,
+                text = formatTimestamp(notification.createdAt),
                 style = MaterialTheme.typography.bodySmall,
                 color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
             )
+            
+            // Show action buttons for group join requests
+            if (notification.type == NotificationType.GROUP_JOIN_REQUEST) {
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = {
+                            val requestId = notification.data["requestId"] as? String ?: return@OutlinedButton
+                            onReject(requestId)
+                        },
+                        modifier = Modifier.weight(1f),
+                        enabled = !isProcessing
+                    ) {
+                        if (isProcessing) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text("Reject")
+                        }
+                    }
+                    
+                    Button(
+                        onClick = {
+                            val requestId = notification.data["requestId"] as? String ?: return@Button
+                            onApprove(requestId)
+                        },
+                        modifier = Modifier.weight(1f),
+                        enabled = !isProcessing
+                    ) {
+                        if (isProcessing) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        } else {
+                            Text("Approve")
+                        }
+                    }
+                }
+            }
+        }
+    }
+    
+    // Mark as read when tapped (for non-action notifications)
+    LaunchedEffect(Unit) {
+        if (notification.type != NotificationType.GROUP_JOIN_REQUEST && !notification.isRead) {
+            onMarkAsRead()
         }
     }
 }
 
-data class NotificationItem(
-    val id: String,
-    val title: String,
-    val message: String,
-    val timestamp: String,
-    val type: NotificationType
-)
-
-enum class NotificationType {
-    EXPENSE,
-    INVITATION,
-    SETTLEMENT
+private fun formatTimestamp(timestamp: com.google.firebase.Timestamp): String {
+    val now = System.currentTimeMillis()
+    val time = timestamp.toDate().time
+    val diff = now - time
+    
+    return when {
+        diff < 60_000 -> "Just now"
+        diff < 3600_000 -> "${diff / 60_000}m ago"
+        diff < 86400_000 -> "${diff / 3600_000}h ago"
+        diff < 604800_000 -> "${diff / 86400_000}d ago"
+        else -> "${diff / 604800_000}w ago"
+    }
 }
+
+
 
 @Preview(showBackground = true)
 @Composable
