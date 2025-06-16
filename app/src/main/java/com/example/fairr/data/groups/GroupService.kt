@@ -213,55 +213,33 @@ class GroupService @Inject constructor(
         awaitClose { subscription.remove() }
     }
 
-    suspend fun createGroup(groupData: CreateGroupData): GroupResult {
+    suspend fun createGroup(data: CreateGroupData): GroupResult {
+        val currentUser = auth.currentUser
+            ?: return GroupResult.Error("User not authenticated")
+
+        val groupId = groupsCollection.document().id
+        val inviteCode = generateInviteCode()
+        val timestamp = Timestamp.now()
+
+        val groupData = mapOf(
+            "name" to data.name,
+            "description" to data.description,
+            "currency" to data.currency,
+            "createdAt" to timestamp,
+            "createdBy" to currentUser.uid,
+            "inviteCode" to inviteCode,
+            "memberIds" to listOf(currentUser.uid),  // Initialize with creator as member
+            "members" to mapOf(
+                currentUser.uid to createGroupMember(
+                    name = currentUser.displayName ?: "Unknown",
+                    email = currentUser.email ?: "",
+                    isAdmin = true
+                )
+            )
+        )
+
         return try {
-            val currentUser = auth.currentUser
-                ?: return GroupResult.Error("User not authenticated")
-
-            Log.d(TAG, "Creating group with name: ${groupData.name}")
-            
-            val groupId = UUID.randomUUID().toString()
-            
-            // Create a map of members with user IDs as keys
-            val membersMap = mutableMapOf<String, Map<String, Any>>()
-            val memberIds = mutableListOf<String>()
-            
-            // Add current user as admin
-            val currentUserData = createGroupMember(
-                currentUser.displayName ?: currentUser.email?.substringBefore("@") ?: "Unknown",
-                currentUser.email ?: "",
-                true
-            )
-            membersMap[currentUser.uid] = currentUserData
-            memberIds.add(currentUser.uid)
-            
-            Log.d(TAG, "Current user data: $currentUserData")
-            
-            // Add other members
-            groupData.members.forEach { member ->
-                val memberData = createGroupMember(member.name, member.email, member.isAdmin)
-                membersMap[member.id] = memberData
-                memberIds.add(member.id)
-            }
-
-            val groupDocument = hashMapOf(
-                "name" to groupData.name,
-                "description" to groupData.description,
-                "currency" to groupData.currency,
-                "members" to membersMap,
-                "memberIds" to memberIds,  // Add memberIds array for querying
-                "createdBy" to currentUser.uid,
-                "createdAt" to Timestamp.now(),
-                "inviteCode" to generateInviteCode()
-            )
-
-            Log.d(TAG, "Creating group document: $groupDocument")
-
-            groupsCollection.document(groupId)
-                .set(groupDocument)
-                .await()
-
-            Log.d(TAG, "Successfully created group with ID: $groupId")
+            groupsCollection.document(groupId).set(groupData).await()
             GroupResult.Success(groupId)
         } catch (e: Exception) {
             Log.e(TAG, "Error creating group", e)

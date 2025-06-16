@@ -27,9 +27,16 @@ service cloud.firestore {
     
     // Groups collection rules
     match /groups/{groupId} {
-      // Allow reading groups where user is a member (using memberIds array)
-      allow read, list: if request.auth != null && 
-                       (request.auth.uid in resource.data.memberIds);
+      // Allow reading groups where user is a member
+      allow read: if request.auth != null && 
+                 (request.auth.uid in resource.data.memberIds);
+      
+      // Allow listing groups where user is a member
+      allow list: if request.auth != null && 
+                 request.query.filters.size() == 1 &&
+                 request.query.filters[0].field_path == 'memberIds' &&
+                 request.query.filters[0].op == 'array-contains' &&
+                 request.query.filters[0].value == request.auth.uid;
       
       // Allow creating groups (creator becomes admin)
       allow create: if request.auth != null && 
