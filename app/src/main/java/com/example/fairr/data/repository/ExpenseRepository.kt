@@ -42,7 +42,7 @@ class ExpenseRepositoryImpl @Inject constructor(
         try {
             val expensesRef = firestore.collection("expenses")
                 .whereEqualTo("groupId", groupId)
-                .orderBy("date", com.google.firebase.firestore.Query.Direction.DESCENDING)
+                .orderBy("createdAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
                 .get()
                 .await()
 
