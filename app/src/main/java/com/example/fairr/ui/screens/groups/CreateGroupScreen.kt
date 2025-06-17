@@ -166,12 +166,19 @@ fun CreateGroupScreen(
 
                     // Members section
                     item {
-                        Text(
-                            text = "Members",
-                            style = MaterialTheme.typography.titleMedium,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(vertical = 8.dp)
-                        )
+                        Column {
+                            Text(
+                                text = "Invite Members",
+                                style = MaterialTheme.typography.titleMedium,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(vertical = 8.dp)
+                            )
+                            Text(
+                                text = "People you add here will receive invitations to join your group",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        }
                     }
 
                     // Add member button
@@ -186,7 +193,7 @@ fun CreateGroupScreen(
                                 modifier = Modifier.size(20.dp)
                             )
                             Spacer(modifier = Modifier.width(8.dp))
-                            Text("Add Member")
+                            Text("Invite Member")
                         }
                     }
 
@@ -205,10 +212,17 @@ fun CreateGroupScreen(
                                 horizontalArrangement = Arrangement.SpaceBetween,
                                 verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Text(
-                                    text = member.email,
-                                    style = MaterialTheme.typography.bodyLarge
-                                )
+                                Column(modifier = Modifier.weight(1f)) {
+                                    Text(
+                                        text = member.email,
+                                        style = MaterialTheme.typography.bodyLarge
+                                    )
+                                    Text(
+                                        text = "Will receive invitation",
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
                                 IconButton(
                                     onClick = { viewModel.removeMember(member) }
                                 ) {
@@ -252,6 +266,21 @@ fun CreateGroupScreen(
                         }
                     }
                 }
+                is CreateGroupUiState.Success -> {
+                    LaunchedEffect(state) {
+                        scope.launch {
+                            val message = if (state.invitesSent > 0) {
+                                "Group created successfully! ${state.invitesSent} invite(s) sent."
+                            } else {
+                                "Group created successfully!"
+                            }
+                            snackbarHostState.showSnackbar(
+                                message = message,
+                                duration = SnackbarDuration.Short
+                            )
+                        }
+                    }
+                }
                 else -> {}
             }
         }
@@ -260,15 +289,23 @@ fun CreateGroupScreen(
     if (showAddMemberDialog) {
         AlertDialog(
             onDismissRequest = { showAddMemberDialog = false },
-            title = { Text("Add Member") },
+            title = { Text("Invite Member") },
             text = {
-                OutlinedTextField(
-                    value = newMemberEmail,
-                    onValueChange = { newMemberEmail = it },
-                    label = { Text("Email") },
-                    singleLine = true,
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
-                )
+                Column {
+                    Text(
+                        text = "Enter the email address of the person you want to invite. They will receive an invitation to join this group.",
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                    Spacer(modifier = Modifier.height(12.dp))
+                    OutlinedTextField(
+                        value = newMemberEmail,
+                        onValueChange = { newMemberEmail = it },
+                        label = { Text("Email") },
+                        singleLine = true,
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+                    )
+                }
             },
             confirmButton = {
                 TextButton(
@@ -286,7 +323,7 @@ fun CreateGroupScreen(
                         }
                     }
                 ) {
-                    Text("Add")
+                    Text("Invite")
                 }
             },
             dismissButton = {

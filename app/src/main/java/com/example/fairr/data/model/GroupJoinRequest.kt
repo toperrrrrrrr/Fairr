@@ -39,4 +39,24 @@ enum class NotificationType {
     EXPENSE_ADDED,
     SETTLEMENT_REMINDER,
     GROUP_INVITATION
+}
+
+data class GroupInvite(
+    val id: String = "",
+    val groupId: String = "",
+    val groupName: String = "",
+    val inviterId: String = "",
+    val inviterName: String = "",
+    val inviteeId: String = "",
+    val inviteeName: String = "",
+    val inviteeEmail: String = "",
+    val status: GroupInviteStatus = GroupInviteStatus.PENDING,
+    val sentAt: Timestamp = Timestamp.now(),
+    val respondedAt: Timestamp? = null
+)
+
+enum class GroupInviteStatus {
+    PENDING,
+    ACCEPTED,
+    REJECTED
 } 

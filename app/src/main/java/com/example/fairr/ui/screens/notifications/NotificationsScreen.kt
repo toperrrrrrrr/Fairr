@@ -112,10 +112,17 @@ fun NotificationsScreen(
                         onReject = { requestId ->
                             viewModel.respondToJoinRequest(notification.id, requestId, false)
                         },
+                        onAcceptInvite = { inviteId ->
+                            viewModel.respondToInvite(notification.id, inviteId, true)
+                        },
+                        onDeclineInvite = { inviteId ->
+                            viewModel.respondToInvite(notification.id, inviteId, false)
+                        },
                         onMarkAsRead = {
                             viewModel.markAsRead(notification.id)
                         },
-                        isProcessing = uiState.processingRequestId == notification.data["requestId"]
+                        isProcessing = uiState.processingRequestId == notification.data["requestId"] || 
+                                      uiState.processingRequestId == notification.data["inviteId"]
                     )
                 }
             }
@@ -138,6 +145,8 @@ fun NotificationCard(
     notification: com.example.fairr.data.model.Notification,
     onApprove: (String) -> Unit = {},
     onReject: (String) -> Unit = {},
+    onAcceptInvite: (String) -> Unit = {},
+    onDeclineInvite: (String) -> Unit = {},
     onMarkAsRead: () -> Unit = {},
     isProcessing: Boolean = false,
     modifier: Modifier = Modifier
@@ -246,12 +255,61 @@ fun NotificationCard(
                     }
                 }
             }
+            
+            // Show action buttons for group invitations
+            if (notification.type == NotificationType.GROUP_INVITATION) {
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = {
+                            val inviteId = notification.data["inviteId"] as? String ?: return@OutlinedButton
+                            onDeclineInvite(inviteId)
+                        },
+                        modifier = Modifier.weight(1f),
+                        enabled = !isProcessing
+                    ) {
+                        if (isProcessing) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text("Decline")
+                        }
+                    }
+                    
+                    Button(
+                        onClick = {
+                            val inviteId = notification.data["inviteId"] as? String ?: return@Button
+                            onAcceptInvite(inviteId)
+                        },
+                        modifier = Modifier.weight(1f),
+                        enabled = !isProcessing
+                    ) {
+                        if (isProcessing) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        } else {
+                            Text("Accept")
+                        }
+                    }
+                }
+            }
         }
     }
     
     // Mark as read when tapped (for non-action notifications)
     LaunchedEffect(Unit) {
-        if (notification.type != NotificationType.GROUP_JOIN_REQUEST && !notification.isRead) {
+        if (notification.type != NotificationType.GROUP_JOIN_REQUEST && 
+            notification.type != NotificationType.GROUP_INVITATION && 
+            !notification.isRead) {
             onMarkAsRead()
         }
     }

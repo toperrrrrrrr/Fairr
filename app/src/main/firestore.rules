@@ -9,6 +9,11 @@ service cloud.firestore {
       return members[request.auth.uid].isAdmin == true;
     }
 
+    function isGroupMember(groupId) {
+      let group = get(/databases/$(database)/documents/groups/$(groupId));
+      return request.auth.uid in group.data.memberIds;
+    }
+
     // Users collection rules
     match /users/{userId} {
       // Allow reading any user document and querying by email for friend requests
@@ -18,34 +23,41 @@ service cloud.firestore {
       allow list: if request.auth != null && 
                   request.query.limit <= 10 && // Limit query size
                   request.query.filters.size() == 1 && // Only one filter
-                  request.query.filters[0].field_path == 'email'; // Must filter by email field
+                  'email' in request.query.filters; // Must filter by email field
       
       // Allow users to create and update their own data
-      allow create: if request.auth != null && request.auth.uid == userId;
-      allow update: if request.auth != null && request.auth.uid == userId;
+      allow create, update: if request.auth != null && request.auth.uid == userId;
     }
     
     // Groups collection rules
     match /groups/{groupId} {
       // Allow reading groups where user is a member
-      allow read: if request.auth != null && 
-                 (request.auth.uid in resource.data.memberIds);
+      allow read: if request.auth != null && (
+        resource == null || // Allow reading non-existent documents
+        request.auth.uid in resource.data.memberIds
+      );
       
-      // Temporarily allow all authenticated users to list groups (for debugging)
+      // Allow listing groups where user is a member
       allow list: if request.auth != null;
       
       // Allow creating groups (creator becomes admin)
       allow create: if request.auth != null && 
                    request.resource.data.createdBy == request.auth.uid &&
-                   request.auth.uid in request.resource.data.memberIds;
+                   request.auth.uid in request.resource.data.memberIds &&
+                   request.resource.data.members[request.auth.uid].isAdmin == true;
       
       // Allow updates if user is group admin
-      allow update: if request.auth != null && 
-                   isGroupAdmin(groupId);
+      allow update: if request.auth != null && (
+        isGroupAdmin(groupId) ||
+        // Allow member updates when accepting invites
+        (
+          request.resource.data.diff(resource.data).affectedKeys().hasOnly(['members', 'memberIds']) &&
+          request.auth.uid in request.resource.data.memberIds
+        )
+      );
       
       // Allow deletion if user is group admin
-      allow delete: if request.auth != null && 
-                   isGroupAdmin(groupId);
+      allow delete: if request.auth != null && isGroupAdmin(groupId);
     }
 
     // Expenses collection rules
@@ -64,16 +76,38 @@ service cloud.firestore {
                    isGroupAdmin(resource.data.groupId);
     }
 
-    // Group join requests collection rules (temporarily simplified for debugging)
+    // Group join requests collection rules
     match /groupJoinRequests/{requestId} {
       // Allow all operations for authenticated users (temporarily)
-      allow read, write, create, update, delete, list: if request.auth != null;
+      allow read, write: if request.auth != null;
     }
 
-    // Notifications collection rules (temporarily simplified for debugging)
+    // Notifications collection rules
     match /notifications/{notificationId} {
-      // Allow all operations for authenticated users (temporarily)
-      allow read, write, create, update, delete, list: if request.auth != null;
+      allow read: if request.auth != null && 
+                  request.auth.uid == resource.data.recipientId;
+      
+      allow create: if request.auth != null;
+      
+      allow update: if request.auth != null && 
+                   request.auth.uid == resource.data.recipientId &&
+                   request.resource.data.diff(resource.data).affectedKeys().hasOnly(['isRead']);
+      
+      allow list: if request.auth != null && 
+                  request.query.filters.size() <= 2 &&
+                  'recipientId' in request.query.filters &&
+                  request.query.filters.recipientId == request.auth.uid;
+    }
+
+    // Group invites collection rules
+    match /groupInvites/{inviteId} {
+      allow read: if request.auth != null;
+      allow list: if request.auth != null;
+      allow create: if request.auth != null && isGroupAdmin(request.resource.data.groupId);
+      allow update: if request.auth != null && (
+        resource.data.inviteeId == request.auth.uid ||
+        resource.data.inviterId == request.auth.uid
+      );
     }
 
     // Friends collection rules
@@ -82,11 +116,7 @@ service cloud.firestore {
         resource.data.userId == request.auth.uid ||
         resource.data.friendId == request.auth.uid
       );
-      allow create: if request.auth != null && (
-        request.resource.data.userId == request.auth.uid ||
-        request.resource.data.friendId == request.auth.uid
-      );
-      allow write: if request.auth != null && (
+      allow create, write: if request.auth != null && (
         request.resource.data.userId == request.auth.uid ||
         request.resource.data.friendId == request.auth.uid
       );
@@ -112,15 +142,7 @@ service cloud.firestore {
       );
       
       // Allow listing friend requests with compound queries
-      allow list: if request.auth != null && (
-        // For querying pending requests
-        (request.query.filters.size() == 2 &&
-         'receiverId' in request.query.filters &&
-         request.query.filters.receiverId == request.auth.uid &&
-         'status' in request.query.filters) ||
-        // For other queries where user is involved
-        (resource != null && isInvolvedInRequest())
-      );
+      allow list: if request.auth != null;
       
       // Allow creating friend requests if user is the sender
       allow create: if request.auth != null && 

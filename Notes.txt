@@ -32,5 +32,117 @@ Notifications - open notification to another page
 Keep the profile with a huge card 
 
 
-Create group crashes the app. 
+
 Nav bar have huge white space make the oblong and the buttons float. 
+
+
+
+ in the create group page when you add the email of a member, it creates a record on the firebase but it is not showing up on the invited member's grouop list. 
+
+ createdAt
+June 11, 2025 at 9:45:14 PM UTC+8
+(timestamp)
+
+
+createdBy
+"MILaVzx55ygZlDEWYZSqJ3onnXD3"
+(string)
+
+
+currency
+"PHP"
+(string)
+
+
+description
+""
+(string)
+
+
+inviteCode
+"D8CB93"
+(string)
+
+
+
+memberIds
+(array)
+
+
+0
+"MILaVzx55ygZlDEWYZSqJ3onnXD3"
+(string)
+
+
+1
+"temp_1749649510994"
+(string)
+
+
+
+members
+(map)
+
+
+
+MILaVzx55ygZlDEWYZSqJ3onnXD3
+(map)
+
+
+email
+"vgloria0411@gmail.com"
+(string)
+
+
+isAdmin
+true
+(boolean)
+
+
+joinedAt
+June 11, 2025 at 9:45:14 PM UTC+8
+(timestamp)
+
+
+name
+"Gloria Villanueva"
+(string)
+
+
+
+temp_1749649510994
+(map)
+
+
+email
+"norie.lacsina@chewzie.me"
+(string)
+
+
+isAdmin
+false
+(boolean)
+
+
+joinedAt
+June 11, 2025 at 9:45:14 PM UTC+8
+(timestamp)
+
+
+name
+"norie.lacsina"
+(string)
+
+
+name
+"hehezzzz"
+(string)
+
+
+totalExpenses
+185
+
+
+The error PERMISSION_DENIED: Missing or insufficient permissions still persist on the group list page. 
+
+Once invite is accepted it should be removed from groupJoinRequests collection 

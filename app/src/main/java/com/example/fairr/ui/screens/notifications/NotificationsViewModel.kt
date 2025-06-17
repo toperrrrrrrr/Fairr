@@ -7,6 +7,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fairr.data.groups.GroupJoinService
 import com.example.fairr.data.groups.JoinRequestResult
+import com.example.fairr.data.groups.GroupInviteService
+import com.example.fairr.data.groups.InviteResult
 import com.example.fairr.data.model.Notification
 import com.example.fairr.data.model.NotificationType
 import com.example.fairr.data.notifications.NotificationService
@@ -27,7 +29,8 @@ data class NotificationsUiState(
 @HiltViewModel
 class NotificationsViewModel @Inject constructor(
     private val notificationService: NotificationService,
-    private val groupJoinService: GroupJoinService
+    private val groupJoinService: GroupJoinService,
+    private val groupInviteService: GroupInviteService
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(NotificationsUiState())
@@ -92,6 +95,28 @@ class NotificationsViewModel @Inject constructor(
     fun deleteNotification(notificationId: String) {
         viewModelScope.launch {
             notificationService.deleteNotification(notificationId)
+        }
+    }
+
+    fun respondToInvite(notificationId: String, inviteId: String, accept: Boolean) {
+        viewModelScope.launch {
+            _uiState.value = _uiState.value.copy(processingRequestId = inviteId)
+
+            when (val result = groupInviteService.respondToInvite(inviteId, accept)) {
+                is InviteResult.Success -> {
+                    // Mark notification as read
+                    notificationService.markNotificationAsRead(notificationId)
+                    
+                    val message = if (accept) "Group invitation accepted" else "Group invitation declined"
+                    snackbarMessage = message
+                    
+                    _uiState.value = _uiState.value.copy(processingRequestId = null)
+                }
+                is InviteResult.Error -> {
+                    snackbarMessage = result.message
+                    _uiState.value = _uiState.value.copy(processingRequestId = null)
+                }
+            }
         }
     }
 

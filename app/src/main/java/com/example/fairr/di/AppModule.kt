@@ -2,10 +2,12 @@ package com.example.fairr.di
 
 import com.example.fairr.data.groups.GroupService
 import com.example.fairr.data.groups.GroupJoinService
+import com.example.fairr.data.groups.GroupInviteService
 import com.example.fairr.data.notifications.NotificationService
 import com.example.fairr.data.repository.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
+import com.google.firebase.firestore.FirebaseFirestoreSettings
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -18,7 +20,15 @@ object AppModule {
     
     @Provides
     @Singleton
-    fun provideFirebaseFirestore(): FirebaseFirestore = FirebaseFirestore.getInstance()
+    fun provideFirebaseFirestore(): FirebaseFirestore {
+        val firestore = FirebaseFirestore.getInstance()
+        val settings = FirebaseFirestoreSettings.Builder()
+            .setPersistenceEnabled(true)
+            .setCacheSizeBytes(FirebaseFirestoreSettings.CACHE_SIZE_UNLIMITED)
+            .build()
+        firestore.firestoreSettings = settings
+        return firestore
+    }
 
     @Provides
     @Singleton
@@ -47,4 +57,11 @@ object AppModule {
         auth: FirebaseAuth,
         firestore: FirebaseFirestore
     ): NotificationService = NotificationService(auth, firestore)
+
+    @Provides
+    @Singleton
+    fun provideGroupInviteService(
+        auth: FirebaseAuth,
+        firestore: FirebaseFirestore
+    ): GroupInviteService = GroupInviteService(auth, firestore)
 } 
