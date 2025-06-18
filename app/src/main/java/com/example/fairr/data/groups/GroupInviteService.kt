@@ -171,22 +171,32 @@ class GroupInviteService @Inject constructor(
 
     suspend fun respondToInvite(inviteId: String, accept: Boolean): InviteResult {
         return try {
+            Log.d(TAG, "Starting invite response process for invite: $inviteId, accept: $accept")
             val currentUser = auth.currentUser
                 ?: return InviteResult.Error("User not authenticated")
 
+            // Get invite document
             val inviteDoc = invitesCollection.document(inviteId).get().await()
             if (!inviteDoc.exists()) {
+                Log.e(TAG, "Invite not found: $inviteId")
                 return InviteResult.Error("Invite not found")
             }
 
             val inviteData = inviteDoc.data ?: return InviteResult.Error("Invite data not found")
             val inviteeId = inviteData["inviteeId"] as? String
+            val groupId = inviteData["groupId"] as? String ?: return InviteResult.Error("Group ID not found")
 
             if (inviteeId != currentUser.uid) {
+                Log.e(TAG, "User ${currentUser.uid} not authorized to respond to invite $inviteId")
                 return InviteResult.Error("You are not authorized to respond to this invite")
             }
 
+            // Instead of reading the full group document (which fails when the user isn't yet a member
+            // due to security rules), we optimistically update the group document. If the group does
+            // not exist the update call will fail and we can surface that error.
+
             val status = if (accept) GroupInviteStatus.ACCEPTED else GroupInviteStatus.REJECTED
+            Log.d(TAG, "Updating invite status to: ${status.name}")
 
             // Update invite status
             invitesCollection.document(inviteId)
@@ -199,10 +209,10 @@ class GroupInviteService @Inject constructor(
                 .await()
 
             if (accept) {
-                // Add user to group
-                val groupId = inviteData["groupId"] as? String ?: return InviteResult.Error("Group ID not found")
-                val inviteeName = inviteData["inviteeName"] as? String ?: "Unknown"
-                val inviteeEmail = inviteData["inviteeEmail"] as? String ?: ""
+                Log.d(TAG, "Accepted invite, adding user to group without fetching the group document")
+
+                val inviteeName = inviteData["inviteeName"] as? String ?: currentUser.displayName ?: "Unknown"
+                val inviteeEmail = inviteData["inviteeEmail"] as? String ?: currentUser.email ?: ""
 
                 val newMember = mapOf(
                     "name" to inviteeName,
@@ -211,26 +221,23 @@ class GroupInviteService @Inject constructor(
                     "joinedAt" to Timestamp.now()
                 )
 
-                // Get existing memberIds array or create new one
-                val groupDoc = groupsCollection.document(groupId).get().await()
-                val groupData = groupDoc.data ?: emptyMap()
-                val memberIds = (groupData["memberIds"] as? List<String> ?: emptyList()) + currentUser.uid
+                val updates = mapOf(
+                    // Merge new member under their UID path
+                    "members.${currentUser.uid}" to newMember,
+                    // Add the userId to memberIds array using FieldValue.arrayUnion to avoid duplication
+                    "memberIds" to com.google.firebase.firestore.FieldValue.arrayUnion(currentUser.uid)
+                )
 
-                // Update both members map and memberIds array
                 groupsCollection.document(groupId)
-                    .update(
-                        mapOf(
-                            "members.${currentUser.uid}" to newMember,
-                            "memberIds" to memberIds
-                        )
-                    )
+                    .update(updates)
                     .await()
             }
 
+            Log.d(TAG, "Invite response process completed successfully")
             InviteResult.Success(inviteId)
         } catch (e: Exception) {
             Log.e(TAG, "Error responding to invite", e)
-            InviteResult.Error(e.message ?: "Failed to respond to invite")
+            InviteResult.Error(e.message ?: "Failed to respond to invite. Please check your internet connection and try again.")
         }
     }
 

@@ -16,6 +16,14 @@
         {
           "client_id": "670995472503-mtt69kbdep2jhesjtem9dip37qngc1i5.apps.googleusercontent.com",
           "client_type": 3
+        },
+        {
+          "client_id": "670995472503-mtt69kbdep2jhesjtem9dip37qngc1i5.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.example.fairr",
+            "certificate_hash": "your_sha1_certificate_hash"
+          }
         }
       ],
       "api_key": [

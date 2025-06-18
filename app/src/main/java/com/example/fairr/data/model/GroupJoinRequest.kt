@@ -38,7 +38,8 @@ enum class NotificationType {
     FRIEND_REQUEST,
     EXPENSE_ADDED,
     SETTLEMENT_REMINDER,
-    GROUP_INVITATION
+    GROUP_INVITATION,
+    UNKNOWN
 }
 
 data class GroupInvite(

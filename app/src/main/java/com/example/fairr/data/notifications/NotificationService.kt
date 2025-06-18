@@ -24,65 +24,164 @@ class NotificationService @Inject constructor(
     fun getNotificationsForUser(): Flow<List<Notification>> = callbackFlow {
         val currentUser = auth.currentUser
         if (currentUser == null) {
+            Log.e(TAG, "User not authenticated")
             close(IllegalStateException("User not authenticated"))
             return@callbackFlow
         }
 
+        Log.d(TAG, "Starting notifications listener for user: ${currentUser.uid}")
+
+        // First, get initial data
+        try {
+            val initialSnapshot = notificationsCollection
+                .whereEqualTo("recipientId", currentUser.uid)
+                .orderBy("createdAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
+                .limit(50)
+                .get()
+                .await()
+
+            val initialNotifications = initialSnapshot.documents.mapNotNull { doc ->
+                try {
+                    val data = doc.data
+                    if (data == null) {
+                        Log.e(TAG, "Notification data is null for document: ${doc.id}")
+                        return@mapNotNull null
+                    }
+
+                    val typeStr = data["type"] as? String
+                    val type = when {
+                        typeStr == null -> {
+                            Log.w(TAG, "Notification type is null for document: ${doc.id}")
+                            NotificationType.UNKNOWN
+                        }
+                        typeStr !in NotificationType.values().map { it.name } -> {
+                            Log.w(TAG, "Unknown notification type '$typeStr' for document: ${doc.id}")
+                            NotificationType.UNKNOWN
+                        }
+                        else -> NotificationType.valueOf(typeStr)
+                    }
+
+                    val notificationData = data["data"] as? Map<String, Any> ?: emptyMap()
+                    Log.d(TAG, "Notification data for ${doc.id}: $notificationData")
+
+                    Notification(
+                        id = doc.id,
+                        type = type,
+                        title = data["title"] as? String ?: "",
+                        message = data["message"] as? String ?: "",
+                        recipientId = data["recipientId"] as? String ?: "",
+                        data = notificationData,
+                        isRead = data["isRead"] as? Boolean ?: false,
+                        createdAt = data["createdAt"] as? Timestamp ?: Timestamp.now()
+                    ).also {
+                        Log.d(TAG, "Parsed notification: ${it.id}, type: ${it.type}, data: ${it.data}")
+                    }
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error parsing notification document: ${doc.id}", e)
+                    null
+                }
+            }
+            trySend(initialNotifications)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting initial notifications", e)
+            trySend(emptyList())
+        }
+
+        // Then set up real-time listener
         val subscription = notificationsCollection
             .whereEqualTo("recipientId", currentUser.uid)
             .orderBy("createdAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
             .limit(50)
             .addSnapshotListener { snapshot, error ->
                 if (error != null) {
-                    close(error)
+                    Log.e(TAG, "Error fetching notifications", error)
                     return@addSnapshotListener
                 }
 
-                val notifications = snapshot?.documents?.mapNotNull { doc ->
+                if (snapshot == null) {
+                    Log.d(TAG, "No notifications snapshot")
+                    trySend(emptyList())
+                    return@addSnapshotListener
+                }
+
+                Log.d(TAG, "Received ${snapshot.documents.size} notifications")
+
+                val notifications = snapshot.documents.mapNotNull { doc ->
                     try {
-                        val data = doc.data ?: return@mapNotNull null
+                        val data = doc.data
+                        if (data == null) {
+                            Log.e(TAG, "Notification data is null for document: ${doc.id}")
+                            return@mapNotNull null
+                        }
+
+                        val typeStr = data["type"] as? String
+                        val type = when {
+                            typeStr == null -> {
+                                Log.w(TAG, "Notification type is null for document: ${doc.id}")
+                                NotificationType.UNKNOWN
+                            }
+                            typeStr !in NotificationType.values().map { it.name } -> {
+                                Log.w(TAG, "Unknown notification type '$typeStr' for document: ${doc.id}")
+                                NotificationType.UNKNOWN
+                            }
+                            else -> NotificationType.valueOf(typeStr)
+                        }
+
+                        val notificationData = data["data"] as? Map<String, Any> ?: emptyMap()
+                        Log.d(TAG, "Notification data for ${doc.id}: $notificationData")
+
                         Notification(
                             id = doc.id,
-                            type = NotificationType.valueOf(data["type"] as? String ?: "GROUP_JOIN_REQUEST"),
+                            type = type,
                             title = data["title"] as? String ?: "",
                             message = data["message"] as? String ?: "",
                             recipientId = data["recipientId"] as? String ?: "",
-                            data = data["data"] as? Map<String, Any> ?: emptyMap(),
+                            data = notificationData,
                             isRead = data["isRead"] as? Boolean ?: false,
                             createdAt = data["createdAt"] as? Timestamp ?: Timestamp.now()
-                        )
+                        ).also {
+                            Log.d(TAG, "Parsed notification: ${it.id}, type: ${it.type}, data: ${it.data}")
+                        }
                     } catch (e: Exception) {
-                        Log.e(TAG, "Error parsing notification", e)
+                        Log.e(TAG, "Error parsing notification document: ${doc.id}", e)
                         null
                     }
-                } ?: emptyList()
+                }
 
+                Log.d(TAG, "Successfully parsed ${notifications.size} notifications")
                 trySend(notifications)
             }
 
-        awaitClose { subscription.remove() }
+        awaitClose { 
+            Log.d(TAG, "Closing notifications listener")
+            subscription.remove() 
+        }
     }
 
     suspend fun markNotificationAsRead(notificationId: String): Boolean {
         return try {
+            Log.d(TAG, "Marking notification as read: $notificationId")
             notificationsCollection.document(notificationId)
                 .update("isRead", true)
                 .await()
+            Log.d(TAG, "Successfully marked notification as read: $notificationId")
             true
         } catch (e: Exception) {
-            Log.e(TAG, "Error marking notification as read", e)
+            Log.e(TAG, "Error marking notification as read: $notificationId", e)
             false
         }
     }
 
     suspend fun deleteNotification(notificationId: String): Boolean {
         return try {
+            Log.d(TAG, "Deleting notification: $notificationId")
             notificationsCollection.document(notificationId)
                 .delete()
                 .await()
+            Log.d(TAG, "Successfully deleted notification: $notificationId")
             true
         } catch (e: Exception) {
-            Log.e(TAG, "Error deleting notification", e)
+            Log.e(TAG, "Error deleting notification: $notificationId", e)
             false
         }
     }

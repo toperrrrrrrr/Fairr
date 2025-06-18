@@ -62,68 +62,92 @@ fun NotificationsScreen(
         },
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
-        if (uiState.isLoading && uiState.notifications.isEmpty()) {
-            Box(
-                modifier = modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator()
-            }
-        } else if (uiState.notifications.isEmpty()) {
-            Box(
-                modifier = modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                contentAlignment = Alignment.Center
-            ) {
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Icon(
-                        Icons.Default.Notifications,
-                        contentDescription = "No notifications",
-                        modifier = Modifier.size(64.dp),
-                        tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    Text(
-                        text = "No notifications yet",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+        Box(
+            modifier = modifier
+                .fillMaxSize()
+                .padding(padding)
+        ) {
+            when {
+                // Show loading state
+                uiState.isLoading && uiState.notifications.isEmpty() -> {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+                
+                // Show empty state
+                uiState.notifications.isEmpty() -> {
+                    Column(
+                        modifier = Modifier.fillMaxSize(),
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        Icon(
+                            Icons.Default.Notifications,
+                            contentDescription = "No notifications",
+                            modifier = Modifier.size(64.dp),
+                            tint = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.6f)
+                        )
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "No notifications yet",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                    }
+                }
+                
+                // Show notifications list
+                else -> {
+                    LazyColumn(
+                        modifier = Modifier.fillMaxSize(),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        items(uiState.notifications) { notification ->
+                            val requestId = notification.data["requestId"] as? String
+                            val inviteId = notification.data["inviteId"] as? String
+                            val isProcessingForItem = when {
+                                uiState.processingRequestId == null -> false
+                                requestId != null && uiState.processingRequestId == requestId -> true
+                                inviteId != null && uiState.processingRequestId == inviteId -> true
+                                else -> false
+                            }
+                            NotificationCard(
+                                notification = notification,
+                                onApprove = { reqId ->
+                                    viewModel.respondToJoinRequest(notification.id, reqId, true)
+                                },
+                                onReject = { reqId ->
+                                    viewModel.respondToJoinRequest(notification.id, reqId, false)
+                                },
+                                onAcceptInvite = { invId ->
+                                    viewModel.respondToInvite(notification.id, invId, true)
+                                },
+                                onDeclineInvite = { invId ->
+                                    viewModel.respondToInvite(notification.id, invId, false)
+                                },
+                                onMarkAsRead = {
+                                    viewModel.markAsRead(notification.id)
+                                },
+                                isProcessing = isProcessingForItem
+                            )
+                        }
+                    }
                 }
             }
-        } else {
-            LazyColumn(
-                modifier = modifier
-                    .fillMaxSize()
-                    .padding(padding),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(uiState.notifications) { notification ->
-                    NotificationCard(
-                        notification = notification,
-                        onApprove = { requestId ->
-                            viewModel.respondToJoinRequest(notification.id, requestId, true)
-                        },
-                        onReject = { requestId ->
-                            viewModel.respondToJoinRequest(notification.id, requestId, false)
-                        },
-                        onAcceptInvite = { inviteId ->
-                            viewModel.respondToInvite(notification.id, inviteId, true)
-                        },
-                        onDeclineInvite = { inviteId ->
-                            viewModel.respondToInvite(notification.id, inviteId, false)
-                        },
-                        onMarkAsRead = {
-                            viewModel.markAsRead(notification.id)
-                        },
-                        isProcessing = uiState.processingRequestId == notification.data["requestId"] || 
-                                      uiState.processingRequestId == notification.data["inviteId"]
-                    )
+
+            // Show error if any
+            if (uiState.error != null) {
+                Snackbar(
+                    modifier = Modifier
+                        .align(Alignment.BottomCenter)
+                        .padding(16.dp)
+                ) {
+                    Text(uiState.error!!)
                 }
             }
         }
@@ -151,8 +175,16 @@ fun NotificationCard(
     isProcessing: Boolean = false,
     modifier: Modifier = Modifier
 ) {
+    val isJoinRequest = notification.type == NotificationType.GROUP_JOIN_REQUEST
+    val isInvitation = notification.type == NotificationType.GROUP_INVITATION
+    val requestId = notification.data["requestId"] as? String
+    val inviteId = notification.data["inviteId"] as? String
+    val currentProcessing = isProcessing && (requestId != null || inviteId != null)
+
     Card(
-        modifier = modifier.fillMaxWidth(),
+        modifier = modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp),
         elevation = CardDefaults.cardElevation(defaultElevation = 2.dp),
         shape = MaterialTheme.shapes.medium,
         colors = CardDefaults.cardColors(
@@ -187,6 +219,14 @@ fun NotificationCard(
                         style = MaterialTheme.typography.bodyMedium,
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
+                    
+                    Spacer(modifier = Modifier.height(8.dp))
+                    
+                    Text(
+                        text = formatTimestamp(notification.createdAt),
+                        style = MaterialTheme.typography.bodySmall,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
+                    )
                 }
                 
                 if (!notification.isRead) {
@@ -201,34 +241,27 @@ fun NotificationCard(
                 }
             }
             
-            Spacer(modifier = Modifier.height(8.dp))
-            
-            Text(
-                text = formatTimestamp(notification.createdAt),
-                style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant.copy(alpha = 0.7f)
-            )
-            
             // Show action buttons for group join requests
-            if (notification.type == NotificationType.GROUP_JOIN_REQUEST) {
-                Spacer(modifier = Modifier.height(12.dp))
+            if (isJoinRequest && requestId != null) {
+                Spacer(modifier = Modifier.height(16.dp))
                 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     OutlinedButton(
-                        onClick = {
-                            val requestId = notification.data["requestId"] as? String ?: return@OutlinedButton
-                            onReject(requestId)
-                        },
+                        onClick = { onReject(requestId) },
                         modifier = Modifier.weight(1f),
-                        enabled = !isProcessing
+                        enabled = !currentProcessing,
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error
+                        )
                     ) {
-                        if (isProcessing) {
+                        if (currentProcessing) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(16.dp),
-                                strokeWidth = 2.dp
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.error
                             )
                         } else {
                             Text("Reject")
@@ -236,14 +269,14 @@ fun NotificationCard(
                     }
                     
                     Button(
-                        onClick = {
-                            val requestId = notification.data["requestId"] as? String ?: return@Button
-                            onApprove(requestId)
-                        },
+                        onClick = { onApprove(requestId) },
                         modifier = Modifier.weight(1f),
-                        enabled = !isProcessing
+                        enabled = !currentProcessing,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
                     ) {
-                        if (isProcessing) {
+                        if (currentProcessing) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(16.dp),
                                 strokeWidth = 2.dp,
@@ -257,25 +290,26 @@ fun NotificationCard(
             }
             
             // Show action buttons for group invitations
-            if (notification.type == NotificationType.GROUP_INVITATION) {
-                Spacer(modifier = Modifier.height(12.dp))
+            if (isInvitation && inviteId != null) {
+                Spacer(modifier = Modifier.height(16.dp))
                 
                 Row(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     OutlinedButton(
-                        onClick = {
-                            val inviteId = notification.data["inviteId"] as? String ?: return@OutlinedButton
-                            onDeclineInvite(inviteId)
-                        },
+                        onClick = { onDeclineInvite(inviteId) },
                         modifier = Modifier.weight(1f),
-                        enabled = !isProcessing
+                        enabled = !currentProcessing,
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = MaterialTheme.colorScheme.error
+                        )
                     ) {
-                        if (isProcessing) {
+                        if (currentProcessing) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(16.dp),
-                                strokeWidth = 2.dp
+                                strokeWidth = 2.dp,
+                                color = MaterialTheme.colorScheme.error
                             )
                         } else {
                             Text("Decline")
@@ -283,14 +317,14 @@ fun NotificationCard(
                     }
                     
                     Button(
-                        onClick = {
-                            val inviteId = notification.data["inviteId"] as? String ?: return@Button
-                            onAcceptInvite(inviteId)
-                        },
+                        onClick = { onAcceptInvite(inviteId) },
                         modifier = Modifier.weight(1f),
-                        enabled = !isProcessing
+                        enabled = !currentProcessing,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
                     ) {
-                        if (isProcessing) {
+                        if (currentProcessing) {
                             CircularProgressIndicator(
                                 modifier = Modifier.size(16.dp),
                                 strokeWidth = 2.dp,
@@ -307,9 +341,7 @@ fun NotificationCard(
     
     // Mark as read when tapped (for non-action notifications)
     LaunchedEffect(Unit) {
-        if (notification.type != NotificationType.GROUP_JOIN_REQUEST && 
-            notification.type != NotificationType.GROUP_INVITATION && 
-            !notification.isRead) {
+        if (!isJoinRequest && !isInvitation && !notification.isRead) {
             onMarkAsRead()
         }
     }
@@ -328,8 +360,6 @@ private fun formatTimestamp(timestamp: com.google.firebase.Timestamp): String {
         else -> "${diff / 604800_000}w ago"
     }
 }
-
-
 
 @Preview(showBackground = true)
 @Composable
