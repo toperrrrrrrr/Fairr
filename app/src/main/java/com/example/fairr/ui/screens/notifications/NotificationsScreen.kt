@@ -116,6 +116,7 @@ fun NotificationsScreen(
                                 inviteId != null && uiState.processingRequestId == inviteId -> true
                                 else -> false
                             }
+                            val outcome = uiState.decisionResults[notification.id]
                             NotificationCard(
                                 notification = notification,
                                 onApprove = { reqId ->
@@ -133,7 +134,8 @@ fun NotificationsScreen(
                                 onMarkAsRead = {
                                     viewModel.markAsRead(notification.id)
                                 },
-                                isProcessing = isProcessingForItem
+                                isProcessing = isProcessingForItem,
+                                outcome = outcome
                             )
                         }
                     }
@@ -173,6 +175,7 @@ fun NotificationCard(
     onDeclineInvite: (String) -> Unit = {},
     onMarkAsRead: () -> Unit = {},
     isProcessing: Boolean = false,
+    outcome: String? = null,
     modifier: Modifier = Modifier
 ) {
     val isJoinRequest = notification.type == NotificationType.GROUP_JOIN_REQUEST
@@ -180,6 +183,7 @@ fun NotificationCard(
     val requestId = notification.data["requestId"] as? String
     val inviteId = notification.data["inviteId"] as? String
     val currentProcessing = isProcessing && (requestId != null || inviteId != null)
+    val cardPadding = if (notification.isRead) 8.dp else 16.dp
 
     Card(
         modifier = modifier
@@ -197,7 +201,7 @@ fun NotificationCard(
         Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp)
+                .padding(cardPadding)
         ) {
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -241,8 +245,8 @@ fun NotificationCard(
                 }
             }
             
-            // Show action buttons for group join requests
-            if (isJoinRequest && requestId != null) {
+            // Show action buttons for group join requests (only if not already processed)
+            if (isJoinRequest && requestId != null && !notification.isRead) {
                 Spacer(modifier = Modifier.height(16.dp))
                 
                 Row(
@@ -289,8 +293,8 @@ fun NotificationCard(
                 }
             }
             
-            // Show action buttons for group invitations
-            if (isInvitation && inviteId != null) {
+            // Show action buttons for group invitations (only if not already processed)
+            if (isInvitation && inviteId != null && !notification.isRead) {
                 Spacer(modifier = Modifier.height(16.dp))
                 
                 Row(
@@ -335,6 +339,18 @@ fun NotificationCard(
                         }
                     }
                 }
+            }
+            
+            // If the notification has been processed, show a subtle status instead of buttons
+            if ((isJoinRequest || isInvitation) && notification.isRead) {
+                Spacer(modifier = Modifier.height(16.dp))
+                val displayOutcome = outcome ?: "Handled"
+                Text(
+                    text = displayOutcome,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.align(Alignment.End)
+                )
             }
         }
     }

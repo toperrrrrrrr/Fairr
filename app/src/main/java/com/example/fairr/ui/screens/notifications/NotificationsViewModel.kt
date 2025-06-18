@@ -29,7 +29,8 @@ data class NotificationsUiState(
     val notifications: List<Notification> = emptyList(),
     val isLoading: Boolean = false,
     val error: String? = null,
-    val processingRequestId: String? = null
+    val processingRequestId: String? = null,
+    val decisionResults: Map<String, String> = emptyMap()
 ) {
     override fun toString(): String {
         return "NotificationsUiState(notifications.size=${notifications.size}, isLoading=$isLoading, error=$error, processingRequestId=$processingRequestId)"
@@ -61,7 +62,7 @@ class NotificationsViewModel @Inject constructor(
                 notificationService.getNotificationsForUser()
                     .onStart { 
                         Log.d(TAG, "Setting initial loading state")
-                        _uiState.value = NotificationsUiState(isLoading = true)
+                        _uiState.value = _uiState.value.copy(isLoading = true)
                         Log.d(TAG, "New state: ${_uiState.value}")
                     }
                     .onEach { notifications ->
@@ -70,7 +71,7 @@ class NotificationsViewModel @Inject constructor(
                     .catch { e ->
                         Log.e(TAG, "Error loading notifications", e)
                         val errorMsg = e.message ?: "Failed to load notifications"
-                        _uiState.value = NotificationsUiState(
+                        _uiState.value = _uiState.value.copy(
                             error = errorMsg,
                             isLoading = false
                         )
@@ -78,7 +79,7 @@ class NotificationsViewModel @Inject constructor(
                     }
                     .collect { notifications ->
                         Log.d(TAG, "Updating UI with ${notifications.size} notifications")
-                        _uiState.value = NotificationsUiState(
+                        _uiState.value = _uiState.value.copy(
                             notifications = notifications,
                             isLoading = false
                         )
@@ -109,14 +110,13 @@ class NotificationsViewModel @Inject constructor(
                         val message = if (approve) "Join request approved" else "Join request rejected"
                         snackbarMessage = message
                         
-                        // Update state before refreshing notifications to prevent race condition
                         _uiState.value = _uiState.value.copy(
                             processingRequestId = null,
-                            notifications = _uiState.value.notifications.filter { it.id != notificationId }
+                            decisionResults = _uiState.value.decisionResults + (notificationId to if (approve) "Accepted" else "Declined"),
+                            notifications = _uiState.value.notifications.map { n ->
+                                if (n.id == notificationId) n.copy(isRead = true) else n
+                            }
                         )
-                        
-                        // Refresh notifications after state is updated
-                        loadNotifications()
                         Log.d(TAG, "Updated state after success: ${_uiState.value}")
                     }
                     is JoinRequestResult.Error -> {
@@ -149,14 +149,13 @@ class NotificationsViewModel @Inject constructor(
                         val message = if (accept) "Group invitation accepted" else "Group invitation declined"
                         snackbarMessage = message
                         
-                        // Update state before refreshing notifications to prevent race condition
                         _uiState.value = _uiState.value.copy(
                             processingRequestId = null,
-                            notifications = _uiState.value.notifications.filter { it.id != notificationId }
+                            decisionResults = _uiState.value.decisionResults + (notificationId to if (accept) "Accepted" else "Declined"),
+                            notifications = _uiState.value.notifications.map { n ->
+                                if (n.id == notificationId) n.copy(isRead = true) else n
+                            }
                         )
-                        
-                        // Refresh notifications after state is updated
-                        loadNotifications()
                         Log.d(TAG, "Updated state after success: ${_uiState.value}")
                     }
                     is InviteResult.Error -> {
