@@ -101,6 +101,11 @@ fun GroupDetailScreen(
                                 contentDescription = "Back"
                             )
                         }
+                    },
+                    actions = {
+                        IconButton(onClick = { navController.navigate(Screen.GroupSettings.createRoute(groupId)) }) {
+                            Icon(Icons.Default.Settings, contentDescription = "Group Settings")
+                        }
                     }
                 )
 
@@ -116,7 +121,9 @@ fun GroupDetailScreen(
                             memberCount = uiState.members.size,
                             totalExpenses = uiState.totalExpenses,
                             currentUserBalance = uiState.currentUserBalance,
-                            currency = group.currency
+                            currency = group.currency,
+                            groupId = groupId,
+                            navController = navController
                         )
                     }
 
@@ -126,22 +133,6 @@ fun GroupDetailScreen(
                             groupId = groupId,
                             navController = navController,
                             onAddExpenseClick = onNavigateToAddExpense
-                        )
-                    }
-
-                    // Members Section
-                    item {
-                        Text(
-                            text = "Members",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold
-                        )
-                    }
-
-                    items(uiState.members) { member ->
-                        MemberCard(
-                            member = member,
-                            currency = group.currency
                         )
                     }
 
@@ -351,6 +342,8 @@ private fun GroupOverview(
     totalExpenses: Double,
     currentUserBalance: Double,
     currency: String,
+    groupId: String,
+    navController: NavController,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -376,7 +369,8 @@ private fun GroupOverview(
                 InfoItem(
                     label = "Members",
                     value = memberCount.toString(),
-                    icon = Icons.Default.Group
+                    icon = Icons.Default.Group,
+                    modifier = Modifier.clickable { navController.navigate(Screen.GroupSettings.createRoute(groupId)) }
                 )
                 InfoItem(
                     label = "Total Expenses",
@@ -436,23 +430,6 @@ private fun QuickActionsSection(
                 },
                 modifier = Modifier.weight(1f)
             )
-        }
-        
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            QuickActionCard(
-                title = "Settings",
-                icon = Icons.Default.Settings,
-                onClick = { 
-                    navController.navigate(Screen.GroupSettings.createRoute(groupId))
-                },
-                modifier = Modifier.weight(1f)
-            )
-            // Add spacers to maintain layout with only one button in second row
-            Spacer(modifier = Modifier.weight(1f))
-            Spacer(modifier = Modifier.weight(1f))
         }
     }
 }
