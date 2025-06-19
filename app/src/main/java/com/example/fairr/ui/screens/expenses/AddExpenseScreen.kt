@@ -5,7 +5,6 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -39,6 +38,8 @@ import com.example.fairr.util.CurrencyFormatter
 import java.io.File
 import java.util.*
 import kotlinx.coroutines.launch
+import androidx.compose.foundation.rememberScrollState
+import androidx.compose.foundation.layout.navigationBarsPadding
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -61,9 +62,9 @@ fun AddExpenseScreen(
     val state = viewModel.state
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
+    val scrollState = rememberScrollState()
     
     val splitTypes = listOf("Equal Split", "Percentage", "Custom Amount")
-    val scrollState = rememberScrollState()
 
     // Auto-fill from OCR data when photos are added
     LaunchedEffect(receiptPhotos) {
@@ -111,219 +112,8 @@ fun AddExpenseScreen(
                     containerColor = BackgroundPrimary
                 )
             )
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(BackgroundSecondary)
-                .padding(padding)
-                .verticalScroll(scrollState),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            // Description field
-            ModernCard(
-                modifier = Modifier.padding(horizontal = 16.dp)
-            ) {
-                OutlinedTextField(
-                    value = description,
-                    onValueChange = { description = it },
-                    label = { Text("Description", fontSize = 14.sp) },
-                    placeholder = { Text("What's this expense for?", fontSize = 14.sp) },
-                    singleLine = true,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    textStyle = LocalTextStyle.current.copy(fontSize = 16.sp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Primary,
-                        focusedLabelColor = Primary
-                    )
-                )
-            }
-
-            // Calculator Card
-            ModernCard(
-                modifier = Modifier.padding(horizontal = 16.dp)
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    Text(
-                        text = "Amount",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = TextPrimary
-                    )
-                    CompactCalculator(
-                        value = amount,
-                        onValueChange = { amount = it },
-                        modifier = Modifier.fillMaxWidth()
-                    )
-                }
-            }
-
-            // Category and Split Section
-            ModernCard(
-                modifier = Modifier.padding(horizontal = 16.dp)
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    // Category Dropdown
-                    ExposedDropdownMenuBox(
-                        expanded = showCategoryDropdown,
-                        onExpandedChange = { showCategoryDropdown = it }
-                    ) {
-                        OutlinedTextField(
-                            value = selectedCategory.name,
-                            onValueChange = {},
-                            readOnly = true,
-                            label = { Text("Category", fontSize = 14.sp) },
-                            leadingIcon = {
-                                Icon(
-                                    selectedCategory.icon,
-                                    contentDescription = null,
-                                    tint = selectedCategory.color,
-                                    modifier = Modifier.size(20.dp)
-                                )
-                            },
-                            trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = showCategoryDropdown) },
-                            modifier = Modifier
-                                .menuAnchor()
-                                .fillMaxWidth(),
-                            colors = OutlinedTextFieldDefaults.colors(
-                                focusedBorderColor = Primary,
-                                focusedLabelColor = Primary
-                            )
-                        )
-                        
-                        ExposedDropdownMenu(
-                            expanded = showCategoryDropdown,
-                            onDismissRequest = { showCategoryDropdown = false }
-                        ) {
-                            categories.forEach { category ->
-                                DropdownMenuItem(
-                                    text = {
-                                        Row(
-                                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                            verticalAlignment = Alignment.CenterVertically
-                                        ) {
-                                            Icon(
-                                                category.icon,
-                                                contentDescription = null,
-                                                tint = category.color,
-                                                modifier = Modifier.size(20.dp)
-                                            )
-                                            Text(category.name)
-                                        }
-                                    },
-                                    onClick = {
-                                        selectedCategory = category
-                                        showCategoryDropdown = false
-                                    }
-                                )
-                            }
-                        }
-                    }
-
-                    // Split Type Selection
-                    Column {
-                        Text(
-                            text = "Split Type",
-                            fontSize = 14.sp,
-                            color = TextSecondary
-                        )
-                        
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 8.dp),
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            splitTypes.forEach { type ->
-                                FilterChip(
-                                    selected = selectedSplitType == type,
-                                    onClick = { selectedSplitType = type },
-                                    label = { Text(type, fontSize = 14.sp) },
-                                    colors = FilterChipDefaults.filterChipColors(
-                                        selectedContainerColor = Primary,
-                                        selectedLabelColor = PureWhite
-                                    )
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-
-            Spacer(modifier = Modifier.weight(1f))
-
-            // Receipt Photos Section (Optional)
-            if (receiptPhotos.isEmpty()) {
-                TextButton(
-                    onClick = { navController.navigate("photo_capture") },
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(horizontal = 16.dp)
-                ) {
-                    Icon(
-                        Icons.Default.PhotoCamera,
-                        contentDescription = "Add Photo",
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Add Receipt Photo (Optional)")
-                }
-            } else {
-                ModernCard(
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                ) {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = "Receipt Photos",
-                                fontSize = 14.sp,
-                                fontWeight = FontWeight.Medium
-                            )
-                            TextButton(
-                                onClick = { navController.navigate("photo_capture") }
-                            ) {
-                                Icon(
-                                    Icons.Default.Add,
-                                    contentDescription = "Add More",
-                                    modifier = Modifier.size(16.dp)
-                                )
-                                Spacer(modifier = Modifier.width(4.dp))
-                                Text("Add More", fontSize = 12.sp)
-                            }
-                        }
-                        LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
-                        ) {
-                            items(receiptPhotos) { photo ->
-                                ReceiptPhotoCard(
-                                    photo = photo,
-                                    onRemove = { 
-                                        receiptPhotos = receiptPhotos.filter { it.id != photo.id }
-                                    }
-                                )
-                            }
-                        }
-                    }
-                }
-            }
-
-            // Save Button
+        },
+        bottomBar = {
             ModernButton(
                 text = "Save Expense",
                 onClick = {
@@ -349,9 +139,144 @@ fun AddExpenseScreen(
                 modifier = Modifier
                     .fillMaxWidth()
                     .padding(16.dp)
-                    .height(48.dp),
+                    .height(48.dp)
+                    .navigationBarsPadding(),
                 enabled = description.isNotBlank() && amount.isNotBlank() && !state.isLoading
             )
+        }
+    ) { padding ->
+        Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(BackgroundSecondary)
+                .padding(padding)
+                .padding(horizontal = 16.dp)
+                .verticalScroll(scrollState),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
+        ) {
+            // Details Section (Description, Category, Split)
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // Description field
+                OutlinedTextField(
+                    value = description,
+                    onValueChange = { description = it },
+                    label = { Text("Description", fontSize = 14.sp) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    textStyle = LocalTextStyle.current.copy(fontSize = 16.sp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Primary,
+                        focusedLabelColor = Primary
+                    )
+                )
+
+                // Category Dropdown
+                ExposedDropdownMenuBox(
+                    expanded = showCategoryDropdown,
+                    onExpandedChange = { showCategoryDropdown = it }
+                ) {
+                    OutlinedTextField(
+                        value = selectedCategory.name,
+                        onValueChange = {},
+                        readOnly = true,
+                        label = { Text("Category", fontSize = 14.sp) },
+                        leadingIcon = {
+                            Icon(
+                                selectedCategory.icon,
+                                contentDescription = null,
+                                tint = selectedCategory.color,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        },
+                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = showCategoryDropdown) },
+                        modifier = Modifier
+                            .menuAnchor()
+                            .fillMaxWidth()
+                            .height(56.dp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Primary,
+                            focusedLabelColor = Primary
+                        )
+                    )
+                    
+                    ExposedDropdownMenu(
+                        expanded = showCategoryDropdown,
+                        onDismissRequest = { showCategoryDropdown = false }
+                    ) {
+                        categories.forEach { category ->
+                            DropdownMenuItem(
+                                text = {
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Icon(
+                                            category.icon,
+                                            contentDescription = null,
+                                            tint = category.color,
+                                            modifier = Modifier.size(20.dp)
+                                        )
+                                        Text(category.name)
+                                    }
+                                },
+                                onClick = {
+                                    selectedCategory = category
+                                    showCategoryDropdown = false
+                                }
+                            )
+                        }
+                    }
+                }
+
+                // Split Type Selection
+                Column {
+                    Text(
+                        text = "Split Type",
+                        fontSize = 14.sp,
+                        color = TextSecondary
+                    )
+                    
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(top = 4.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
+                    ) {
+                        splitTypes.forEach { type ->
+                            FilterChip(
+                                selected = selectedSplitType == type,
+                                onClick = { selectedSplitType = type },
+                                label = { Text(type, fontSize = 14.sp) },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = Primary,
+                                    selectedLabelColor = PureWhite
+                                )
+                            )
+                        }
+                    }
+                }
+            }
+
+            // Calculator Section (Amount)
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = "Amount",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = TextPrimary
+                )
+                CompactCalculator(
+                    value = amount,
+                    onValueChange = { amount = it },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
         }
     }
     
