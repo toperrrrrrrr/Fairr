@@ -29,12 +29,16 @@ Notifications - open notification to another page
 
 
 
-Keep the profile with a huge card 
-
-
 
 Nav bar have huge white space make the oblong and the buttons float. 
 
 
 
 Notification page cards ui can be improved.
+
+
+
+
+
+Personal information page from the removed personal information button can now be removed. 
+account section is now empty therefore can be removed. 

@@ -28,6 +28,7 @@ import com.example.fairr.ui.components.*
 import com.example.fairr.ui.theme.*
 import com.example.fairr.navigation.Screen
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.fairr.ui.viewmodels.ProfileViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -40,6 +41,8 @@ fun SettingsScreen(
     var notificationsEnabled by remember { mutableStateOf(true) }
     var soundEnabled by remember { mutableStateOf(true) }
     var isDarkMode by remember { mutableStateOf(false) }
+    val profileViewModel: ProfileViewModel = hiltViewModel()
+    val userState by profileViewModel.userState.collectAsState()
 
     Scaffold(
         modifier = modifier,
@@ -77,95 +80,39 @@ fun SettingsScreen(
                 )
                 
                 ModernCard {
-                    Column(
-                        modifier = Modifier.padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
+                    Box(modifier = Modifier.fillMaxWidth()) {
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(vertical = 24.dp),
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
-                            Column {
-                                Text(
-                                    text = "John Doe",
-                                    fontSize = 20.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = TextPrimary
-                                )
-                                Text(
-                                    text = "john.doe@example.com",
-                                    fontSize = 14.sp,
-                                    color = TextSecondary
-                                )
-                            }
-                            Button(
-                                onClick = { navController.navigate(Screen.EditProfile.route) },
-                                colors = ButtonDefaults.buttonColors(
-                                    containerColor = Primary.copy(alpha = 0.1f),
-                                    contentColor = Primary
-                                )
-                            ) {
-                                Text("Edit Profile")
-                            }
+                            com.example.fairr.ui.components.ProfileImage(
+                                photoUrl = userState.photoUrl,
+                                size = 80.dp
+                            )
+                            Text(
+                                text = userState.displayName ?: "User",
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = TextPrimary
+                            )
+                            Text(
+                                text = userState.email ?: "",
+                                fontSize = 14.sp,
+                                color = TextSecondary
+                            )
                         }
-                    }
-                }
-            }
 
-            // Account Section
-            item {
-                Text(
-                    text = "Account",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextPrimary,
-                    modifier = Modifier.padding(vertical = 8.dp)
-                )
-                
-                ModernCard {
-                    Column {
-                        ListItem(
-                            headlineContent = { Text("Personal Information") },
-                            leadingContent = { 
-                                Icon(
-                                    Icons.Default.Person,
-                                    contentDescription = null,
-                                    tint = Primary
-                                )
-                            },
-                            modifier = Modifier.clickable { 
-                                navController.navigate(Screen.UserProfile.route)
-                            }
-                        )
-                        ListItem(
-                            headlineContent = { Text("Category Management") },
-                            supportingContent = { Text("Manage expense categories") },
-                            leadingContent = { 
-                                Icon(
-                                    Icons.Default.Label,
-                                    contentDescription = null,
-                                    tint = Primary
-                                )
-                            },
-                            modifier = Modifier.clickable { 
-                                navController.navigate(Screen.CategoryManagement.route)
-                            }
-                        )
-                        ListItem(
-                            headlineContent = { Text("Export Data") },
-                            supportingContent = { Text("Export your expense data") },
-                            leadingContent = { 
-                                Icon(
-                                    Icons.Default.FileDownload,
-                                    contentDescription = null,
-                                    tint = Primary
-                                )
-                            },
-                            modifier = Modifier.clickable { 
-                                navController.navigate(Screen.ExportData.route)
-                            }
-                        )
+                        IconButton(
+                            onClick = { navController.navigate(Screen.EditProfile.route) },
+                            modifier = Modifier
+                                .align(Alignment.TopEnd)
+                                .padding(8.dp)
+                        ) {
+                            Icon(Icons.Default.Edit, contentDescription = "Edit Profile", tint = Primary)
+                        }
                     }
                 }
             }
@@ -228,6 +175,26 @@ fun SettingsScreen(
                                     checked = notificationsEnabled,
                                     onCheckedChange = { notificationsEnabled = it }
                                 )
+                            }
+                        )
+                        ListItem(
+                            headlineContent = { Text("Category Management") },
+                            supportingContent = { Text("Manage expense categories") },
+                            leadingContent = {
+                                Icon(Icons.Default.Label, contentDescription = null, tint = Primary)
+                            },
+                            modifier = Modifier.clickable {
+                                navController.navigate(Screen.CategoryManagement.route)
+                            }
+                        )
+                        ListItem(
+                            headlineContent = { Text("Export Data") },
+                            supportingContent = { Text("Export your expense data") },
+                            leadingContent = {
+                                Icon(Icons.Default.FileDownload, contentDescription = null, tint = Primary)
+                            },
+                            modifier = Modifier.clickable {
+                                navController.navigate(Screen.ExportData.route)
                             }
                         )
                         ListItem(
