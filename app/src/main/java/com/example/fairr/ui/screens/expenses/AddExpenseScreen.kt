@@ -30,8 +30,6 @@ import androidx.navigation.compose.rememberNavController
 import androidx.hilt.navigation.compose.hiltViewModel
 import coil.compose.AsyncImage
 import com.example.fairr.ui.components.*
-import com.example.fairr.ui.screens.categories.ExpenseCategory
-import com.example.fairr.ui.screens.categories.getDefaultCategories
 import com.example.fairr.ui.theme.*
 import com.example.fairr.utils.ReceiptPhoto
 import com.example.fairr.util.CurrencyFormatter
@@ -52,13 +50,12 @@ fun AddExpenseScreen(
 ) {
     var description by remember { mutableStateOf("") }
     var amount by remember { mutableStateOf("") }
-    val categories = remember { getDefaultCategories() }
-    var selectedCategory by remember { mutableStateOf(categories.first()) }
     var selectedSplitType by remember { mutableStateOf("Equal Split") }
     var showCategoryDropdown by remember { mutableStateOf(false) }
     var receiptPhotos by remember { mutableStateOf<List<ReceiptPhoto>>(emptyList()) }
     var showOcrSuggestion by remember { mutableStateOf(false) }
     var suggestedData by remember { mutableStateOf<com.example.fairr.utils.ExtractedReceiptData?>(null) }
+    var selectedPaidBy by remember { mutableStateOf("You") }
     val state = viewModel.state
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -173,90 +170,27 @@ fun AddExpenseScreen(
                     )
                 )
 
-                // Category Dropdown
-                ExposedDropdownMenuBox(
-                    expanded = showCategoryDropdown,
-                    onExpandedChange = { showCategoryDropdown = it }
+                // Conversational sentence row
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Center,
+                    verticalAlignment = Alignment.CenterVertically
                 ) {
-                    OutlinedTextField(
-                        value = selectedCategory.name,
-                        onValueChange = {},
-                        readOnly = true,
-                        label = { Text("Category", fontSize = 14.sp) },
-                        leadingIcon = {
-                            Icon(
-                                selectedCategory.icon,
-                                contentDescription = null,
-                                tint = selectedCategory.color,
-                                modifier = Modifier.size(20.dp)
-                            )
-                        },
-                        trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = showCategoryDropdown) },
-                        modifier = Modifier
-                            .menuAnchor()
-                            .fillMaxWidth()
-                            .height(56.dp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Primary,
-                            focusedLabelColor = Primary
-                        )
-                    )
-                    
-                    ExposedDropdownMenu(
-                        expanded = showCategoryDropdown,
-                        onDismissRequest = { showCategoryDropdown = false }
-                    ) {
-                        categories.forEach { category ->
-                            DropdownMenuItem(
-                                text = {
-                                    Row(
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Icon(
-                                            category.icon,
-                                            contentDescription = null,
-                                            tint = category.color,
-                                            modifier = Modifier.size(20.dp)
-                                        )
-                                        Text(category.name)
-                                    }
-                                },
-                                onClick = {
-                                    selectedCategory = category
-                                    showCategoryDropdown = false
-                                }
-                            )
-                        }
-                    }
-                }
+                    Text("Paid by ")
 
-                // Split Type Selection
-                Column {
-                    Text(
-                        text = "Split Type",
-                        fontSize = 14.sp,
-                        color = TextSecondary
+                    FilterChip(
+                        selected = true,
+                        onClick = { /* In future allow choosing payer */ },
+                        label = { Text(selectedPaidBy.lowercase()) }
                     )
-                    
-                    Row(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(top = 4.dp),
-                        horizontalArrangement = Arrangement.spacedBy(8.dp, Alignment.CenterHorizontally)
-                    ) {
-                        splitTypes.forEach { type ->
-                            FilterChip(
-                                selected = selectedSplitType == type,
-                                onClick = { selectedSplitType = type },
-                                label = { Text(type, fontSize = 14.sp) },
-                                colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = Primary,
-                                    selectedLabelColor = PureWhite
-                                )
-                            )
-                        }
-                    }
+
+                    Text(" and split ")
+
+                    FilterChip(
+                        selected = true,
+                        onClick = { /* choose split type */ },
+                        label = { Text(selectedSplitType.lowercase()) }
+                    )
                 }
             }
 
