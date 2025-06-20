@@ -25,7 +25,9 @@ interface ExpenseRepository {
         groupId: String,
         description: String,
         amount: Double,
-        date: Date
+        date: Date,
+        paidBy: String,
+        splitType: String
     )
     
     suspend fun getExpensesByGroupId(groupId: String): List<Expense>
@@ -119,7 +121,9 @@ class ExpenseRepositoryImpl @Inject constructor(
         groupId: String,
         description: String,
         amount: Double,
-        date: Date
+        date: Date,
+        paidBy: String,
+        splitType: String
     ) {
         val currentUser = auth.currentUser
             ?: throw Exception("User must be authenticated to add expenses")
@@ -155,7 +159,9 @@ class ExpenseRepositoryImpl @Inject constructor(
             "createdAt" to com.google.firebase.Timestamp.now(),
             "createdBy" to currentUser.uid,
             "updatedAt" to com.google.firebase.Timestamp.now(),
-            "currency" to "USD" // TODO: Make this configurable
+            "currency" to "USD", // TODO: Make this configurable
+            "paidBy" to paidBy,
+            "splitType" to splitType
         )
 
         Log.d("ExpenseRepository", "Expense data prepared: $expenseData")

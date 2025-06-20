@@ -62,6 +62,9 @@ fun AddExpenseScreen(
     val scrollState = rememberScrollState()
     
     val splitTypes = listOf("Equal Split", "Percentage", "Custom Amount")
+    val members = state.groupMembers.map { it.displayName }.ifEmpty { listOf("You") }
+    var showPayerSheet by remember { mutableStateOf(false) }
+    var showSplitSheet by remember { mutableStateOf(false) }
 
     // Auto-fill from OCR data when photos are added
     LaunchedEffect(receiptPhotos) {
@@ -70,6 +73,11 @@ fun AddExpenseScreen(
             suggestedData = latestPhotoWithOcr.extractedData
             showOcrSuggestion = true
         }
+    }
+
+    // Load group members when screen opens
+    LaunchedEffect(groupId) {
+        viewModel.loadGroupMembers(groupId)
     }
 
     // Handle events
@@ -130,7 +138,9 @@ fun AddExpenseScreen(
                         groupId = groupId,
                         description = description,
                         amount = amountValue,
-                        date = Date()
+                        date = Date(),
+                        paidBy = viewModel.getMemberIdByDisplayName(selectedPaidBy),
+                        splitType = selectedSplitType
                     )
                 },
                 modifier = Modifier
@@ -154,7 +164,7 @@ fun AddExpenseScreen(
             // Details Section (Description, Category, Split)
             Column(
                 modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 // Description field
                 OutlinedTextField(
@@ -172,24 +182,57 @@ fun AddExpenseScreen(
 
                 // Conversational sentence row
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(vertical = 8.dp),
                     horizontalArrangement = Arrangement.Center,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    Text("Paid by ")
-
-                    FilterChip(
-                        selected = true,
-                        onClick = { /* In future allow choosing payer */ },
-                        label = { Text(selectedPaidBy.lowercase()) }
+                    Text(
+                        "Paid by ",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurface
                     )
 
-                    Text(" and split ")
+                    FilterChip(
+                        selected = true,
+                        onClick = { showPayerSheet = true },
+                        label = { 
+                            Text(
+                                selectedPaidBy.lowercase(),
+                                fontWeight = FontWeight.Medium
+                            ) 
+                        },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = Primary.copy(alpha = 0.12f),
+                            selectedLabelColor = Primary
+                        )
+                    )
+
+                    Text(
+                        " and split ",
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurface
+                    )
 
                     FilterChip(
                         selected = true,
-                        onClick = { /* choose split type */ },
-                        label = { Text(selectedSplitType.lowercase()) }
+                        onClick = { showSplitSheet = true },
+                        label = { 
+                            Text(
+                                when(selectedSplitType) {
+                                    "Equal Split" -> "equally"
+                                    "Percentage" -> "by %"
+                                    "Custom Amount" -> "custom"
+                                    else -> selectedSplitType.lowercase()
+                                },
+                                fontWeight = FontWeight.Medium
+                            ) 
+                        },
+                        colors = FilterChipDefaults.filterChipColors(
+                            selectedContainerColor = Primary.copy(alpha = 0.12f),
+                            selectedLabelColor = Primary
+                        )
                     )
                 }
             }
@@ -228,6 +271,111 @@ fun AddExpenseScreen(
         modifier = Modifier
             .padding(16.dp)
     )
+
+    // Modal sheet for payer selection
+    if (showPayerSheet) {
+        ModalBottomSheet(onDismissRequest = { showPayerSheet = false }) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Text(
+                    text = "Who paid?",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+                members.forEach { member ->
+                    ListItem(
+                        headlineContent = { 
+                            Text(
+                                member,
+                                style = MaterialTheme.typography.bodyLarge
+                            ) 
+                        },
+                        leadingContent = {
+                            Icon(
+                                Icons.Default.Person,
+                                contentDescription = null,
+                                tint = if (member == selectedPaidBy) Primary else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        },
+                        trailingContent = {
+                            if (member == selectedPaidBy) {
+                                Icon(
+                                    Icons.Default.Check,
+                                    contentDescription = "Selected",
+                                    tint = Primary
+                                )
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                selectedPaidBy = member
+                                showPayerSheet = false
+                            }
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+        }
+    }
+
+    // Modal sheet for split selection
+    if (showSplitSheet) {
+        ModalBottomSheet(onDismissRequest = { showSplitSheet = false }) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Text(
+                    text = "How to split?",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+                splitTypes.forEach { type ->
+                    ListItem(
+                        headlineContent = { 
+                            Text(
+                                type,
+                                style = MaterialTheme.typography.bodyLarge
+                            ) 
+                        },
+                        leadingContent = {
+                            Icon(
+                                when(type) {
+                                    "Equal Split" -> Icons.Default.Group
+                                    "Percentage" -> Icons.Default.Percent
+                                    "Custom Amount" -> Icons.Default.Calculate
+                                    else -> Icons.Default.CallSplit
+                                },
+                                contentDescription = null,
+                                tint = if (type == selectedSplitType) Primary else MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                        },
+                        trailingContent = {
+                            if (type == selectedSplitType) {
+                                Icon(
+                                    Icons.Default.Check,
+                                    contentDescription = "Selected",
+                                    tint = Primary
+                                )
+                            }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable {
+                                selectedSplitType = type
+                                showSplitSheet = false
+                            }
+                    )
+                }
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+        }
+    }
 }
 
 @Composable
@@ -353,7 +501,7 @@ fun CompactCalculator(
                             },
                             modifier = Modifier
                                 .weight(1f)
-                                .height(48.dp)
+                                .height(56.dp)
                                 .background(
                                     when {
                                         isOperation -> Primary.copy(alpha = 0.1f)
@@ -385,7 +533,7 @@ fun CompactCalculator(
                 onClick = { performOperation() },
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(48.dp)
+                    .height(56.dp)
                     .background(Primary, RoundedCornerShape(8.dp)),
                 colors = ButtonDefaults.textButtonColors(
                     contentColor = Color.White
