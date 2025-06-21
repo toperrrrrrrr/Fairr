@@ -20,7 +20,8 @@ sealed class FriendsUiState {
     data class Success(
         val friends: List<Friend> = emptyList(),
         val pendingRequests: List<FriendRequest> = emptyList(),
-        val acceptedRequests: List<FriendRequest> = emptyList()
+        val acceptedRequests: List<FriendRequest> = emptyList(),
+        val emailInput: String = ""
     ) : FriendsUiState()
     data class Error(val message: String) : FriendsUiState()
 }
@@ -31,9 +32,6 @@ class FriendsViewModel @Inject constructor(
 ) : ViewModel() {
 
     var uiState by mutableStateOf<FriendsUiState>(FriendsUiState.Loading)
-        private set
-
-    var emailInput by mutableStateOf("")
         private set
 
     private val _userMessage = MutableSharedFlow<String>()
@@ -55,7 +53,8 @@ class FriendsViewModel @Inject constructor(
                     FriendsUiState.Success(
                         friends = friends,
                         pendingRequests = pending,
-                        acceptedRequests = accepted
+                        acceptedRequests = accepted,
+                        emailInput = (uiState as? FriendsUiState.Success)?.emailInput ?: ""
                     )
                 }.catch { e ->
                     uiState = FriendsUiState.Error(e.message ?: "Failed to load friends")
@@ -69,11 +68,15 @@ class FriendsViewModel @Inject constructor(
     }
 
     fun onEmailInputChange(email: String) {
-        emailInput = email
+        val current = uiState
+        if (current is FriendsUiState.Success) {
+            uiState = current.copy(emailInput = email)
+        }
     }
 
     fun sendFriendRequest() {
-        if (emailInput.isBlank()) {
+        val input = (uiState as? FriendsUiState.Success)?.emailInput ?: ""
+        if (input.isBlank()) {
             viewModelScope.launch {
                 _userMessage.emit("Please enter an email address")
             }
@@ -81,10 +84,10 @@ class FriendsViewModel @Inject constructor(
         }
 
         viewModelScope.launch {
-            when (val result = friendService.sendFriendRequest(emailInput)) {
+            when (val result = friendService.sendFriendRequest(input)) {
                 is FriendResult.Success -> {
                     _userMessage.emit(result.message)
-                    emailInput = ""
+                    uiState = (uiState as FriendsUiState.Success).copy(emailInput = "")
                 }
                 is FriendResult.Error -> {
                     _userMessage.emit(result.message)

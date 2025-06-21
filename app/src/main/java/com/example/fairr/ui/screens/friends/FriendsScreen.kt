@@ -76,7 +76,7 @@ fun FriendsScreen(
                 ) {
                     // Add friend section
                     AddFriendSection(
-                        email = viewModel.emailInput,
+                        email = uiState.emailInput,
                         onEmailChange = viewModel::onEmailInputChange,
                         onSendRequest = viewModel::sendFriendRequest
                     )

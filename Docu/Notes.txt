@@ -1,36 +1,3 @@
-Currency selected should be saved as profile settings in the firebase user record 
-Ask the user to update their name and details in the settings. 
-
-
-
-Track logs, who logged in and actions 
-
-There are some pages that are still using USD as default. Please change that to PHP 
-
-Add expense is not working/not opening the next page
-
-Login button does show 
-
-
-Add emoji in the groups. 
-
-
-Malformed password 
-home button create group - crash 
-Session always logs out. Setup persistent login
-Remove the settins button on the main page. Replace with something else 
-Friends button is nowhere to be found
-
-Create group / join group box  missing 
-
-USD/PESO update th currency 
-
-
-
-
-
-
-
 1. I should not have to login all the time
 2. Notification page cards ui can be improved.
 3. Nav bar have huge white space make the oblong and the buttons float. 
@@ -42,3 +9,13 @@ USD/PESO update th currency
 9. UI ux Transition from one page to another for more smoother experienc (later)
 10. Feature Completeness review. 
 11. Keyboard should collapse, be hidden when calcultor is clicked or outside the textbox. 
+12. Remove member should ask the user if the user is sure. Also notify the removed user. 
+13. Remove the settins button on the main page. Replace with something else 
+14. Add emoji in the groups and also create group page. 
+15. sign out should clear the app and prompt the user to select account next time. 
+16. issue with manual email entry. malformed? 
+17. There are some pages that are still using USD as default. Please change that to PHP + Currency selected should be saved as profile settings in the firebase user record 
+18. Track logs, who logged in and actions 
+19. Ask the user to update their name and details in the settings. 
+
+
