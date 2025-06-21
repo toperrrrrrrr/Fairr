@@ -62,18 +62,55 @@ service cloud.firestore {
 
     // Expenses collection rules
     match /expenses/{expenseId} {
-      // Allow reading expenses if user is a member of the group
-      allow read: if request.auth != null;
-      
-      // Allow creating expenses if user is a member of the group
-      allow create: if request.auth != null;
-      
-      // Allow updating expenses if user created them or is group admin
-      allow update: if request.auth != null;
-      
-      // Allow deleting expenses if user is group admin
-      allow delete: if request.auth != null && 
-                   isGroupAdmin(resource.data.groupId);
+      // Helper to fetch groupId depending on operation (create/update vs read/delete)
+      function expenseGroupId() {
+        // During create/update use the incoming document, otherwise use stored doc
+        return (request.method == 'create' || request.method == 'update') ?
+               request.resource.data.groupId : resource.data.groupId;
+      }
+
+      // A user can read an expense only if they are a member of the related group
+      allow read: if request.auth != null && isGroupMember(expenseGroupId());
+
+      // Only group members may create an expense document
+      allow create: if request.auth != null && isGroupMember(expenseGroupId());
+
+      // Updates allowed when:
+      //  1. User is the creator of the expense (paidBy) OR
+      //  2. User is admin of the group
+      allow update: if request.auth != null && (
+                    (request.auth.uid == resource.data.createdBy) ||
+                    isGroupAdmin(expenseGroupId()) );
+
+      // Deletion restricted to group admins
+      allow delete: if request.auth != null && isGroupAdmin(expenseGroupId());
+    }
+
+    // Settlements collection rules
+    match /settlements/{settlementId} {
+      // During create we must rely on the incoming document for groupId
+      function settleGroupId() {
+        return (request.method == 'create') ? request.resource.data.groupId : resource.data.groupId;
+      }
+
+      // Only group members can read or write settlements for their group
+      allow read: if request.auth != null && isGroupMember(settleGroupId());
+      allow create: if request.auth != null && isGroupMember(settleGroupId());
+
+      // Updates & deletes allowed to group admins only
+      allow update, delete: if request.auth != null && isGroupAdmin(settleGroupId());
+    }
+
+    // Group summaries collection (read-only for clients)
+    match /group_summaries/{groupId} {
+      // Allow group members to read summary; no client writes permitted
+      allow read: if request.auth != null && isGroupMember(groupId);
+      allow write: if false;
+    }
+
+    // Global list-query guard (apply on root collections)
+    match /{collection}/{document=**} {
+      allow list: if request.auth != null && request.query.limit <= 50;
     }
 
     // Group join requests collection rules
