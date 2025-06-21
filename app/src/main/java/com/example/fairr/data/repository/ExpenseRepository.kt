@@ -31,6 +31,10 @@ interface ExpenseRepository {
     )
     
     suspend fun getExpensesByGroupId(groupId: String): List<Expense>
+
+    suspend fun updateExpense(oldExpense: Expense, newExpense: Expense)
+
+    suspend fun deleteExpense(expense: Expense)
 }
 
 @Singleton
@@ -316,4 +320,46 @@ class ExpenseRepositoryImpl @Inject constructor(
             emit(emptyList())
         }
     }.flowOn(Dispatchers.IO)
+
+    override suspend fun updateExpense(oldExpense: Expense, newExpense: Expense) {
+        val diffAmount = newExpense.amount - oldExpense.amount
+        withContext(Dispatchers.IO) {
+            firestore.runTransaction { txn ->
+                val expRef = firestore.collection("expenses").document(oldExpense.id)
+                txn.update(expRef, mapOf(
+                    "description" to newExpense.description,
+                    "amount" to newExpense.amount,
+                    "date" to newExpense.date,
+                    "category" to newExpense.category.name,
+                    "notes" to newExpense.notes,
+                    "attachments" to newExpense.attachments,
+                    "splitBetween" to newExpense.splitBetween.map { split -> mapOf(
+                        "userId" to split.userId,
+                        "userName" to split.userName,
+                        "share" to split.share,
+                        "isPaid" to split.isPaid
+                    ) }
+                ))
+
+                // adjust group total
+                val groupRef = firestore.collection("groups").document(oldExpense.groupId)
+                val groupSnap = txn.get(groupRef)
+                val currentTotal = groupSnap.getDouble("totalExpenses") ?: 0.0
+                txn.update(groupRef, "totalExpenses", currentTotal + diffAmount)
+            }.await()
+        }
+    }
+
+    override suspend fun deleteExpense(expense: Expense) {
+        withContext(Dispatchers.IO) {
+            firestore.runTransaction { txn ->
+                val expRef = firestore.collection("expenses").document(expense.id)
+                txn.delete(expRef)
+
+                val groupRef = firestore.collection("groups").document(expense.groupId)
+                val currentTotal = (txn.get(groupRef).getDouble("totalExpenses") ?: 0.0) - expense.amount
+                txn.update(groupRef, "totalExpenses", currentTotal.coerceAtLeast(0.0))
+            }.await()
+        }
+    }
 } 
