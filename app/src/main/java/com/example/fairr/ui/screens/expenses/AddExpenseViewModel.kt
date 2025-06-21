@@ -17,6 +17,8 @@ import java.util.*
 import javax.inject.Inject
 import kotlinx.coroutines.flow.collectLatest
 import com.google.firebase.auth.FirebaseAuth
+import com.example.fairr.data.settings.SettingsDataStore
+import kotlinx.coroutines.flow.first
 
 sealed class AddExpenseEvent {
     data class ShowError(val message: String) : AddExpenseEvent()
@@ -38,7 +40,8 @@ data class AddExpenseState(
 class AddExpenseViewModel @Inject constructor(
     private val expenseRepository: ExpenseRepository,
     private val groupService: GroupService,
-    private val auth: FirebaseAuth
+    private val auth: FirebaseAuth,
+    private val settingsDataStore: SettingsDataStore
 ) : ViewModel() {
     private val dateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
     
@@ -48,13 +51,29 @@ class AddExpenseViewModel @Inject constructor(
     private val _events = MutableSharedFlow<AddExpenseEvent>()
     val events = _events.asSharedFlow()
 
+    private var currencySymbol: String = "$"
+
+    init {
+        viewModelScope.launch {
+            currencySymbol = mapCurrencyCodeToSymbol(settingsDataStore.defaultCurrency.first())
+        }
+    }
+
     fun formatDate(date: Date): String {
         return dateFormat.format(date)
     }
 
-    fun getCurrencySymbol(): String {
-        // TODO: Get this from group settings
-        return "$"
+    fun getCurrencySymbol(): String = currencySymbol
+
+    private fun mapCurrencyCodeToSymbol(code: String): String {
+        return when (code.uppercase()) {
+            "USD" -> "$"
+            "PHP" -> "₱"
+            "EUR" -> "€"
+            "GBP" -> "£"
+            "JPY" -> "¥"
+            else -> "$"
+        }
     }
 
     fun addExpense(

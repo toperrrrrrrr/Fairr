@@ -41,3 +41,4 @@ USD/PESO update th currency
 8. Dashboard is showing dollar symbol instead of what is set to user settings.
 9. UI ux Transition from one page to another for more smoother experienc (later)
 10. Feature Completeness review. 
+11. Keyboard should collapse, be hidden when calcultor is clicked or outside the textbox. 

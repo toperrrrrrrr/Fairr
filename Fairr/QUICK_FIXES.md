@@ -20,10 +20,10 @@ A concise, high-impact checklist of tasks that can be completed quickly (≤ 1 d
 - [x] Add *leave group* & *remove member* logic in `GroupSettingsViewModel`.
 
 ## 4. UI / UX Polish
-- [ ] Hook up **Search** navigation from `MainScreen` to `SearchScreen`.
-- [ ] Use `SettingsDataStore.defaultCurrency` in `AddExpenseViewModel.getCurrencySymbol()` to display the correct symbol.
-- [ ] Provide a camera/gallery picker implementation in `EditProfileScreen` (currently stubbed).
-- [ ] Display meaningful empty/error states in key screens (Groups, Expenses, Search).
+- [x] Hook up **Search** navigation from `MainScreen` to `SearchScreen`.
+- [x] Use `SettingsDataStore.defaultCurrency` in `AddExpenseViewModel.getCurrencySymbol()` to display the correct symbol.
+- [ ] Provide a camera/gallery picker implementation in `EditProfileScreen` (currently stubbed). 
+- [x] Display meaningful empty/error states in key screens (Groups, Expenses, Search).
 
 ## 5. Testing & CI
 - [ ] Add unit tests for `SettlementService` using scenarios in `SettlementCalculationExample.kt`.
@@ -34,6 +34,15 @@ A concise, high-impact checklist of tasks that can be completed quickly (≤ 1 d
 - [ ] Delete legacy `FairrDestinations.kt` (duplicate of sealed `Screen`).
 - [ ] Convert remaining multi-mutable-state ViewModels to single `uiState` data-class pattern.
 - [ ] Annotate TODO comments with a ticket/owner to avoid lingering placeholders.
+
+## Optional Clean-ups & Follow-ups
+
+These are low-risk tidy-ups discovered while fixing the quick tasks. They can be picked up opportunistically:
+
+- Remove the now-unused `@IoDispatcher` qualifier and `DispatchersModule`, or refactor remaining repositories to use injected dispatchers consistently.
+- Ensure UI controls invoke the new `leaveGroup()` / `removeMember()` functions in `GroupSettingsViewModel` (buttons may be placeholders at present).
+- Add an integration test to verify `SettlementService.recordSettlement()` sets `isPaid=true` on splits and enrols partial payments correctly.
+- Consider pruning duplicate `ExpenseRepository` paths under the nested `Fairr/` directory if they are legacy copies.
 
 ---
 _Tackle these items first to make the app safer, faster, and more polished without deep architectural changes._ 

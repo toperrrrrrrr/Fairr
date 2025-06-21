@@ -194,7 +194,7 @@ fun FairrNavGraph() {
                     navController.navigate(Screen.JoinGroup.route)
                 },
                 onNavigateToSearch = {
-                    // TODO: Implement search navigation
+                    navController.navigate(Screen.Search.route)
                 },
                 onNavigateToNotifications = {
                     navController.navigate(Screen.Notifications.route)

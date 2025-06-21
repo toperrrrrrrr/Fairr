@@ -136,23 +136,35 @@ fun GroupDetailScreen(
                         )
                     }
 
-                    // Expenses Section
-                    item {
-                        Text(
-                            text = "Recent Expenses",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(vertical = 8.dp)
-                        )
-                    }
+                    if (uiState.expenses.isEmpty()) {
+                        item {
+                            FairrEmptyState(
+                                title = "No expenses yet",
+                                message = "Start tracking your shared costs by adding the first expense.",
+                                actionText = "Add Expense",
+                                onActionClick = onNavigateToAddExpense,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                    } else {
+                        // Expenses Section header
+                        item {
+                            Text(
+                                text = "Recent Expenses",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(vertical = 8.dp)
+                            )
+                        }
 
-                    items(uiState.expenses) { expense ->
-                        ExpenseCard(
-                            expense = expense,
-                            currency = group.currency,
-                            viewModel = viewModel,
-                            onClick = { navController.navigate(Screen.ExpenseDetail.createRoute(expense.id)) }
-                        )
+                        items(uiState.expenses) { expense ->
+                            ExpenseCard(
+                                expense = expense,
+                                currency = group.currency,
+                                viewModel = viewModel,
+                                onClick = { navController.navigate(Screen.ExpenseDetail.createRoute(expense.id)) }
+                            )
+                        }
                     }
                 }
             }
