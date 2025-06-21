@@ -136,6 +136,7 @@ class ExpenseRepositoryImpl @Inject constructor(
 
         // First, verify the user is a member of the group and get member info
         val groupMembers: List<Map<String, Any>>
+        val groupCurrency: String
         try {
             val groupDoc = firestore.collection("groups").document(groupId).get().await()
             if (!groupDoc.exists()) {
@@ -145,6 +146,7 @@ class ExpenseRepositoryImpl @Inject constructor(
             val groupData = groupDoc.data
             val members = groupData?.get("members") as? Map<*, *>
             val createdBy = groupData?.get("createdBy") as? String
+            groupCurrency = groupData?.get("currency") as? String ?: "PHP"
 
             if (members?.containsKey(currentUser.uid) != true && createdBy != currentUser.uid) {
                 throw Exception("User is not a member of this group")
@@ -177,7 +179,7 @@ class ExpenseRepositoryImpl @Inject constructor(
             "createdAt" to com.google.firebase.Timestamp.now(),
             "createdBy" to currentUser.uid,
             "updatedAt" to com.google.firebase.Timestamp.now(),
-            "currency" to "USD", // TODO: Make this configurable
+            "currency" to groupCurrency,
             "paidBy" to paidBy,
             "splitType" to splitType,
             "splitBetween" to splitBetween

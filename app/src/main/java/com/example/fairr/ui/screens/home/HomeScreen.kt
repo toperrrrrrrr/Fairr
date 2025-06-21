@@ -101,7 +101,8 @@ fun HomeScreen(
                     OverviewSection(
                         totalBalance = state.totalBalance,
                         totalExpenses = state.totalExpenses,
-                        activeGroups = state.activeGroups
+                        activeGroups = state.activeGroups,
+                        viewModel = viewModel
                     )
                 }
 
@@ -145,7 +146,8 @@ fun HomeScreen(
                     items(state.recentExpenses) { expense ->
                         ExpenseCard(
                             expense = expense,
-                            onClick = { navController.navigate(Screen.ExpenseDetail.createRoute(expense.id)) }
+                            onClick = { navController.navigate(Screen.ExpenseDetail.createRoute(expense.id)) },
+                            viewModel = viewModel
                         )
                     }
                 }
@@ -163,7 +165,8 @@ fun HomeScreen(
 @Composable
 private fun ExpenseCard(
     expense: Expense,
-    onClick: () -> Unit = {}
+    onClick: () -> Unit = {},
+    viewModel: HomeViewModel = hiltViewModel()
 ) {
     Card(
         modifier = Modifier
@@ -191,7 +194,7 @@ private fun ExpenseCard(
                 )
             }
             Text(
-                text = formatCurrency(expense.amount),
+                text = viewModel.formatCurrency(expense.amount),
                 style = MaterialTheme.typography.titleMedium,
                 fontWeight = FontWeight.SemiBold,
                 color = MaterialTheme.colorScheme.primary
@@ -259,7 +262,8 @@ private fun OverviewSection(
     totalBalance: Double,
     totalExpenses: Double,
     activeGroups: Int,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: HomeViewModel = hiltViewModel()
 ) {
     Column(
         modifier = modifier.fillMaxWidth(),
@@ -277,13 +281,13 @@ private fun OverviewSection(
         ) {
             InfoCard(
                 title = "Total Balance",
-                value = CurrencyFormatter.format("USD", totalBalance),
+                value = viewModel.formatCurrency(totalBalance),
                 icon = Icons.Default.AccountBalance,
                 modifier = Modifier.weight(1f)
             )
             InfoCard(
                 title = "Total Expenses",
-                value = CurrencyFormatter.format("USD", totalExpenses),
+                value = viewModel.formatCurrency(totalExpenses),
                 icon = Icons.Default.Receipt,
                 modifier = Modifier.weight(1f)
             )
@@ -423,12 +427,6 @@ private fun QuickActionCard(
             )
         }
     }
-}
-
-private fun formatCurrency(amount: Double): String {
-    val format = NumberFormat.getCurrencyInstance()
-    format.currency = Currency.getInstance("USD")
-    return format.format(amount)
 }
 
 

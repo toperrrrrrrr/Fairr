@@ -17,7 +17,7 @@ data class Expense(
     val date: Date = Date(),
     val createdAt: Date = Date(),
     val createdBy: String = "",
-    val currency: String = "USD"
+    val currency: String = "PHP"
 )
 
 @Singleton
@@ -40,7 +40,7 @@ class ExpenseService @Inject constructor(
                 date = doc.getDate("date") ?: Date(),
                 createdAt = doc.getDate("createdAt") ?: Date(),
                 createdBy = doc.getString("createdBy") ?: "",
-                currency = doc.getString("currency") ?: "USD"
+                currency = doc.getString("currency") ?: "PHP"
             )
         }
         emit(expenses)

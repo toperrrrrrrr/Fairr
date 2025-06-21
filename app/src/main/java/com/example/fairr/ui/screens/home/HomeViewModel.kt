@@ -9,6 +9,8 @@ import com.example.fairr.data.groups.GroupService
 import com.example.fairr.data.repository.ExpenseRepository
 import com.example.fairr.data.model.Group
 import com.example.fairr.data.model.Expense
+import com.example.fairr.data.settings.SettingsDataStore
+import com.example.fairr.util.CurrencyFormatter
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
@@ -22,14 +24,16 @@ data class HomeScreenState(
     val totalExpenses: Double = 0.0,
     val activeGroups: Int = 0,
     val groups: List<Group> = emptyList(),
-    val recentExpenses: List<Expense> = emptyList()
+    val recentExpenses: List<Expense> = emptyList(),
+    val userCurrency: String = "PHP"
 )
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
     private val groupService: GroupService,
     private val expenseRepository: ExpenseRepository,
-    private val auth: FirebaseAuth
+    private val auth: FirebaseAuth,
+    private val settingsDataStore: SettingsDataStore
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(HomeScreenState())
@@ -43,6 +47,9 @@ class HomeViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 _state.value = _state.value.copy(isLoading = true, error = null)
+
+                // Get user's preferred currency
+                val userCurrency = settingsDataStore.defaultCurrency.first()
 
                 groupService.getUserGroups()
                     .catch { e ->
@@ -86,7 +93,8 @@ class HomeViewModel @Inject constructor(
                             activeGroups = groups.size,
                             totalBalance = totalBalance,
                             totalExpenses = totalExpenses,
-                            recentExpenses = recentExpenses.sortedByDescending { it.date }.take(5)
+                            recentExpenses = recentExpenses.sortedByDescending { it.date }.take(5),
+                            userCurrency = userCurrency
                         )
                     }
             } catch (e: Exception) {
@@ -100,5 +108,18 @@ class HomeViewModel @Inject constructor(
 
     fun refresh() {
         loadHomeData()
+    }
+
+    // Currency formatting methods
+    fun formatCurrency(amount: Double): String {
+        return CurrencyFormatter.format(state.value.userCurrency, amount)
+    }
+
+    fun formatCurrencyWithSpacing(amount: Double): String {
+        return CurrencyFormatter.formatWithSpacing(state.value.userCurrency, amount)
+    }
+
+    fun getCurrencySymbol(): String {
+        return CurrencyFormatter.getSymbol(state.value.userCurrency)
     }
 } 

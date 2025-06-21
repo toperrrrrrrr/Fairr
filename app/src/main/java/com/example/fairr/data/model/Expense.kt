@@ -7,7 +7,7 @@ data class Expense(
     val groupId: String = "",
     val description: String = "",
     val amount: Double = 0.0,
-    val currency: String = "USD",
+    val currency: String = "PHP",
     val date: Timestamp = Timestamp.now(),
     val paidBy: String = "", // userId
     val paidByName: String = "", // user's name

@@ -6,7 +6,7 @@ data class Group(
     val id: String = "",
     val name: String = "",
     val description: String = "",
-    val currency: String = "USD",
+    val currency: String = "PHP",
     val createdAt: Timestamp = Timestamp.now(),
     val createdBy: String = "",
     val inviteCode: String = "",

@@ -144,6 +144,7 @@ class GroupService @Inject constructor(
                         currency = data["currency"] as? String ?: "PHP",
                         createdAt = (data["createdAt"] as? Timestamp) ?: Timestamp.now(),
                         createdBy = data["createdBy"] as? String ?: "",
+                        inviteCode = data["inviteCode"] as? String ?: "",
                         members = parseGroupData(data).map { (userId, memberData) ->
                             GroupMember(
                                 userId = userId,
@@ -189,7 +190,7 @@ class GroupService @Inject constructor(
                         id = snapshot.id,
                         name = data["name"] as? String ?: "",
                         description = data["description"] as? String ?: "",
-                        currency = data["currency"] as? String ?: "USD",
+                        currency = data["currency"] as? String ?: "PHP",
                         createdAt = (data["createdAt"] as? Timestamp) ?: Timestamp.now(),
                         createdBy = data["createdBy"] as? String ?: "",
                         inviteCode = data["inviteCode"] as? String ?: "",

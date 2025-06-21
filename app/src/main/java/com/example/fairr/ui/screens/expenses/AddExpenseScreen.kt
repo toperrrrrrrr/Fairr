@@ -251,7 +251,8 @@ fun AddExpenseScreen(
                 CompactCalculator(
                     value = amount,
                     onValueChange = { amount = it },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier.fillMaxWidth(),
+                    viewModel = viewModel
                 )
             }
         }
@@ -382,7 +383,8 @@ fun AddExpenseScreen(
 fun CompactCalculator(
     value: String,
     onValueChange: (String) -> Unit,
-    modifier: Modifier = Modifier
+    modifier: Modifier = Modifier,
+    viewModel: AddExpenseViewModel = hiltViewModel()
 ) {
     var displayValue by remember { mutableStateOf(value) }
     var operation by remember { mutableStateOf<String?>(null) }
@@ -437,14 +439,14 @@ fun CompactCalculator(
             ) {
                 if (firstNumber != null && operation != null) {
                     Text(
-                        text = "₱${String.format("%.2f", firstNumber)} $operation",
+                        text = "${viewModel.getCurrencySymbol()}${String.format("%.2f", firstNumber)} $operation",
                         fontSize = 14.sp,
                         color = TextSecondary,
                         fontWeight = FontWeight.Medium
                     )
                 }
                 Text(
-                    text = if (displayValue.isNotEmpty()) "₱ $displayValue" else "₱ 0.00",
+                    text = if (displayValue.isNotEmpty()) "${viewModel.getCurrencySymbol()} $displayValue" else "${viewModel.getCurrencySymbol()} 0.00",
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Bold,
                     color = TextPrimary

@@ -19,3 +19,6 @@
 19. Ask the user to update their name and details in the settings. 
 
 
+
+
+1. Instead using PHP pesos sign

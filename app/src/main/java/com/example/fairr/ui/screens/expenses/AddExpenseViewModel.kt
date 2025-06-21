@@ -8,6 +8,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.fairr.data.repository.ExpenseRepository
 import com.example.fairr.data.groups.GroupService
 import com.example.fairr.data.model.Group
+import com.example.fairr.data.settings.SettingsDataStore
+import com.example.fairr.util.CurrencyFormatter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -17,7 +19,6 @@ import java.util.*
 import javax.inject.Inject
 import kotlinx.coroutines.flow.collectLatest
 import com.google.firebase.auth.FirebaseAuth
-import com.example.fairr.data.settings.SettingsDataStore
 import kotlinx.coroutines.flow.first
 
 sealed class AddExpenseEvent {
@@ -33,7 +34,8 @@ data class MemberInfo(
 data class AddExpenseState(
     val isLoading: Boolean = false,
     val error: String? = null,
-    val groupMembers: List<MemberInfo> = emptyList()
+    val groupMembers: List<MemberInfo> = emptyList(),
+    val userCurrency: String = "PHP"
 )
 
 @HiltViewModel
@@ -51,11 +53,10 @@ class AddExpenseViewModel @Inject constructor(
     private val _events = MutableSharedFlow<AddExpenseEvent>()
     val events = _events.asSharedFlow()
 
-    private var currencySymbol: String = "$"
-
     init {
         viewModelScope.launch {
-            currencySymbol = mapCurrencyCodeToSymbol(settingsDataStore.defaultCurrency.first())
+            val userCurrency = settingsDataStore.defaultCurrency.first()
+            state = state.copy(userCurrency = userCurrency)
         }
     }
 
@@ -63,17 +64,16 @@ class AddExpenseViewModel @Inject constructor(
         return dateFormat.format(date)
     }
 
-    fun getCurrencySymbol(): String = currencySymbol
+    fun getCurrencySymbol(): String {
+        return CurrencyFormatter.getSymbol(state.userCurrency)
+    }
 
-    private fun mapCurrencyCodeToSymbol(code: String): String {
-        return when (code.uppercase()) {
-            "USD" -> "$"
-            "PHP" -> "₱"
-            "EUR" -> "€"
-            "GBP" -> "£"
-            "JPY" -> "¥"
-            else -> "$"
-        }
+    fun formatCurrency(amount: Double): String {
+        return CurrencyFormatter.format(state.userCurrency, amount)
+    }
+
+    fun formatCurrencyWithSpacing(amount: Double): String {
+        return CurrencyFormatter.formatWithSpacing(state.userCurrency, amount)
     }
 
     fun addExpense(
