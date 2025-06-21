@@ -14,8 +14,8 @@ A concise, high-impact checklist of tasks that can be completed quickly (≤ 1 d
 
 ## 3. Feature Completeness
 - [ ] Implement percentage & custom splits in `ExpenseRepository.calculateSplits()`.
-- [ ] Compute `currentUserBalance` in `GroupDetailViewModel` using `SettlementService` results.
-- [ ] Populate dashboard balance in `MainScreen` `GroupCard`.
+- [x] Compute `currentUserBalance` in `GroupDetailViewModel` using `SettlementService` results.
+- [x] Populate dashboard balance in `GroupListScreen` / dashboard `GroupCard`.
 - [ ] Wire `SettlementViewModel.recordSettlement()` to create a doc in `settlements` collection and mark splits paid.
 - [ ] Add *leave group* & *remove member* logic in `GroupSettingsViewModel`.
 

@@ -77,28 +77,27 @@ class GroupDetailViewModel @Inject constructor(
             try {
                 groupService.getGroupById(groupId)
                     .combine(expenseService.getExpensesForGroup(groupId)) { group, expenses ->
+                        Pair(group, expenses)
+                    }
+                    .catch { e ->
+                        Log.e(TAG, "Error loading group details", e)
+                        uiState = GroupDetailUiState.Error(e.message ?: "Failed to load group details")
+                    }
+                    .collect { (group, expenses) ->
                         val uiMembers = group.members.map { convertToUiMember(it) }
                         val totalExpenses = expenses.sumOf { it.amount }
 
-                        // Use SettlementService to compute current user's net balance
                         val summary = settlementService.getSettlementSummary(groupId)
                         val currentUserId = auth.currentUser?.uid
                         val currentUserBalance = summary.firstOrNull { it.userId == currentUserId }?.netBalance ?: 0.0
 
-                        GroupDetailUiState.Success(
+                        uiState = GroupDetailUiState.Success(
                             group = group,
                             members = uiMembers,
                             currentUserBalance = currentUserBalance,
                             totalExpenses = totalExpenses,
                             expenses = expenses
                         )
-                    }
-                    .catch { e ->
-                        Log.e(TAG, "Error loading group details", e)
-                        uiState = GroupDetailUiState.Error(e.message ?: "Failed to load group details")
-                    }
-                    .collect { state ->
-                        uiState = state
                     }
             } catch (e: Exception) {
                 Log.e(TAG, "Error in loadGroupDetails", e)

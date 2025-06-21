@@ -93,6 +93,7 @@ fun GroupListScreen(
                             GroupList(
                                 groups = uiState.groups,
                                 onGroupClick = onNavigateToGroupDetail,
+                                getBalance = { id -> viewModel.getBalanceForGroup(id) },
                                 modifier = Modifier.fillMaxSize()
                             )
                         }
@@ -210,6 +211,7 @@ private fun GroupActions(
 private fun GroupList(
     groups: List<Group>,
     onGroupClick: (String) -> Unit,
+    getBalance: (String) -> Double,
     modifier: Modifier = Modifier
 ) {
     LazyColumn(
@@ -219,6 +221,7 @@ private fun GroupList(
         items(groups) { group ->
             GroupCard(
                 group = group,
+                balance = getBalance(group.id),
                 onClick = { onGroupClick(group.id) }
             )
         }
