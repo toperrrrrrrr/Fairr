@@ -8,9 +8,9 @@ A concise, high-impact checklist of tasks that can be completed quickly (≤ 1 d
 - [x] Enforce read limits (`limit`) and indexed query patterns for large collections (e.g., `notifications`).
 
 ## 2. Data-Layer Fixes
-- [ ] Denormalise `paidByName` when writing an expense to eliminate the **N+1** lookup in `ExpenseRepositoryImpl`.
-- [ ] Replace hard-coded currency ("USD") with the group's `currency` field when writing and reading expenses.
-- [ ] Inject `CoroutineDispatcher` (e.g., `@IoDispatcher`) into repositories instead of hard-coding `Dispatchers.IO`.
+- [x] Denormalise `paidByName` when writing an expense to eliminate the **N+1** lookup in `ExpenseRepositoryImpl`.
+- [x] Replace hard-coded currency ("USD") with the group's `currency` field when writing and reading expenses.
+- [x] Inject `CoroutineDispatcher` (e.g., `@IoDispatcher`) into repositories instead of hard-coding `Dispatchers.IO`.
 
 ## 3. Feature Completeness
 - [ ] Implement percentage & custom splits in `ExpenseRepository.calculateSplits()`.
