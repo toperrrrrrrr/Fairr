@@ -130,7 +130,8 @@ class ExpenseRepositoryImpl @Inject constructor(
 
         Log.d("ExpenseRepository", "Adding expense for group: $groupId by user: ${currentUser.uid}")
 
-        // First, verify the user is a member of the group
+        // First, verify the user is a member of the group and get member info
+        val groupMembers: List<Map<String, Any>>
         try {
             val groupDoc = firestore.collection("groups").document(groupId).get().await()
             if (!groupDoc.exists()) {
@@ -145,11 +146,24 @@ class ExpenseRepositoryImpl @Inject constructor(
                 throw Exception("User is not a member of this group")
             }
 
+            // Get member details for split calculation
+            groupMembers = members?.map { (userId, memberData) ->
+                val memberMap = memberData as? Map<String, Any> ?: emptyMap()
+                mapOf(
+                    "userId" to userId.toString(),
+                    "name" to (memberMap["name"] ?: "Unknown"),
+                    "email" to (memberMap["email"] ?: "")
+                )
+            } ?: emptyList()
+
             Log.d("ExpenseRepository", "User verified as group member")
         } catch (e: Exception) {
             Log.e("ExpenseRepository", "Error verifying group membership: ${e.message}")
             throw Exception("Failed to verify group membership: ${e.message}")
         }
+
+        // Calculate splits based on split type
+        val splitBetween = calculateSplits(amount, splitType, groupMembers)
 
         val expenseData = hashMapOf(
             "groupId" to groupId,
@@ -161,7 +175,8 @@ class ExpenseRepositoryImpl @Inject constructor(
             "updatedAt" to com.google.firebase.Timestamp.now(),
             "currency" to "USD", // TODO: Make this configurable
             "paidBy" to paidBy,
-            "splitType" to splitType
+            "splitType" to splitType,
+            "splitBetween" to splitBetween
         )
 
         Log.d("ExpenseRepository", "Expense data prepared: $expenseData")
@@ -187,6 +202,64 @@ class ExpenseRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             Log.e("ExpenseRepository", "Error saving expense: ${e.message}", e)
             throw Exception("Failed to save expense: ${e.message}")
+        }
+    }
+
+    private fun calculateSplits(
+        totalAmount: Double,
+        splitType: String,
+        groupMembers: List<Map<String, Any>>
+    ): List<Map<String, Any>> {
+        return when (splitType) {
+            "Equal Split" -> {
+                val sharePerPerson = totalAmount / groupMembers.size
+                groupMembers.map { member ->
+                    mapOf(
+                        "userId" to member["userId"].toString(),
+                        "userName" to member["name"].toString(),
+                        "share" to sharePerPerson,
+                        "isPaid" to false
+                    )
+                }
+            }
+            "Percentage" -> {
+                // For now, default to equal split
+                // TODO: Implement percentage-based splitting
+                val sharePerPerson = totalAmount / groupMembers.size
+                groupMembers.map { member ->
+                    mapOf(
+                        "userId" to member["userId"].toString(),
+                        "userName" to member["name"].toString(),
+                        "share" to sharePerPerson,
+                        "isPaid" to false
+                    )
+                }
+            }
+            "Custom Amount" -> {
+                // For now, default to equal split
+                // TODO: Implement custom amount splitting
+                val sharePerPerson = totalAmount / groupMembers.size
+                groupMembers.map { member ->
+                    mapOf(
+                        "userId" to member["userId"].toString(),
+                        "userName" to member["name"].toString(),
+                        "share" to sharePerPerson,
+                        "isPaid" to false
+                    )
+                }
+            }
+            else -> {
+                // Default to equal split
+                val sharePerPerson = totalAmount / groupMembers.size
+                groupMembers.map { member ->
+                    mapOf(
+                        "userId" to member["userId"].toString(),
+                        "userName" to member["name"].toString(),
+                        "share" to sharePerPerson,
+                        "isPaid" to false
+                    )
+                }
+            }
         }
     }
 

@@ -23,6 +23,8 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
+import androidx.hilt.navigation.compose.hiltViewModel
+import kotlinx.coroutines.launch
 import com.example.fairr.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -31,23 +33,38 @@ import com.example.fairr.ui.theme.*
 fun SettlementScreen(
     navController: NavController,
     groupId: String,
-    onSettlementComplete: () -> Unit = {}
+    onSettlementComplete: () -> Unit = {},
+    viewModel: SettlementViewModel = hiltViewModel()
 ) {
     var selectedPaymentMethod by remember { mutableStateOf("Cash") }
     var customAmount by remember { mutableStateOf("") }
     var showPaymentDialog by remember { mutableStateOf(false) }
-    var selectedSettlement by remember { mutableStateOf<Settlement?>(null) }
-    
-    // Sample settlement data
-    val settlements = remember {
-        listOf(
-            Settlement("1", "Jane Smith", 75.50, SettlementType.YOU_OWE),
-            Settlement("2", "Mike Johnson", 125.25, SettlementType.OWES_YOU),
-            Settlement("3", "Sarah Wilson", 45.75, SettlementType.YOU_OWE)
-        )
-    }
+    var selectedSettlement by remember { mutableStateOf<UserDebt?>(null) }
+    val state = viewModel.state
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
     
     val paymentMethods = listOf("Cash", "Venmo", "PayPal", "Bank Transfer", "Other")
+
+    // Load settlements when screen opens
+    LaunchedEffect(groupId) {
+        viewModel.loadSettlements(groupId)
+    }
+
+    // Handle events
+    LaunchedEffect(true) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is SettlementEvent.ShowError -> {
+                    snackbarHostState.showSnackbar(event.message)
+                }
+                SettlementEvent.SettlementRecorded -> {
+                    snackbarHostState.showSnackbar("Settlement recorded successfully")
+                    onSettlementComplete()
+                }
+            }
+        }
+    }
 
     Scaffold(
         topBar = {
@@ -74,101 +91,91 @@ fun SettlementScreen(
             )
         }
     ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(LightBackground)
-                .padding(padding)
-                .padding(16.dp),
-            verticalArrangement = Arrangement.spacedBy(12.dp)
-        ) {
-            item {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .shadow(2.dp, RoundedCornerShape(16.dp)),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = CardDefaults.cardColors(containerColor = NeutralWhite)
-                ) {
-                    Column(
-                        modifier = Modifier.padding(20.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally
-                    ) {
-                        Icon(
-                            Icons.Default.AccountBalance,
-                            contentDescription = "Settlement",
-                            tint = DarkGreen,
-                            modifier = Modifier.size(48.dp)
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Text(
-                            text = "Settle Your Debts",
-                            fontSize = 20.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = TextPrimary
-                        )
-                        Text(
-                            text = "Pay or record payments for outstanding balances",
-                            fontSize = 14.sp,
-                            color = TextSecondary,
-                            textAlign = TextAlign.Center,
-                            modifier = Modifier.padding(top = 4.dp)
-                        )
-                    }
-                }
+        if (state.isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = Primary)
             }
-            
-            items(settlements) { settlement ->
-                SettlementCard(
-                    settlement = settlement,
-                    onSettleUp = {
-                        selectedSettlement = settlement
-                        showPaymentDialog = true
-                    }
-                )
-            }
-            
-            if (settlements.isEmpty()) {
+        } else {
+            LazyColumn(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(LightBackground)
+                    .padding(padding)
+                    .padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
                 item {
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .shadow(1.dp, RoundedCornerShape(16.dp)),
-                        shape = RoundedCornerShape(16.dp),
-                        colors = CardDefaults.cardColors(containerColor = NeutralWhite)
-                    ) {
-                        Column(
+                    SettlementSummaryCard(
+                        totalOwed = viewModel.getTotalAmountOwed(),
+                        totalOwedToYou = viewModel.getTotalAmountOwedToYou(),
+                        netBalance = viewModel.getNetBalance()
+                    )
+                }
+                
+                items(state.currentUserDebts) { debt ->
+                    SettlementCard(
+                        debt = debt,
+                        onSettleUp = {
+                            selectedSettlement = debt
+                            customAmount = String.format("%.2f", debt.amount)
+                            showPaymentDialog = true
+                        }
+                    )
+                }
+                
+                if (state.currentUserDebts.isEmpty()) {
+                    item {
+                        Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(40.dp),
-                            horizontalAlignment = Alignment.CenterHorizontally
+                                .shadow(1.dp, RoundedCornerShape(16.dp)),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = CardDefaults.cardColors(containerColor = NeutralWhite)
                         ) {
-                            Icon(
-                                Icons.Default.CheckCircle,
-                                contentDescription = "All settled",
-                                tint = SuccessGreen,
-                                modifier = Modifier.size(64.dp)
-                            )
-                            Spacer(modifier = Modifier.height(16.dp))
-                            Text(
-                                text = "All Settled Up!",
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Bold,
-                                color = TextPrimary
-                            )
-                            Text(
-                                text = "No outstanding balances in this group",
-                                fontSize = 14.sp,
-                                color = TextSecondary,
-                                textAlign = TextAlign.Center
-                            )
+                            Column(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(40.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Icon(
+                                    Icons.Default.CheckCircle,
+                                    contentDescription = "All settled",
+                                    tint = SuccessGreen,
+                                    modifier = Modifier.size(64.dp)
+                                )
+                                Spacer(modifier = Modifier.height(16.dp))
+                                Text(
+                                    text = "All Settled Up!",
+                                    fontSize = 18.sp,
+                                    fontWeight = FontWeight.Bold,
+                                    color = TextPrimary
+                                )
+                                Text(
+                                    text = "No outstanding balances in this group",
+                                    fontSize = 14.sp,
+                                    color = TextSecondary,
+                                    textAlign = TextAlign.Center
+                                )
+                            }
                         }
                     }
                 }
             }
         }
     }
-    
+
+    // Snackbar host
+    SnackbarHost(
+        hostState = snackbarHostState,
+        modifier = Modifier.padding(16.dp)
+    )
+
     // Payment Dialog
     if (showPaymentDialog && selectedSettlement != null) {
         AlertDialog(
@@ -179,7 +186,7 @@ fun SettlementScreen(
             text = {
                 Column {
                     Text(
-                        text = if (selectedSettlement!!.type == SettlementType.YOU_OWE) {
+                        text = if (selectedSettlement!!.type == DebtType.YOU_OWE) {
                             "Record payment to ${selectedSettlement!!.personName}"
                         } else {
                             "Record payment from ${selectedSettlement!!.personName}"
@@ -221,9 +228,14 @@ fun SettlementScreen(
             confirmButton = {
                 Button(
                     onClick = {
-                        // TODO: Record settlement
+                        val amountValue = customAmount.toDoubleOrNull() ?: selectedSettlement!!.amount
+                        viewModel.recordSettlement(
+                            groupId = groupId,
+                            debtInfo = selectedSettlement!!,
+                            amount = amountValue,
+                            paymentMethod = selectedPaymentMethod
+                        )
                         showPaymentDialog = false
-                        onSettlementComplete()
                     },
                     colors = ButtonDefaults.buttonColors(
                         containerColor = DarkGreen
@@ -244,8 +256,86 @@ fun SettlementScreen(
 }
 
 @Composable
+fun SettlementSummaryCard(
+    totalOwed: Double,
+    totalOwedToYou: Double,
+    netBalance: Double
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .shadow(2.dp, RoundedCornerShape(16.dp)),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = NeutralWhite)
+    ) {
+        Column(
+            modifier = Modifier.padding(20.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
+        ) {
+            Icon(
+                Icons.Default.AccountBalance,
+                contentDescription = "Settlement",
+                tint = if (netBalance >= 0) DarkGreen else ErrorRed,
+                modifier = Modifier.size(48.dp)
+            )
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            Text(
+                text = if (netBalance >= 0) "You're Owed Money" else "You Owe Money",
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold,
+                color = TextPrimary
+            )
+            
+            Text(
+                text = "Net Balance: ${if (netBalance >= 0) "+" else ""}$${String.format("%.2f", netBalance)}",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = if (netBalance >= 0) DarkGreen else ErrorRed,
+                modifier = Modifier.padding(top = 8.dp)
+            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceEvenly
+            ) {
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "$${String.format("%.2f", totalOwed)}",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (totalOwed > 0) ErrorRed else TextSecondary
+                    )
+                    Text(
+                        text = "You Owe",
+                        fontSize = 12.sp,
+                        color = TextSecondary
+                    )
+                }
+                
+                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+                    Text(
+                        text = "$${String.format("%.2f", totalOwedToYou)}",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = if (totalOwedToYou > 0) DarkGreen else TextSecondary
+                    )
+                    Text(
+                        text = "Owed to You",
+                        fontSize = 12.sp,
+                        color = TextSecondary
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
 fun SettlementCard(
-    settlement: Settlement,
+    debt: UserDebt,
     onSettleUp: () -> Unit
 ) {
     Card(
@@ -266,17 +356,17 @@ fun SettlementCard(
                 modifier = Modifier
                     .size(40.dp)
                     .background(
-                        if (settlement.type == SettlementType.YOU_OWE) ErrorRed.copy(alpha = 0.1f) 
+                        if (debt.type == DebtType.YOU_OWE) ErrorRed.copy(alpha = 0.1f) 
                         else SuccessGreen.copy(alpha = 0.1f),
                         CircleShape
                     ),
                 contentAlignment = Alignment.Center
             ) {
                 Text(
-                    text = settlement.personName.split(" ").map { it.first() }.joinToString(""),
+                    text = debt.personName.split(" ").map { it.first() }.joinToString(""),
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Bold,
-                    color = if (settlement.type == SettlementType.YOU_OWE) ErrorRed else SuccessGreen
+                    color = if (debt.type == DebtType.YOU_OWE) ErrorRed else SuccessGreen
                 )
             }
             
@@ -285,19 +375,19 @@ fun SettlementCard(
             // Details
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = settlement.personName,
+                    text = debt.personName,
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Medium,
                     color = TextPrimary
                 )
                 Text(
-                    text = if (settlement.type == SettlementType.YOU_OWE) {
-                        "You owe $${String.format("%.2f", settlement.amount)}"
+                    text = if (debt.type == DebtType.YOU_OWE) {
+                        "You owe $${String.format("%.2f", debt.amount)}"
                     } else {
-                        "Owes you $${String.format("%.2f", settlement.amount)}"
+                        "Owes you $${String.format("%.2f", debt.amount)}"
                     },
                     fontSize = 12.sp,
-                    color = if (settlement.type == SettlementType.YOU_OWE) ErrorRed else SuccessGreen
+                    color = if (debt.type == DebtType.YOU_OWE) ErrorRed else SuccessGreen
                 )
             }
             
@@ -305,7 +395,7 @@ fun SettlementCard(
             Button(
                 onClick = onSettleUp,
                 colors = ButtonDefaults.buttonColors(
-                    containerColor = if (settlement.type == SettlementType.YOU_OWE) ErrorRed else DarkGreen,
+                    containerColor = if (debt.type == DebtType.YOU_OWE) ErrorRed else DarkGreen,
                     contentColor = NeutralWhite
                 ),
                 shape = RoundedCornerShape(8.dp),
@@ -318,18 +408,6 @@ fun SettlementCard(
             }
         }
     }
-}
-
-data class Settlement(
-    val id: String,
-    val personName: String,
-    val amount: Double,
-    val type: SettlementType
-)
-
-enum class SettlementType {
-    YOU_OWE,
-    OWES_YOU
 }
 
 @Preview(showBackground = true)
