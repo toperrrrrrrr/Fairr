@@ -2,9 +2,12 @@ package com.example.fairr.data.settlements
 
 import com.example.fairr.data.model.Expense
 import com.example.fairr.data.repository.ExpenseRepository
+import com.google.firebase.Timestamp
+import com.google.firebase.firestore.FirebaseFirestore
 import javax.inject.Inject
 import javax.inject.Singleton
 import kotlin.math.abs
+import kotlinx.coroutines.tasks.await
 
 data class DebtInfo(
     val creditorId: String,
@@ -24,7 +27,8 @@ data class SettlementSummary(
 
 @Singleton
 class SettlementService @Inject constructor(
-    private val expenseRepository: ExpenseRepository
+    private val expenseRepository: ExpenseRepository,
+    private val firestore: FirebaseFirestore
 ) {
     
     /**
@@ -143,4 +147,59 @@ class SettlementService @Inject constructor(
         var totalPaid: Double = 0.0,
         var totalOwed: Double = 0.0
     )
+
+    /**
+     * Records a settlement between two users and marks the corresponding splits as paid.
+     */
+    suspend fun recordSettlement(
+        groupId: String,
+        payerId: String, // user who pays (debtor)
+        payeeId: String, // user who receives money (creditor)
+        amount: Double,
+        paymentMethod: String = "cash"
+    ) {
+        // 1. Create settlement document
+        val settlementData = hashMapOf(
+            "groupId" to groupId,
+            "payerId" to payerId,
+            "payeeId" to payeeId,
+            "amount" to amount,
+            "paymentMethod" to paymentMethod,
+            "createdAt" to Timestamp.now()
+        )
+        firestore.collection("settlements").add(settlementData).await()
+
+        // 2. Mark relevant expense splits as paid until the amount is covered
+        var remaining = amount
+        val expenses = expenseRepository.getExpensesByGroupId(groupId)
+
+        for (expense in expenses) {
+            if (remaining <= 0) break
+
+            // Only consider expenses where payee was the original payer and payer is in splits
+            if (expense.paidBy != payeeId) continue
+
+            val updatedSplits = expense.splitBetween.map { split ->
+                if (!split.isPaid && split.userId == payerId && remaining > 0) {
+                    // Determine portion to mark as paid
+                    remaining -= split.share
+                    split.copy(isPaid = true)
+                } else {
+                    split
+                }
+            }
+
+            // If any split was updated, persist the change
+            if (updatedSplits != expense.splitBetween) {
+                firestore.collection("expenses")
+                    .document(expense.id)
+                    .update("splitBetween", updatedSplits.map { mapOf(
+                        "userId" to it.userId,
+                        "userName" to it.userName,
+                        "share" to it.share,
+                        "isPaid" to it.isPaid
+                    )}).await()
+            }
+        }
+    }
 } 

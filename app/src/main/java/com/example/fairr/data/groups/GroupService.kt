@@ -15,6 +15,7 @@ import kotlinx.coroutines.tasks.await
 import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
+import com.google.firebase.firestore.FieldValue
 
 private const val TAG = "GroupService"
 
@@ -368,6 +369,91 @@ class GroupService @Inject constructor(
         } catch (e: Exception) {
             Log.e(TAG, "Error deleting group", e)
             GroupResult.Error(e.message ?: "Failed to delete group")
+        }
+    }
+
+    /**
+     * Current user leaves the specified group. Fails if they are the last admin and other members remain.
+     */
+    suspend fun leaveGroup(groupId: String): GroupResult {
+        return try {
+            val currentUser = auth.currentUser ?: return GroupResult.Error("User not authenticated")
+
+            val groupDoc = groupsCollection.document(groupId).get().await()
+            if (!groupDoc.exists()) {
+                return GroupResult.Error("Group not found")
+            }
+
+            val data = groupDoc.data ?: return GroupResult.Error("Group data missing")
+            val membersMap = parseGroupData(data)
+
+            val currentMember = membersMap[currentUser.uid] ?: return GroupResult.Error("You are not a member of this group")
+
+            val isAdmin = currentMember["isAdmin"] as? Boolean ?: false
+            if (isAdmin) {
+                val adminCount = membersMap.values.count { (it["isAdmin"] as? Boolean) == true }
+                if (adminCount <= 1 && membersMap.size > 1) {
+                    return GroupResult.Error("Cannot leave group as the last admin. Transfer admin rights or delete the group.")
+                }
+            }
+
+            // Build updates to remove member from map and array
+            val updates = hashMapOf<String, Any>(
+                "members.${currentUser.uid}" to FieldValue.delete(),
+                "memberIds" to FieldValue.arrayRemove(currentUser.uid)
+            )
+
+            groupsCollection.document(groupId).update(updates).await()
+
+            GroupResult.Success(groupId)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error leaving group", e)
+            GroupResult.Error(e.message ?: "Failed to leave group")
+        }
+    }
+
+    /**
+     * Admin removes another member from the group.
+     */
+    suspend fun removeMember(groupId: String, memberId: String): GroupResult {
+        return try {
+            val currentUser = auth.currentUser ?: return GroupResult.Error("User not authenticated")
+
+            // Fetch group
+            val groupDoc = groupsCollection.document(groupId).get().await()
+            if (!groupDoc.exists()) return GroupResult.Error("Group not found")
+
+            val data = groupDoc.data ?: return GroupResult.Error("Group data missing")
+            val membersMap = parseGroupData(data)
+
+            val currentMember = membersMap[currentUser.uid] ?: return GroupResult.Error("You are not a member of this group")
+            val isAdmin = currentMember["isAdmin"] as? Boolean ?: false
+            if (!isAdmin) return GroupResult.Error("Only admins can remove members")
+
+            if (!membersMap.containsKey(memberId)) return GroupResult.Error("Member not found")
+
+            // Prevent removing self via this method
+            if (memberId == currentUser.uid) return GroupResult.Error("Use leave group to remove yourself")
+
+            // If removing an admin, ensure at least one admin remains
+            val targetIsAdmin = membersMap[memberId]?.get("isAdmin") as? Boolean ?: false
+            if (targetIsAdmin) {
+                val adminCount = membersMap.values.count { (it["isAdmin"] as? Boolean) == true }
+                if (adminCount <= 1) {
+                    return GroupResult.Error("Cannot remove the last admin of the group")
+                }
+            }
+
+            val updates = hashMapOf<String, Any>(
+                "members.$memberId" to FieldValue.delete(),
+                "memberIds" to FieldValue.arrayRemove(memberId)
+            )
+            groupsCollection.document(groupId).update(updates).await()
+
+            GroupResult.Success(groupId)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error removing member", e)
+            GroupResult.Error(e.message ?: "Failed to remove member")
         }
     }
 } 

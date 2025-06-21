@@ -223,27 +223,44 @@ class ExpenseRepositoryImpl @Inject constructor(
                 }
             }
             "Percentage" -> {
-                // For now, default to equal split
-                // TODO: Implement percentage-based splitting
-                val sharePerPerson = totalAmount / groupMembers.size
-                groupMembers.map { member ->
+                // Expect each member map to optionally include a "percentage" key (Double 0-100)
+                val providedPercentTotal = groupMembers.sumOf { (it["percentage"] as? Number)?.toDouble() ?: 0.0 }
+
+                val percentages = if (providedPercentTotal in 99.9..100.1) {
+                    // Use given percentages, default missing ones to 0
+                    groupMembers.map { member ->
+                        val pct = (member["percentage"] as? Number)?.toDouble() ?: 0.0
+                        member to pct
+                    }
+                } else {
+                    // Fallback: divide equally
+                    val equalPct = 100.0 / groupMembers.size
+                    groupMembers.map { member -> member to equalPct }
+                }
+
+                percentages.map { (member, pct) ->
                     mapOf(
                         "userId" to member["userId"].toString(),
                         "userName" to member["name"].toString(),
-                        "share" to sharePerPerson,
-                        "isPaid" to false
+                        "share" to (totalAmount * pct / 100),
+                        "isPaid" to false,
+                        "percentage" to pct
                     )
                 }
             }
             "Custom Amount" -> {
-                // For now, default to equal split
-                // TODO: Implement custom amount splitting
-                val sharePerPerson = totalAmount / groupMembers.size
+                // Expect a "customAmount" per member; fallback to equal split for unspecified
+                val specifiedTotal = groupMembers.sumOf { (it["customAmount"] as? Number)?.toDouble() ?: 0.0 }
+                val remainingMembers = groupMembers.filter { (it["customAmount"] as? Number) == null }
+                val remainingTotal = (totalAmount - specifiedTotal).coerceAtLeast(0.0)
+                val equalShareForRemaining = if (remainingMembers.isNotEmpty()) remainingTotal / remainingMembers.size else 0.0
+
                 groupMembers.map { member ->
+                    val share = (member["customAmount"] as? Number)?.toDouble() ?: equalShareForRemaining
                     mapOf(
                         "userId" to member["userId"].toString(),
                         "userName" to member["name"].toString(),
-                        "share" to sharePerPerson,
+                        "share" to share,
                         "isPaid" to false
                     )
                 }

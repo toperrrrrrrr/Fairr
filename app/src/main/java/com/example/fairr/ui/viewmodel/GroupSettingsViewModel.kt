@@ -90,16 +90,35 @@ class GroupSettingsViewModel @Inject constructor(
         viewModelScope.launch {
             currentGroupId?.let { groupId ->
                 _uiState.update { it.copy(isLoading = true) }
-                // TODO: Implement leave group functionality
-                _uiState.update { it.copy(isLoading = false) }
-                _uiEvents.emit(GroupSettingsEvent.NavigateBack)
+                when (val result = groupService.leaveGroup(groupId)) {
+                    is GroupResult.Success -> {
+                        _uiState.update { it.copy(isLoading = false) }
+                        _uiEvents.emit(GroupSettingsEvent.NavigateBack)
+                    }
+                    is GroupResult.Error -> {
+                        _uiState.update { it.copy(isLoading = false, error = result.message) }
+                        _uiEvents.emit(GroupSettingsEvent.ShowError(result.message))
+                    }
+                }
             }
         }
     }
 
     fun removeMember(member: GroupMember) {
         viewModelScope.launch {
-            // TODO: Implement remove member functionality
+            currentGroupId?.let { groupId ->
+                _uiState.update { it.copy(isLoading = true) }
+                when (val result = groupService.removeMember(groupId, member.userId)) {
+                    is GroupResult.Success -> {
+                        // Reload group to reflect updated members
+                        loadGroup(groupId)
+                    }
+                    is GroupResult.Error -> {
+                        _uiState.update { it.copy(isLoading = false, error = result.message) }
+                        _uiEvents.emit(GroupSettingsEvent.ShowError(result.message))
+                    }
+                }
+            }
         }
     }
 } 

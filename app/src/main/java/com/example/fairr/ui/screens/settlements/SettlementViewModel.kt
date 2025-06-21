@@ -114,13 +114,23 @@ class SettlementViewModel @Inject constructor(
             try {
                 state = state.copy(isLoading = true)
                 
-                // TODO: Implement settlement recording in Firebase
-                // This would involve:
-                // 1. Creating a settlement record
-                // 2. Updating expense split records to mark as paid
-                // 3. Potentially creating a settlement transaction
-                
-                // For now, just reload the settlements
+                val currentUserId = getCurrentUserId()
+
+                // Determine who pays whom based on debt type
+                val (payerId, payeeId) = when (debtInfo.type) {
+                    DebtType.YOU_OWE -> currentUserId to debtInfo.personId
+                    DebtType.OWES_YOU -> debtInfo.personId to currentUserId
+                }
+
+                settlementService.recordSettlement(
+                    groupId = groupId,
+                    payerId = payerId,
+                    payeeId = payeeId,
+                    amount = amount,
+                    paymentMethod = paymentMethod
+                )
+
+                // Refresh settlements after recording
                 loadSettlements(groupId)
                 
                 _events.emit(SettlementEvent.SettlementRecorded)

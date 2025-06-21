@@ -39,3 +39,5 @@ USD/PESO update th currency
 6. remove member in the group settings doesnt work. 
 7. Edit group doesnt work either.
 8. Dashboard is showing dollar symbol instead of what is set to user settings.
+9. UI ux Transition from one page to another for more smoother experienc (later)
+10. Feature Completeness review. 

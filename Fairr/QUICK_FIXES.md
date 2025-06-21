@@ -13,11 +13,11 @@ A concise, high-impact checklist of tasks that can be completed quickly (≤ 1 d
 - [x] Inject `CoroutineDispatcher` (e.g., `@IoDispatcher`) into repositories instead of hard-coding `Dispatchers.IO`.
 
 ## 3. Feature Completeness
-- [ ] Implement percentage & custom splits in `ExpenseRepository.calculateSplits()`.
+- [x] Implement percentage & custom splits in `ExpenseRepository.calculateSplits()`.
 - [x] Compute `currentUserBalance` in `GroupDetailViewModel` using `SettlementService` results.
 - [x] Populate dashboard balance in `GroupListScreen` / dashboard `GroupCard`.
-- [ ] Wire `SettlementViewModel.recordSettlement()` to create a doc in `settlements` collection and mark splits paid.
-- [ ] Add *leave group* & *remove member* logic in `GroupSettingsViewModel`.
+- [x] Wire `SettlementViewModel.recordSettlement()` to create a doc in `settlements` collection and mark splits paid.
+- [x] Add *leave group* & *remove member* logic in `GroupSettingsViewModel`.
 
 ## 4. UI / UX Polish
 - [ ] Hook up **Search** navigation from `MainScreen` to `SearchScreen`.

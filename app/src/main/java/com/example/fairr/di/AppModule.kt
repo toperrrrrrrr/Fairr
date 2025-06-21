@@ -64,4 +64,11 @@ object AppModule {
         auth: FirebaseAuth,
         firestore: FirebaseFirestore
     ): GroupInviteService = GroupInviteService(auth, firestore)
+
+    @Provides
+    @Singleton
+    fun provideSettlementService(
+        expenseRepository: ExpenseRepository,
+        firestore: FirebaseFirestore
+    ): com.example.fairr.data.settlements.SettlementService = com.example.fairr.data.settlements.SettlementService(expenseRepository, firestore)
 } 
