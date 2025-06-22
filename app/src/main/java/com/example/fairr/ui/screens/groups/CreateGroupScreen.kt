@@ -18,6 +18,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -32,6 +33,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.material3.SnackbarHostState
 import kotlinx.coroutines.launch
 import com.example.fairr.ui.components.LoadingSpinner
+import com.example.fairr.ui.components.KeyboardDismissibleBox
 import com.example.fairr.navigation.Screen
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -68,195 +70,197 @@ fun CreateGroupScreen(
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(padding)
-        ) {
-            Column(
-                modifier = Modifier.fillMaxSize()
+        KeyboardDismissibleBox {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .padding(padding)
             ) {
-                // Dark header section with back button
-                Box(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(200.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.primary,
-                            shape = RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp)
-                        )
+                Column(
+                    modifier = Modifier.fillMaxSize()
                 ) {
-                    // Back button
-                    IconButton(
-                        onClick = { navController.popBackStack() },
+                    // Dark header section with back button
+                    Box(
                         modifier = Modifier
-                            .padding(16.dp)
-                            .align(Alignment.TopStart)
+                            .fillMaxWidth()
+                            .height(200.dp)
+                            .background(
+                                color = MaterialTheme.colorScheme.primary,
+                                shape = RoundedCornerShape(bottomStart = 32.dp, bottomEnd = 32.dp)
+                            )
                     ) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = MaterialTheme.colorScheme.onPrimary
-                        )
-                    }
-                    
-                    // Create Group title and icon
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.align(Alignment.Center)
-                    ) {
-                        Box(
+                        // Back button
+                        IconButton(
+                            onClick = { navController.popBackStack() },
                             modifier = Modifier
-                                .size(60.dp)
-                                .background(
-                                    color = MaterialTheme.colorScheme.primaryContainer,
-                                    shape = RoundedCornerShape(12.dp)
-                                ),
-                            contentAlignment = Alignment.Center
+                                .padding(16.dp)
+                                .align(Alignment.TopStart)
                         ) {
                             Icon(
-                                Icons.Default.Group,
-                                contentDescription = "Group",
-                                tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                modifier = Modifier.size(30.dp)
+                                Icons.AutoMirrored.Filled.ArrowBack,
+                                contentDescription = "Back",
+                                tint = MaterialTheme.colorScheme.onPrimary
                             )
                         }
                         
-                        Spacer(modifier = Modifier.height(12.dp))
-                        
-                        Text(
-                            text = "Create Group",
-                            fontSize = 24.sp,
-                            fontWeight = FontWeight.Bold,
-                            color = MaterialTheme.colorScheme.onPrimary
-                        )
-                    }
-                }
-
-                // Form content
-                LazyColumn(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    // Group name field
-                    item {
-                        OutlinedTextField(
-                            value = viewModel.groupName,
-                            onValueChange = viewModel::onGroupNameChange,
-                            label = { Text("Group Name") },
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = true
-                        )
-                    }
-
-                    // Description field
-                    item {
-                        OutlinedTextField(
-                            value = viewModel.groupDescription,
-                            onValueChange = viewModel::onGroupDescriptionChange,
-                            label = { Text("Description (Optional)") },
-                            modifier = Modifier.fillMaxWidth(),
-                            minLines = 3,
-                            maxLines = 5
-                        )
-                    }
-
-                    // Currency field
-                    item {
-                        OutlinedTextField(
-                            value = viewModel.groupCurrency,
-                            onValueChange = viewModel::onGroupCurrencyChange,
-                            label = { Text("Currency") },
-                            modifier = Modifier.fillMaxWidth(),
-                            singleLine = true
-                        )
-                    }
-
-                    // Members section
-                    item {
-                        Column {
-                            Text(
-                                text = "Invite Members",
-                                style = MaterialTheme.typography.titleMedium,
-                                fontWeight = FontWeight.Bold,
-                                modifier = Modifier.padding(vertical = 8.dp)
-                            )
-                            Text(
-                                text = "People you add here will receive invitations to join your group",
-                                style = MaterialTheme.typography.bodySmall,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        }
-                    }
-
-                    // Add member button
-                    item {
-                        OutlinedButton(
-                            onClick = { showAddMemberDialog = true },
-                            modifier = Modifier.fillMaxWidth()
+                        // Create Group title and icon
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally,
+                            modifier = Modifier.align(Alignment.Center)
                         ) {
-                            Icon(
-                                Icons.Default.PersonAdd,
-                                contentDescription = "Add Member",
-                                modifier = Modifier.size(20.dp)
-                            )
-                            Spacer(modifier = Modifier.width(8.dp))
-                            Text("Invite Member")
-                        }
-                    }
-
-                    // Members list
-                    items(viewModel.members) { member ->
-                        Card(
-                            modifier = Modifier.fillMaxWidth(),
-                            colors = CardDefaults.cardColors(
-                                containerColor = MaterialTheme.colorScheme.surface
-                            )
-                        ) {
-                            Row(
+                            Box(
                                 modifier = Modifier
-                                    .fillMaxWidth()
-                                    .padding(16.dp),
-                                horizontalArrangement = Arrangement.SpaceBetween,
-                                verticalAlignment = Alignment.CenterVertically
+                                    .size(60.dp)
+                                    .background(
+                                        color = MaterialTheme.colorScheme.primaryContainer,
+                                        shape = RoundedCornerShape(12.dp)
+                                    ),
+                                contentAlignment = Alignment.Center
                             ) {
-                                Column(modifier = Modifier.weight(1f)) {
-                                    Text(
-                                        text = member.email,
-                                        style = MaterialTheme.typography.bodyLarge
-                                    )
-                                    Text(
-                                        text = "Will receive invitation",
-                                        style = MaterialTheme.typography.bodySmall,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                                    )
-                                }
-                                IconButton(
-                                    onClick = { viewModel.removeMember(member) }
+                                Icon(
+                                    Icons.Default.Group,
+                                    contentDescription = "Group",
+                                    tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                    modifier = Modifier.size(30.dp)
+                                )
+                            }
+                            
+                            Spacer(modifier = Modifier.height(12.dp))
+                            
+                            Text(
+                                text = "Create Group",
+                                fontSize = 24.sp,
+                                fontWeight = FontWeight.Bold,
+                                color = MaterialTheme.colorScheme.onPrimary
+                            )
+                        }
+                    }
+
+                    // Form content
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        // Group name field
+                        item {
+                            OutlinedTextField(
+                                value = viewModel.groupName,
+                                onValueChange = viewModel::onGroupNameChange,
+                                label = { Text("Group Name") },
+                                modifier = Modifier.fillMaxWidth(),
+                                singleLine = true
+                            )
+                        }
+
+                        // Description field
+                        item {
+                            OutlinedTextField(
+                                value = viewModel.groupDescription,
+                                onValueChange = viewModel::onGroupDescriptionChange,
+                                label = { Text("Description (Optional)") },
+                                modifier = Modifier.fillMaxWidth(),
+                                minLines = 3,
+                                maxLines = 5
+                            )
+                        }
+
+                        // Currency field
+                        item {
+                            OutlinedTextField(
+                                value = viewModel.groupCurrency,
+                                onValueChange = viewModel::onGroupCurrencyChange,
+                                label = { Text("Currency") },
+                                modifier = Modifier.fillMaxWidth(),
+                                singleLine = true
+                            )
+                        }
+
+                        // Members section
+                        item {
+                            Column {
+                                Text(
+                                    text = "Invite Members",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(vertical = 8.dp)
+                                )
+                                Text(
+                                    text = "People you add here will receive invitations to join your group",
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                                )
+                            }
+                        }
+
+                        // Add member button
+                        item {
+                            OutlinedButton(
+                                onClick = { showAddMemberDialog = true },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                Icon(
+                                    Icons.Default.PersonAdd,
+                                    contentDescription = "Add Member",
+                                    modifier = Modifier.size(20.dp)
+                                )
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Text("Invite Member")
+                            }
+                        }
+
+                        // Members list
+                        items(viewModel.members) { member ->
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(
+                                    containerColor = MaterialTheme.colorScheme.surface
+                                )
+                            ) {
+                                Row(
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .padding(16.dp),
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    verticalAlignment = Alignment.CenterVertically
                                 ) {
-                                    Icon(
-                                        Icons.Default.Close,
-                                        contentDescription = "Remove Member",
-                                        tint = MaterialTheme.colorScheme.error
-                                    )
+                                    Column(modifier = Modifier.weight(1f)) {
+                                        Text(
+                                            text = member.email,
+                                            style = MaterialTheme.typography.bodyLarge
+                                        )
+                                        Text(
+                                            text = "Will receive invitation",
+                                            style = MaterialTheme.typography.bodySmall,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                    IconButton(
+                                        onClick = { viewModel.removeMember(member) }
+                                    ) {
+                                        Icon(
+                                            Icons.Default.Close,
+                                            contentDescription = "Remove Member",
+                                            tint = MaterialTheme.colorScheme.error
+                                        )
+                                    }
                                 }
                             }
                         }
-                    }
 
-                    // Create group button
-                    item {
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Button(
-                            onClick = { viewModel.createGroup() },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(56.dp),
-                            shape = RoundedCornerShape(12.dp)
-                        ) {
-                            Text("Create Group")
+                        // Create group button
+                        item {
+                            Spacer(modifier = Modifier.height(16.dp))
+                            Button(
+                                onClick = { viewModel.createGroup() },
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .height(56.dp),
+                                shape = RoundedCornerShape(12.dp)
+                            ) {
+                                Text("Create Group")
+                            }
                         }
                     }
                 }
@@ -297,8 +301,13 @@ fun CreateGroupScreen(
     }
 
     if (showAddMemberDialog) {
+        val keyboardController = LocalSoftwareKeyboardController.current
+        
         AlertDialog(
-            onDismissRequest = { showAddMemberDialog = false },
+            onDismissRequest = { 
+                keyboardController?.hide()
+                showAddMemberDialog = false 
+            },
             title = { Text("Invite Member") },
             text = {
                 Column {
@@ -320,6 +329,7 @@ fun CreateGroupScreen(
             confirmButton = {
                 TextButton(
                     onClick = {
+                        keyboardController?.hide()
                         if (newMemberEmail.isNotBlank()) {
                             viewModel.addMember(
                                 GroupMember(
@@ -337,7 +347,12 @@ fun CreateGroupScreen(
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showAddMemberDialog = false }) {
+                TextButton(
+                    onClick = { 
+                        keyboardController?.hide()
+                        showAddMemberDialog = false 
+                    }
+                ) {
                     Text("Cancel")
                 }
             }

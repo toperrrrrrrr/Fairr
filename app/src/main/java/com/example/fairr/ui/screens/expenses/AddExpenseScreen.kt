@@ -38,6 +38,7 @@ import java.util.*
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.navigationBarsPadding
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -152,108 +153,110 @@ fun AddExpenseScreen(
             )
         }
     ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(BackgroundSecondary)
-                .padding(padding)
-                .padding(horizontal = 16.dp)
-                .verticalScroll(scrollState),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            // Details Section (Description, Category, Split)
+        KeyboardDismissibleBox {
             Column(
-                modifier = Modifier.fillMaxWidth(),
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                // Description field
-                OutlinedTextField(
-                    value = description,
-                    onValueChange = { description = it },
-                    label = { Text("Description", fontSize = 14.sp) },
-                    singleLine = true,
-                    modifier = Modifier.fillMaxWidth(),
-                    textStyle = LocalTextStyle.current.copy(fontSize = 16.sp),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Primary,
-                        focusedLabelColor = Primary
-                    )
-                )
-
-                // Conversational sentence row
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(vertical = 8.dp),
-                    horizontalArrangement = Arrangement.Center,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        "Paid by ",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-
-                    FilterChip(
-                        selected = true,
-                        onClick = { showPayerSheet = true },
-                        label = { 
-                            Text(
-                                selectedPaidBy.lowercase(),
-                                fontWeight = FontWeight.Medium
-                            ) 
-                        },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = Primary.copy(alpha = 0.12f),
-                            selectedLabelColor = Primary
-                        )
-                    )
-
-                    Text(
-                        " and split ",
-                        style = MaterialTheme.typography.bodyLarge,
-                        color = MaterialTheme.colorScheme.onSurface
-                    )
-
-                    FilterChip(
-                        selected = true,
-                        onClick = { showSplitSheet = true },
-                        label = { 
-                            Text(
-                                when(selectedSplitType) {
-                                    "Equal Split" -> "equally"
-                                    "Percentage" -> "by %"
-                                    "Custom Amount" -> "custom"
-                                    else -> selectedSplitType.lowercase()
-                                },
-                                fontWeight = FontWeight.Medium
-                            ) 
-                        },
-                        colors = FilterChipDefaults.filterChipColors(
-                            selectedContainerColor = Primary.copy(alpha = 0.12f),
-                            selectedLabelColor = Primary
-                        )
-                    )
-                }
-            }
-
-            // Calculator Section (Amount)
-            Column(
-                modifier = Modifier.fillMaxWidth(),
+                modifier = Modifier
+                    .fillMaxSize()
+                    .background(BackgroundSecondary)
+                    .padding(padding)
+                    .padding(horizontal = 16.dp)
+                    .verticalScroll(scrollState),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Text(
-                    text = "Amount",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = TextPrimary
-                )
-                CompactCalculator(
-                    value = amount,
-                    onValueChange = { amount = it },
+                // Details Section (Description, Category, Split)
+                Column(
                     modifier = Modifier.fillMaxWidth(),
-                    viewModel = viewModel
-                )
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Description field
+                    OutlinedTextField(
+                        value = description,
+                        onValueChange = { description = it },
+                        label = { Text("Description", fontSize = 14.sp) },
+                        singleLine = true,
+                        modifier = Modifier.fillMaxWidth(),
+                        textStyle = LocalTextStyle.current.copy(fontSize = 16.sp),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Primary,
+                            focusedLabelColor = Primary
+                        )
+                    )
+
+                    // Conversational sentence row
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 8.dp),
+                        horizontalArrangement = Arrangement.Center,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            "Paid by ",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+
+                        FilterChip(
+                            selected = true,
+                            onClick = { showPayerSheet = true },
+                            label = { 
+                                Text(
+                                    selectedPaidBy.lowercase(),
+                                    fontWeight = FontWeight.Medium
+                                ) 
+                            },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = Primary.copy(alpha = 0.12f),
+                                selectedLabelColor = Primary
+                            )
+                        )
+
+                        Text(
+                            " and split ",
+                            style = MaterialTheme.typography.bodyLarge,
+                            color = MaterialTheme.colorScheme.onSurface
+                        )
+
+                        FilterChip(
+                            selected = true,
+                            onClick = { showSplitSheet = true },
+                            label = { 
+                                Text(
+                                    when(selectedSplitType) {
+                                        "Equal Split" -> "equally"
+                                        "Percentage" -> "by %"
+                                        "Custom Amount" -> "custom"
+                                        else -> selectedSplitType.lowercase()
+                                    },
+                                    fontWeight = FontWeight.Medium
+                                ) 
+                            },
+                            colors = FilterChipDefaults.filterChipColors(
+                                selectedContainerColor = Primary.copy(alpha = 0.12f),
+                                selectedLabelColor = Primary
+                            )
+                        )
+                    }
+                }
+
+                // Calculator Section (Amount)
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "Amount",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = TextPrimary
+                    )
+                    CompactCalculator(
+                        value = amount,
+                        onValueChange = { amount = it },
+                        modifier = Modifier.fillMaxWidth(),
+                        viewModel = viewModel
+                    )
+                }
             }
         }
     }
@@ -390,6 +393,11 @@ fun CompactCalculator(
     var operation by remember { mutableStateOf<String?>(null) }
     var firstNumber by remember { mutableStateOf<Double?>(null) }
     var shouldResetInput by remember { mutableStateOf(false) }
+    val keyboardController = LocalSoftwareKeyboardController.current
+
+    fun hideKeyboard() {
+        keyboardController?.hide()
+    }
 
     fun performOperation() {
         if (firstNumber != null && operation != null && displayValue.isNotEmpty()) {
@@ -410,6 +418,7 @@ fun CompactCalculator(
     }
 
     fun handleOperation(op: String) {
+        hideKeyboard()
         if (displayValue.isEmpty()) return
         if (firstNumber != null) {
             performOperation()
@@ -476,6 +485,7 @@ fun CompactCalculator(
                         
                         TextButton(
                             onClick = {
+                                hideKeyboard()
                                 when {
                                     isOperation -> handleOperation(button)
                                     isDelete -> {
@@ -532,7 +542,10 @@ fun CompactCalculator(
 
             // Equal button
             TextButton(
-                onClick = { performOperation() },
+                onClick = { 
+                    hideKeyboard()
+                    performOperation() 
+                },
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(56.dp)

@@ -46,7 +46,7 @@ fun HomeScreen(
     onNavigateToSearch: () -> Unit,
     onNavigateToNotifications: () -> Unit,
     onNavigateToGroupDetail: (String) -> Unit,
-    onNavigateToSettings: () -> Unit,
+    onNavigateToSettlements: () -> Unit,
     onNavigateToAddExpense: (String) -> Unit,
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel()
@@ -111,7 +111,7 @@ fun HomeScreen(
                     QuickActionsSection(
                         onCreateGroupClick = onNavigateToCreateGroup,
                         onJoinGroupClick = onNavigateToJoinGroup,
-                        onSettingsClick = onNavigateToSettings
+                        onSettleUpClick = onNavigateToSettlements
                     )
                 }
 
@@ -305,7 +305,7 @@ private fun OverviewSection(
 private fun QuickActionsSection(
     onCreateGroupClick: () -> Unit,
     onJoinGroupClick: () -> Unit,
-    onSettingsClick: () -> Unit,
+    onSettleUpClick: () -> Unit,
     modifier: Modifier = Modifier
 ) {
     Column(
@@ -335,9 +335,9 @@ private fun QuickActionsSection(
                 modifier = Modifier.weight(1f)
             )
             QuickActionCard(
-                title = "Settings",
-                icon = Icons.Default.Settings,
-                onClick = onSettingsClick,
+                title = "Settle Up",
+                icon = Icons.Default.Payment,
+                onClick = onSettleUpClick,
                 modifier = Modifier.weight(1f)
             )
         }

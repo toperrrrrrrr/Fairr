@@ -29,6 +29,7 @@ import com.example.fairr.ui.screens.export.ExportDataScreen
 import com.example.fairr.ui.screens.groups.GroupSettingsScreen
 import com.example.fairr.ui.screens.groups.GroupActivityScreen
 import com.example.fairr.ui.screens.settlements.SettlementScreen
+import com.example.fairr.ui.screens.settlements.SettlementsOverviewScreen
 import com.example.fairr.ui.screens.expenses.ExpenseDetailScreen
 import com.example.fairr.ui.screens.expenses.EditExpenseScreen
 import com.example.fairr.ui.screens.search.SearchScreen
@@ -66,6 +67,7 @@ sealed class Screen(val route: String) {
     object Settlement : Screen("settlement/{groupId}") {
         fun createRoute(groupId: String) = "settlement/$groupId"
     }
+    object SettlementsOverview : Screen("settlements_overview")
     object ExpenseDetail : Screen("expense_detail/{expenseId}") {
         fun createRoute(expenseId: String) = "expense_detail/$expenseId"
     }
@@ -202,8 +204,8 @@ fun FairrNavGraph() {
                 onNavigateToGroupDetail = { groupId: String ->
                     navController.navigate(Screen.GroupDetail.createRoute(groupId))
                 },
-                onNavigateToSettings = {
-                    navController.navigate(Screen.Settings.route)
+                onNavigateToSettlements = {
+                    navController.navigate(Screen.SettlementsOverview.route)
                 },
                 onNavigateToFriends = {
                     navController.navigate(Screen.Friends.route)
@@ -422,6 +424,13 @@ fun FairrNavGraph() {
         // Contact Support screen
         composable(Screen.ContactSupport.route) {
             ContactSupportScreen(navController = navController)
+        }
+
+        // Settlements Overview screen
+        composable(Screen.SettlementsOverview.route) {
+            SettlementsOverviewScreen(
+                navController = navController
+            )
         }
     }
 } 

@@ -15,6 +15,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -35,6 +36,11 @@ fun Calculator(
     var previousValue by remember { mutableStateOf("") }
     
     val df = remember { DecimalFormat("#,##0.00") }
+    val keyboardController = LocalSoftwareKeyboardController.current
+    
+    fun hideKeyboard() {
+        keyboardController?.hide()
+    }
     
     fun formatNumber(number: String): String {
         return try {
@@ -65,6 +71,7 @@ fun Calculator(
     }
     
     fun handleNumber(num: String) {
+        hideKeyboard()
         if (!isCalculating) {
             if (currentValue == "0" || currentValue == "0.00") {
                 currentValue = num
@@ -79,6 +86,7 @@ fun Calculator(
     }
     
     fun handleOperation(op: String) {
+        hideKeyboard()
         if (currentValue.isNotEmpty()) {
             if (previousValue.isNotEmpty()) {
                 calculateResult()
@@ -90,6 +98,7 @@ fun Calculator(
     }
     
     fun handleDecimal() {
+        hideKeyboard()
         if (!hasDecimal) {
             currentValue = if (currentValue.isEmpty()) "0." else "$currentValue."
             hasDecimal = true
@@ -98,12 +107,23 @@ fun Calculator(
     }
     
     fun handleDelete() {
+        hideKeyboard()
         if (currentValue.isNotEmpty()) {
             if (currentValue.last() == '.') hasDecimal = false
             currentValue = currentValue.dropLast(1)
             if (currentValue.isEmpty()) currentValue = "0"
             onValueChange(currentValue)
         }
+    }
+
+    fun handleClear() {
+        hideKeyboard()
+        currentValue = "0"
+        previousValue = ""
+        operation = ""
+        hasDecimal = false
+        isCalculating = false
+        onValueChange(currentValue)
     }
 
     Column(
@@ -142,14 +162,7 @@ fun Calculator(
                     isOperation = true,
                     color = ErrorRed,
                     modifier = Modifier.weight(1f)
-                ) {
-                    currentValue = "0"
-                    previousValue = ""
-                    operation = ""
-                    hasDecimal = false
-                    isCalculating = false
-                    onValueChange(currentValue)
-                }
+                ) { handleClear() }
                 CalcButton(
                     text = "÷",
                     isOperation = true,

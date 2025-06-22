@@ -51,7 +51,7 @@ fun MainScreen(
     onNavigateToSearch: () -> Unit,
     onNavigateToNotifications: () -> Unit,
     onNavigateToGroupDetail: (String) -> Unit,
-    onNavigateToSettings: () -> Unit,
+    onNavigateToSettlements: () -> Unit,
     onNavigateToFriends: () -> Unit,
     onSignOut: () -> Unit
 ) {
@@ -77,7 +77,7 @@ fun MainScreen(
                     onNavigateToSearch = onNavigateToSearch,
                     onNavigateToNotifications = onNavigateToNotifications,
                     onNavigateToGroupDetail = onNavigateToGroupDetail,
-                    onNavigateToSettings = onNavigateToSettings,
+                    onNavigateToSettlements = onNavigateToSettlements,
                     onNavigateToAddExpense = onNavigateToAddExpense
                 )
                 1 -> GroupListScreen(
