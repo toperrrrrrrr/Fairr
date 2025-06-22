@@ -1,6 +1,7 @@
 package com.example.fairr.ui.components
 
 import androidx.compose.animation.core.*
+import androidx.compose.animation.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
@@ -13,7 +14,9 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.unit.dp
 import com.example.fairr.ui.theme.*
@@ -36,18 +39,17 @@ fun ModernNavigationBar(
         modifier = modifier
             .fillMaxWidth()
             .background(MaterialTheme.colorScheme.surface)
-            .padding(16.dp)
+            .padding(horizontal = 8.dp, vertical = 4.dp)
     ) {
-        // Navigation bar background
         Card(
             modifier = Modifier
                 .fillMaxWidth()
-                .height(64.dp),
-            shape = RoundedCornerShape(32.dp),
+                .height(56.dp),
+            shape = RoundedCornerShape(28.dp),
             colors = CardDefaults.cardColors(
-                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.7f)
+                containerColor = MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.8f)
             ),
-            elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+            elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
         ) {
             Row(
                 modifier = Modifier.fillMaxSize(),
@@ -55,42 +57,111 @@ fun ModernNavigationBar(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 navItems.forEachIndexed { index, item ->
-                    NavigationBarItem(
+                    ModernNavigationBarItem(
                         selected = selectedTab == index,
                         onClick = { onTabSelected(index) },
-                        icon = {
-                            Box(
-                                modifier = Modifier
-                                    .size(48.dp)
-                                    .clip(CircleShape)
-                                    .background(
-                                        if (selectedTab == index)
-                                            MaterialTheme.colorScheme.primary
-                                        else
-                                            Color.Transparent
-                                    ),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Icon(
-                                    imageVector = if (selectedTab == index) 
-                                        item.selectedIcon else item.unselectedIcon,
-                                    contentDescription = item.title,
-                                    tint = if (selectedTab == index)
-                                        MaterialTheme.colorScheme.onPrimary
-                                    else
-                                        MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            }
-                        },
-                        colors = NavigationBarItemDefaults.colors(
-                            selectedIconColor = MaterialTheme.colorScheme.onPrimary,
-                            unselectedIconColor = MaterialTheme.colorScheme.onSurfaceVariant,
-                            indicatorColor = Color.Transparent
-                        )
+                        item = item,
+                        modifier = Modifier.weight(1f)
                     )
                 }
             }
+        }
+    }
+}
+
+@Composable
+private fun ModernNavigationBarItem(
+    selected: Boolean,
+    onClick: () -> Unit,
+    item: NavigationItem,
+    modifier: Modifier = Modifier
+) {
+    val animatedElevation by animateDpAsState(
+        targetValue = if (selected) 8.dp else 0.dp,
+        animationSpec = tween(durationMillis = 200),
+        label = "elevation"
+    )
+
+    val animatedScale by animateFloatAsState(
+        targetValue = if (selected) 1.1f else 1.0f,
+        animationSpec = tween(durationMillis = 200),
+        label = "scale"
+    )
+
+    Box(
+        modifier = modifier,
+        contentAlignment = Alignment.Center
+    ) {
+        AnimatedVisibility(
+            visible = selected,
+            enter = scaleIn(
+                animationSpec = tween(durationMillis = 200)
+            ) + fadeIn(
+                animationSpec = tween(durationMillis = 200)
+            ),
+            exit = scaleOut(
+                animationSpec = tween(durationMillis = 200)
+            ) + fadeOut(
+                animationSpec = tween(durationMillis = 200)
+            )
+        ) {
+            Card(
+                modifier = Modifier
+                    .width(48.dp)
+                    .height(40.dp)
+                    .shadow(
+                        elevation = animatedElevation,
+                        shape = RoundedCornerShape(20.dp),
+                        spotColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.3f)
+                    ),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.primary
+                ),
+                elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+            ) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = item.selectedIcon,
+                        contentDescription = item.title,
+                        tint = MaterialTheme.colorScheme.onPrimary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+            }
+        }
+
+        Box(
+            modifier = Modifier
+                .size(48.dp)
+                .clip(CircleShape)
+                .background(Color.Transparent),
+            contentAlignment = Alignment.Center
+        ) {
+            if (!selected) {
+                Icon(
+                    imageVector = item.unselectedIcon,
+                    contentDescription = item.title,
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+        }
+
+        Surface(
+            modifier = Modifier
+                .size(48.dp)
+                .graphicsLayer {
+                    scaleX = animatedScale
+                    scaleY = animatedScale
+                },
+            shape = CircleShape,
+            color = Color.Transparent,
+            onClick = onClick
+        ) {
         }
     }
 }

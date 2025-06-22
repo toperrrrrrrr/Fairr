@@ -5,7 +5,6 @@
 5 .The group details doesnt update the latest expense list after saving the add expense. 
 6. remove member in the group settings doesnt work. 
 7. Edit group doesnt work either.
-8. Dashboard is showing dollar symbol instead of what is set to user settings.
 9. UI ux Transition from one page to another for more smoother experienc (later)
 10. Feature Completeness review. 
 11. Keyboard should collapse, be hidden when calcultor is clicked or outside the textbox. 
@@ -22,3 +21,6 @@
 
 
 1. Instead using PHP pesos sign
+2. Group member error when saving expenses. Permission error , but record is being saved. seems like false alamrm or fase negative? 
+3. expenses must be deleted, or modified.
+4. 

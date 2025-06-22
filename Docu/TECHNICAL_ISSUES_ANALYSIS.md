@@ -19,9 +19,10 @@
   - Files: `ui/components/ModernNavigationBar.kt`
 
 - [ ] **Add keyboard auto-hide functionality**
-  - Implement keyboard hiding when calculator opens
+  - Implement keyboard hiding when calculator is clicked
   - Add tap-to-dismiss behavior for text fields
   - Files: `ui/components/Calculator.kt`, text input screens
+  - Add expense page.
 
 ### Validation & Error Handling
 - [ ] **Improve email validation**
