@@ -1,5 +1,6 @@
 package com.example.fairr.ui.screens.friends
 
+import android.util.Patterns
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -26,6 +27,14 @@ sealed class FriendsUiState {
     data class Error(val message: String) : FriendsUiState()
 }
 
+/**
+ * Sealed class for email validation results
+ */
+sealed class EmailValidationResult {
+    object Success : EmailValidationResult()
+    data class Error(val message: String) : EmailValidationResult()
+}
+
 @HiltViewModel
 class FriendsViewModel @Inject constructor(
     private val friendService: FriendService
@@ -39,6 +48,24 @@ class FriendsViewModel @Inject constructor(
 
     init {
         loadFriendsAndRequests()
+    }
+
+    /**
+     * Validates email format using Android's built-in email pattern
+     * @param email The email address to validate
+     * @return Validation result with specific error message if invalid
+     */
+    private fun validateEmail(email: String): EmailValidationResult {
+        return when {
+            email.isBlank() -> EmailValidationResult.Error("Please enter an email address")
+            !Patterns.EMAIL_ADDRESS.matcher(email).matches() -> EmailValidationResult.Error("Please enter a valid email address")
+            email.length > 254 -> EmailValidationResult.Error("Email address is too long")
+            email.contains("..") -> EmailValidationResult.Error("Email address contains invalid consecutive dots")
+            email.startsWith(".") || email.endsWith(".") -> EmailValidationResult.Error("Email address cannot start or end with a dot")
+            !email.contains("@") -> EmailValidationResult.Error("Email address must contain @ symbol")
+            email.count { it == '@' } > 1 -> EmailValidationResult.Error("Email address can only contain one @ symbol")
+            else -> EmailValidationResult.Success
+        }
     }
 
     private fun loadFriendsAndRequests() {
@@ -76,11 +103,18 @@ class FriendsViewModel @Inject constructor(
 
     fun sendFriendRequest() {
         val input = (uiState as? FriendsUiState.Success)?.emailInput ?: ""
-        if (input.isBlank()) {
-            viewModelScope.launch {
-                _userMessage.emit("Please enter an email address")
+        
+        // Validate email format first
+        when (val validation = validateEmail(input)) {
+            is EmailValidationResult.Error -> {
+                viewModelScope.launch {
+                    _userMessage.emit(validation.message)
+                }
+                return
             }
-            return
+            is EmailValidationResult.Success -> {
+                // Continue with sending request
+            }
         }
 
         viewModelScope.launch {

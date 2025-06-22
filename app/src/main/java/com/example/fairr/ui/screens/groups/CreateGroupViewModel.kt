@@ -1,6 +1,7 @@
 package com.example.fairr.ui.screens.groups
 
 import android.util.Log
+import android.util.Patterns
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -28,6 +29,14 @@ sealed class CreateGroupUiState {
     data class Success(val groupId: String, val invitesSent: Int = 0) : CreateGroupUiState()
 }
 
+/**
+ * Sealed class for email validation results
+ */
+sealed class EmailValidationResult {
+    object Success : EmailValidationResult()
+    data class Error(val message: String) : EmailValidationResult()
+}
+
 @HiltViewModel
 class CreateGroupViewModel @Inject constructor(
     private val groupService: GroupService,
@@ -51,9 +60,30 @@ class CreateGroupViewModel @Inject constructor(
     private val _navigationEvents = MutableSharedFlow<String>()
     val navigationEvents = _navigationEvents.asSharedFlow()
 
+    private val _userMessage = MutableSharedFlow<String>()
+    val userMessage = _userMessage.asSharedFlow()
+
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         Log.e(TAG, "Coroutine exception", throwable)
         uiState = CreateGroupUiState.Error(throwable.message ?: "An unexpected error occurred")
+    }
+
+    /**
+     * Validates email format and provides specific error messages
+     * @param email The email address to validate
+     * @return Validation result with specific error message if invalid
+     */
+    private fun validateEmail(email: String): EmailValidationResult {
+        return when {
+            email.isBlank() -> EmailValidationResult.Error("Please enter an email address")
+            !Patterns.EMAIL_ADDRESS.matcher(email).matches() -> EmailValidationResult.Error("Please enter a valid email address")
+            email.length > 254 -> EmailValidationResult.Error("Email address is too long")
+            email.contains("..") -> EmailValidationResult.Error("Email address contains invalid consecutive dots")
+            email.startsWith(".") || email.endsWith(".") -> EmailValidationResult.Error("Email address cannot start or end with a dot")
+            !email.contains("@") -> EmailValidationResult.Error("Email address must contain @ symbol")
+            email.count { it == '@' } > 1 -> EmailValidationResult.Error("Email address can only contain one @ symbol")
+            else -> EmailValidationResult.Success
+        }
     }
 
     fun onGroupNameChange(name: String) {
@@ -69,7 +99,25 @@ class CreateGroupViewModel @Inject constructor(
     }
 
     fun addMember(member: GroupMember) {
-        _members.value = _members.value + member
+        // Validate email before adding member
+        when (val validation = validateEmail(member.email)) {
+            is EmailValidationResult.Error -> {
+                viewModelScope.launch {
+                    _userMessage.emit(validation.message)
+                }
+                return
+            }
+            is EmailValidationResult.Success -> {
+                // Check if member already exists
+                if (_members.value.any { it.email.equals(member.email, ignoreCase = true) }) {
+                    viewModelScope.launch {
+                        _userMessage.emit("This email is already in the invite list")
+                    }
+                    return
+                }
+                _members.value = _members.value + member
+            }
+        }
     }
 
     fun removeMember(member: GroupMember) {

@@ -55,6 +55,16 @@ fun CreateGroupScreen(
         }
     }
 
+    // Handle user messages from ViewModel
+    LaunchedEffect(Unit) {
+        viewModel.userMessage.collect { message ->
+            snackbarHostState.showSnackbar(
+                message = message,
+                duration = SnackbarDuration.Short
+            )
+        }
+    }
+
     Scaffold(
         snackbarHost = { SnackbarHost(snackbarHostState) }
     ) { padding ->

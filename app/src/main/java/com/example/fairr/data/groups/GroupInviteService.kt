@@ -1,6 +1,7 @@
 package com.example.fairr.data.groups
 
 import android.util.Log
+import android.util.Patterns
 import com.example.fairr.data.model.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -20,6 +21,14 @@ sealed class InviteResult {
     data class Error(val message: String) : InviteResult()
 }
 
+/**
+ * Sealed class for email validation results
+ */
+sealed class EmailValidationResult {
+    object Success : EmailValidationResult()
+    data class Error(val message: String) : EmailValidationResult()
+}
+
 @Singleton
 class GroupInviteService @Inject constructor(
     private val auth: FirebaseAuth,
@@ -30,12 +39,41 @@ class GroupInviteService @Inject constructor(
     private val usersCollection = firestore.collection("users")
     private val groupsCollection = firestore.collection("groups")
 
+    /**
+     * Validates email format and provides specific error messages
+     * @param email The email address to validate
+     * @return Validation result with specific error message if invalid
+     */
+    private fun validateEmail(email: String): EmailValidationResult {
+        return when {
+            email.isBlank() -> EmailValidationResult.Error("Email address cannot be empty")
+            !Patterns.EMAIL_ADDRESS.matcher(email).matches() -> EmailValidationResult.Error("Invalid email format")
+            email.length > 254 -> EmailValidationResult.Error("Email address is too long")
+            email.contains("..") -> EmailValidationResult.Error("Email address contains invalid consecutive dots")
+            email.startsWith(".") || email.endsWith(".") -> EmailValidationResult.Error("Email address cannot start or end with a dot")
+            !email.contains("@") -> EmailValidationResult.Error("Email address must contain @ symbol")
+            email.count { it == '@' } > 1 -> EmailValidationResult.Error("Email address can only contain one @ symbol")
+            else -> EmailValidationResult.Success
+        }
+    }
+
     suspend fun sendGroupInvite(groupId: String, inviteeEmail: String): InviteResult {
         return try {
             val currentUser = auth.currentUser
             if (currentUser == null) {
                 Log.e(TAG, "Failed to send invite: User not authenticated")
                 return InviteResult.Error("User not authenticated")
+            }
+
+            // Validate email format first
+            when (val validation = validateEmail(inviteeEmail)) {
+                is EmailValidationResult.Error -> {
+                    Log.e(TAG, "Invalid email format: ${validation.message}")
+                    return InviteResult.Error(validation.message)
+                }
+                is EmailValidationResult.Success -> {
+                    // Continue with processing
+                }
             }
 
             Log.d(TAG, "Starting group invite process - From: ${currentUser.email}, To: $inviteeEmail, Group: $groupId")

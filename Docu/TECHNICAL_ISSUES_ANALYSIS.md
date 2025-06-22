@@ -13,7 +13,7 @@
   - Files: `ui/screens/home/HomeScreen.kt`, `ui/screens/MainScreen.kt`
 
 ### Navigation & UI Polish
-- [ ] **Reduce navigation bar white space**
+- [x] **Reduce navigation bar white space**
   - Modify padding/margins in `ModernNavigationBar.kt`
   - Implement oblong floating button shapes
   - Files: `ui/components/ModernNavigationBar.kt`
@@ -23,9 +23,10 @@
   - Add tap-to-dismiss behavior for text fields
   - Files: `ui/components/Calculator.kt`, text input screens
   - Add expense page.
+  - create group pge as well
 
 ### Validation & Error Handling
-- [ ] **Improve email validation**
+- [x] **Improve email validation**
   - Add robust email validation in friend invitations
   - Implement proper error messaging for invalid formats
   - Files: `ui/screens/friends/FriendsViewModel.kt`, `data/friends/FriendService.kt`

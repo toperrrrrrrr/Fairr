@@ -1,6 +1,7 @@
 package com.example.fairr.data.friends
 
 import android.util.Log
+import android.util.Patterns
 import com.example.fairr.ui.model.Friend
 import com.example.fairr.ui.model.FriendRequest
 import com.example.fairr.ui.model.FriendStatus
@@ -20,12 +21,38 @@ sealed class FriendResult {
     data class Error(val message: String) : FriendResult()
 }
 
+/**
+ * Sealed class for email validation results
+ */
+sealed class EmailValidationResult {
+    object Success : EmailValidationResult()
+    data class Error(val message: String) : EmailValidationResult()
+}
+
 @Singleton
 class FriendService @Inject constructor() {
     private val auth = FirebaseAuth.getInstance()
     private val firestore = FirebaseFirestore.getInstance()
     private val friendsCollection = firestore.collection("friends")
     private val friendRequestsCollection = firestore.collection("friendRequests")
+
+    /**
+     * Validates email format and provides specific error messages
+     * @param email The email address to validate
+     * @return Validation result with specific error message if invalid
+     */
+    private fun validateEmail(email: String): EmailValidationResult {
+        return when {
+            email.isBlank() -> EmailValidationResult.Error("Email address cannot be empty")
+            !Patterns.EMAIL_ADDRESS.matcher(email).matches() -> EmailValidationResult.Error("Invalid email format")
+            email.length > 254 -> EmailValidationResult.Error("Email address is too long")
+            email.contains("..") -> EmailValidationResult.Error("Email address contains invalid consecutive dots")
+            email.startsWith(".") || email.endsWith(".") -> EmailValidationResult.Error("Email address cannot start or end with a dot")
+            !email.contains("@") -> EmailValidationResult.Error("Email address must contain @ symbol")
+            email.count { it == '@' } > 1 -> EmailValidationResult.Error("Email address can only contain one @ symbol")
+            else -> EmailValidationResult.Success
+        }
+    }
 
     fun getUserFriends(): Flow<List<Friend>> = callbackFlow {
         val currentUser = auth.currentUser
@@ -187,6 +214,16 @@ class FriendService @Inject constructor() {
             val currentUser = auth.currentUser
                 ?: return FriendResult.Error("User not authenticated")
 
+            // Validate email format first
+            when (val validation = validateEmail(email)) {
+                is EmailValidationResult.Error -> {
+                    return FriendResult.Error(validation.message)
+                }
+                is EmailValidationResult.Success -> {
+                    // Continue with processing
+                }
+            }
+
             // Check if user is trying to add themselves
             if (email == currentUser.email) {
                 return FriendResult.Error("You cannot add yourself as a friend")
@@ -199,7 +236,7 @@ class FriendService @Inject constructor() {
                 .await()
 
             if (userQuery.isEmpty) {
-                return FriendResult.Error("User not found")
+                return FriendResult.Error("No user found with this email address")
             }
 
             val receiverData = userQuery.documents.first()
