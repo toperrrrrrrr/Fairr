@@ -15,13 +15,19 @@ data class GroupSettingsUiState(
     val group: Group = Group(),
     val members: List<GroupMember> = emptyList(),
     val isLoading: Boolean = false,
-    val error: String? = null
+    val error: String? = null,
+    val showRemoveMemberDialog: Boolean = false,
+    val memberToRemove: GroupMember? = null,
+    val showEditGroupDialog: Boolean = false
 )
 
 sealed class GroupSettingsEvent {
     object NavigateBack : GroupSettingsEvent()
     object GroupDeleted : GroupSettingsEvent()
+    object GroupUpdated : GroupSettingsEvent()
+    object MemberRemoved : GroupSettingsEvent()
     data class ShowError(val message: String) : GroupSettingsEvent()
+    data class ShowSuccess(val message: String) : GroupSettingsEvent()
 }
 
 @HiltViewModel
@@ -104,21 +110,99 @@ class GroupSettingsViewModel @Inject constructor(
         }
     }
 
+    fun showRemoveMemberDialog(member: GroupMember) {
+        _uiState.update { 
+            it.copy(
+                showRemoveMemberDialog = true,
+                memberToRemove = member
+            )
+        }
+    }
+
+    fun hideRemoveMemberDialog() {
+        _uiState.update { 
+            it.copy(
+                showRemoveMemberDialog = false,
+                memberToRemove = null
+            )
+        }
+    }
+
     fun removeMember(member: GroupMember) {
         viewModelScope.launch {
             currentGroupId?.let { groupId ->
-                _uiState.update { it.copy(isLoading = true) }
+                _uiState.update { it.copy(isLoading = true, showRemoveMemberDialog = false) }
                 when (val result = groupService.removeMember(groupId, member.userId)) {
                     is GroupResult.Success -> {
+                        _uiState.update { it.copy(isLoading = false, memberToRemove = null) }
+                        _uiEvents.emit(GroupSettingsEvent.MemberRemoved)
+                        _uiEvents.emit(GroupSettingsEvent.ShowSuccess("${member.name} has been removed from the group"))
                         // Reload group to reflect updated members
                         loadGroup(groupId)
                     }
                     is GroupResult.Error -> {
-                        _uiState.update { it.copy(isLoading = false, error = result.message) }
+                        _uiState.update { 
+                            it.copy(
+                                isLoading = false, 
+                                error = result.message,
+                                showRemoveMemberDialog = false,
+                                memberToRemove = null
+                            )
+                        }
                         _uiEvents.emit(GroupSettingsEvent.ShowError(result.message))
                     }
                 }
             }
         }
+    }
+
+    fun showEditGroupDialog() {
+        _uiState.update { it.copy(showEditGroupDialog = true) }
+    }
+
+    fun hideEditGroupDialog() {
+        _uiState.update { it.copy(showEditGroupDialog = false) }
+    }
+
+    fun updateGroup(name: String, description: String, currency: String) {
+        viewModelScope.launch {
+            currentGroupId?.let { groupId ->
+                _uiState.update { it.copy(isLoading = true, showEditGroupDialog = false) }
+                try {
+                    when (val result = groupService.updateGroup(groupId, name, description, currency)) {
+                        is GroupResult.Success -> {
+                            _uiState.update { it.copy(isLoading = false) }
+                            _uiEvents.emit(GroupSettingsEvent.GroupUpdated)
+                            _uiEvents.emit(GroupSettingsEvent.ShowSuccess("Group updated successfully"))
+                            // Reload group to reflect changes
+                            loadGroup(groupId)
+                        }
+                        is GroupResult.Error -> {
+                            _uiState.update { 
+                                it.copy(
+                                    isLoading = false, 
+                                    error = result.message,
+                                    showEditGroupDialog = false
+                                )
+                            }
+                            _uiEvents.emit(GroupSettingsEvent.ShowError(result.message))
+                        }
+                    }
+                } catch (e: Exception) {
+                    _uiState.update { 
+                        it.copy(
+                            isLoading = false, 
+                            error = e.message,
+                            showEditGroupDialog = false
+                        )
+                    }
+                    _uiEvents.emit(GroupSettingsEvent.ShowError(e.message ?: "Failed to update group"))
+                }
+            }
+        }
+    }
+
+    fun clearError() {
+        _uiState.update { it.copy(error = null) }
     }
 } 

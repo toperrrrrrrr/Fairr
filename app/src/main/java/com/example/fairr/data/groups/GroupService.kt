@@ -457,4 +457,42 @@ class GroupService @Inject constructor(
             GroupResult.Error(e.message ?: "Failed to remove member")
         }
     }
+
+    /**
+     * Admin updates group information (name, description, currency).
+     */
+    suspend fun updateGroup(groupId: String, name: String, description: String, currency: String): GroupResult {
+        return try {
+            val currentUser = auth.currentUser ?: return GroupResult.Error("User not authenticated")
+
+            // Fetch group to check permissions
+            val groupDoc = groupsCollection.document(groupId).get().await()
+            if (!groupDoc.exists()) return GroupResult.Error("Group not found")
+
+            val data = groupDoc.data ?: return GroupResult.Error("Group data missing")
+            val membersMap = parseGroupData(data)
+
+            val currentMember = membersMap[currentUser.uid] ?: return GroupResult.Error("You are not a member of this group")
+            val isAdmin = currentMember["isAdmin"] as? Boolean ?: false
+            if (!isAdmin) return GroupResult.Error("Only admins can update group information")
+
+            // Validate input
+            if (name.isBlank()) return GroupResult.Error("Group name cannot be empty")
+            if (currency.isBlank()) return GroupResult.Error("Currency cannot be empty")
+
+            // Update group information
+            val updates = hashMapOf<String, Any>(
+                "name" to name.trim(),
+                "description" to description.trim(),
+                "currency" to currency.trim()
+            )
+
+            groupsCollection.document(groupId).update(updates).await()
+
+            GroupResult.Success(groupId)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error updating group", e)
+            GroupResult.Error(e.message ?: "Failed to update group")
+        }
+    }
 } 

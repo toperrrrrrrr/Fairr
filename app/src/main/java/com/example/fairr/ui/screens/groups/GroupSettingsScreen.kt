@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.fairr.ui.theme.*
+import com.example.fairr.data.model.Group
 import com.example.fairr.data.model.GroupMember
 import com.example.fairr.data.model.GroupRole
 import com.example.fairr.ui.viewmodel.GroupSettingsEvent
@@ -83,13 +84,22 @@ fun GroupSettingsScreen(
             when (event) {
                 is GroupSettingsEvent.NavigateBack -> navController.popBackStack()
                 is GroupSettingsEvent.ShowError -> {
-                    // Show error message
+                    // Show error message - you can implement a snackbar here
+                }
+                is GroupSettingsEvent.ShowSuccess -> {
+                    // Show success message - you can implement a snackbar here
                 }
                 is GroupSettingsEvent.GroupDeleted -> {
                     // Navigate to main screen and clear back stack
                     navController.navigate("main") {
                         popUpTo("main") { inclusive = true }
                     }
+                }
+                is GroupSettingsEvent.GroupUpdated -> {
+                    // Group was updated successfully
+                }
+                is GroupSettingsEvent.MemberRemoved -> {
+                    // Member was removed successfully
                 }
             }
         }
@@ -182,7 +192,7 @@ fun GroupSettingsScreen(
                 MemberCard(
                     member = member,
                     isUserAdmin = group.isUserAdmin,
-                    onRemoveMember = { viewModel.removeMember(it) },
+                    onRemoveMember = { viewModel.showRemoveMemberDialog(it) },
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
             }
@@ -200,7 +210,7 @@ fun GroupSettingsScreen(
                                 icon = Icons.Default.Edit,
                                 title = "Edit Group",
                                 subtitle = "Change group name, description, or currency",
-                                onClick = { /* TODO */ }
+                                onClick = { viewModel.showEditGroupDialog() }
                             )
                             
                             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
@@ -296,6 +306,50 @@ fun GroupSettingsScreen(
                 TextButton(onClick = { showLeaveDialog = false }) {
                     Text("Cancel")
                 }
+            }
+        )
+    }
+
+    // Remove Member Dialog
+    if (uiState.showRemoveMemberDialog && uiState.memberToRemove != null) {
+        AlertDialog(
+            onDismissRequest = { viewModel.hideRemoveMemberDialog() },
+            title = { Text("Remove Member") },
+            text = { 
+                Text(
+                    "Are you sure you want to remove ${uiState.memberToRemove?.name} from this group? They will need to be invited again to rejoin.",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        uiState.memberToRemove?.let { member ->
+                            viewModel.removeMember(member)
+                        }
+                    }
+                ) {
+                    Text(
+                        "Remove",
+                        color = MaterialTheme.colorScheme.error
+                    )
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.hideRemoveMemberDialog() }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    // Edit Group Dialog
+    if (uiState.showEditGroupDialog) {
+        EditGroupDialog(
+            group = group,
+            onDismiss = { viewModel.hideEditGroupDialog() },
+            onSave = { name, description, currency ->
+                viewModel.updateGroup(name, description, currency)
             }
         )
     }
@@ -395,4 +449,102 @@ fun GroupSettingsScreenPreview() {
             groupId = "1"
         )
     }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun EditGroupDialog(
+    group: Group,
+    onDismiss: () -> Unit,
+    onSave: (name: String, description: String, currency: String) -> Unit
+) {
+    var name by remember { mutableStateOf(group.name) }
+    var description by remember { mutableStateOf(group.description) }
+    var currency by remember { mutableStateOf(group.currency) }
+    var isNameError by remember { mutableStateOf(false) }
+    var isCurrencyError by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Edit Group") },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Group Name
+                OutlinedTextField(
+                    value = name,
+                    onValueChange = { 
+                        name = it
+                        isNameError = false
+                    },
+                    label = { Text("Group Name") },
+                    isError = isNameError,
+                    supportingText = {
+                        if (isNameError) {
+                            Text("Group name cannot be empty")
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+
+                // Group Description
+                OutlinedTextField(
+                    value = description,
+                    onValueChange = { description = it },
+                    label = { Text("Description (Optional)") },
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 2,
+                    maxLines = 3
+                )
+
+                // Currency
+                OutlinedTextField(
+                    value = currency,
+                    onValueChange = { 
+                        currency = it
+                        isCurrencyError = false
+                    },
+                    label = { Text("Currency") },
+                    isError = isCurrencyError,
+                    supportingText = {
+                        if (isCurrencyError) {
+                            Text("Currency cannot be empty")
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    // Validate inputs
+                    var hasError = false
+                    if (name.isBlank()) {
+                        isNameError = true
+                        hasError = true
+                    }
+                    if (currency.isBlank()) {
+                        isCurrencyError = true
+                        hasError = true
+                    }
+                    
+                    if (!hasError) {
+                        onSave(name.trim(), description.trim(), currency.trim())
+                    }
+                }
+            ) {
+                Text("Save")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 } 
