@@ -35,6 +35,10 @@ import com.example.fairr.ui.screens.expenses.EditExpenseScreen
 import com.example.fairr.ui.screens.search.SearchScreen
 import com.example.fairr.ui.screens.notifications.NotificationsScreen
 import com.example.fairr.ui.viewmodels.StartupViewModel
+import com.example.fairr.ui.viewmodels.StartupState
+import com.example.fairr.ui.screens.auth.AuthViewModel
+import com.example.fairr.ui.screens.auth.WelcomeScreen
+import androidx.navigation.NavHostController
 
 sealed class Screen(val route: String) {
     object Splash : Screen("splash")
@@ -85,30 +89,20 @@ sealed class Screen(val route: String) {
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-fun FairrNavGraph() {
-    val navController = rememberNavController()
-    val startupViewModel: StartupViewModel = viewModel()
-    val hasCompletedOnboarding by startupViewModel.onboardingCompleted.collectAsState()
+fun FairrNavGraph(
+    navController: NavHostController,
+    startupViewModel: StartupViewModel,
+    onAppReset: () -> Unit = {}
+) {
+    val hasCompletedOnboarding by startupViewModel.isOnboardingCompleted.collectAsState()
 
     NavHost(
         navController = navController,
-        startDestination = Screen.Splash.route,
-        modifier = Modifier
+        startDestination = Screen.Splash.route
     ) {
         composable(Screen.Splash.route) {
-            SplashScreen(
-                onTimeout = {
-                    if (hasCompletedOnboarding) {
-                        navController.navigate(Screen.Welcome.route) {
-                            popUpTo(Screen.Splash.route) { inclusive = true }
-                        }
-                    } else {
-                        navController.navigate(Screen.Onboarding.route) {
-                            popUpTo(Screen.Splash.route) { inclusive = true }
-                        }
-                    }
-                }
-            )
+            // Splash screen is now handled in MainActivity
+            // This route is kept for compatibility but not used
         }
 
         composable(Screen.Onboarding.route) {
@@ -211,9 +205,7 @@ fun FairrNavGraph() {
                     navController.navigate(Screen.Friends.route)
                 },
                 onSignOut = {
-                    navController.navigate(Screen.Welcome.route) {
-                        popUpTo(Screen.Main.route) { inclusive = true }
-                    }
+                    onAppReset()
                 }
             )
         }
@@ -254,9 +246,7 @@ fun FairrNavGraph() {
             SettingsScreen(
                 navController = navController,
                 onSignOut = {
-                    navController.navigate(Screen.Welcome.route) {
-                        popUpTo(Screen.Main.route) { inclusive = true }
-                    }
+                    onAppReset()
                 }
             )
         }
@@ -431,6 +421,35 @@ fun FairrNavGraph() {
             SettlementsOverviewScreen(
                 navController = navController
             )
+        }
+    }
+}
+
+/**
+ * Navigation helper to handle authentication redirects
+ */
+fun NavHostController.handleAuthRedirect(
+    isAuthenticated: Boolean,
+    startupState: StartupState
+) {
+    when {
+        !isAuthenticated && startupState == StartupState.Authentication -> {
+            // User is not authenticated, redirect to login
+            navigate(Screen.Login.route) {
+                popUpTo(Screen.Splash.route) { inclusive = true }
+            }
+        }
+        isAuthenticated && startupState == StartupState.Main -> {
+            // User is authenticated, redirect to main app
+            navigate(Screen.Main.route) {
+                popUpTo(Screen.Splash.route) { inclusive = true }
+            }
+        }
+        startupState == StartupState.Onboarding -> {
+            // User needs to complete onboarding
+            navigate(Screen.Onboarding.route) {
+                popUpTo(Screen.Splash.route) { inclusive = true }
+            }
         }
     }
 } 

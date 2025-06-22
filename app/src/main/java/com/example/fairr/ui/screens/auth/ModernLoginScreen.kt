@@ -62,6 +62,9 @@ fun ModernLoginScreen(
                 is AuthUiEvent.LaunchGoogleSignIn -> {
                     googleSignInLauncher.launch(event.intent)
                 }
+                AuthUiEvent.ResetApp -> {
+                    // This event is handled at the app level, no action needed here
+                }
             }
         }
     }

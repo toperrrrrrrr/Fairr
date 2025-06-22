@@ -34,13 +34,13 @@
 ## ⚡ MEDIUM FIXES (4-8 hours each)
 
 ### Authentication & Session Management
-- [ ] **Fix session persistence issues**
+- [x] **Fix session persistence issues**
   - Enhance `AuthService.kt` for proper session validation
   - Modify `StartupViewModel.kt` to check Firebase Auth state
   - Update `FairrNavGraph.kt` for conditional auth screens
   - Files: `data/auth/AuthService.kt`, `ui/viewmodels/StartupViewModel.kt`, `navigation/FairrNavGraph.kt`
 
-- [ ] **Implement proper sign-out data clearing**
+- [x] **Implement proper sign-out data clearing**
   - Clear `UserPreferencesManager` and `SettingsDataStore` on logout
   - Reset all ViewModels to initial state
   - Force account selection dialog on next login

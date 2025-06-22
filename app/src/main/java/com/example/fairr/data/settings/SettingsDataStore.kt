@@ -29,4 +29,15 @@ class SettingsDataStore @Inject constructor(@ApplicationContext private val cont
             preferences[PreferencesKeys.DEFAULT_CURRENCY] = currency
         }
     }
+
+    /**
+     * Clear all settings and reset to defaults
+     * This is used for complete sign-out to force fresh configuration
+     */
+    suspend fun clearAllSettings() {
+        context.dataStore.edit { preferences ->
+            // Clear all settings - they will revert to defaults
+            preferences.remove(PreferencesKeys.DEFAULT_CURRENCY)
+        }
+    }
 } 

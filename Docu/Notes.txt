@@ -23,4 +23,5 @@
 1. Instead using PHP pesos sign
 2. Group member error when saving expenses. Permission error , but record is being saved. seems like false alamrm or fase negative? 
 3. expenses must be deleted, or modified.
-4. 
+4. Onboarding get started button crashes the app. 
+5. after sign out, on welcome screen where I select wether to sign in or create account. the app skips it and automatically log me back in.  I would like to give the users option to select wether they want to create new account or log in using a different account

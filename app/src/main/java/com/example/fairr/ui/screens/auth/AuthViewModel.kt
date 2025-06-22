@@ -1,6 +1,7 @@
 package com.example.fairr.ui.screens.auth
 
 import android.content.Intent
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -9,7 +10,9 @@ import androidx.lifecycle.viewModelScope
 import com.example.fairr.data.auth.AuthResult
 import com.example.fairr.data.auth.AuthService
 import com.example.fairr.data.auth.GoogleAuthService
+import com.example.fairr.data.preferences.UserPreferencesManager
 import com.example.fairr.data.repository.UserRepository
+import com.example.fairr.data.settings.SettingsDataStore
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.common.api.ApiException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -26,7 +29,9 @@ import javax.inject.Inject
 class AuthViewModel @Inject constructor(
     private val authService: AuthService,
     private val googleAuthService: GoogleAuthService,
-    private val userRepository: UserRepository
+    private val userRepository: UserRepository,
+    private val userPreferencesManager: UserPreferencesManager,
+    private val settingsDataStore: SettingsDataStore
 ) : ViewModel() {
     private val _state = MutableStateFlow(AuthState())
     val state: StateFlow<AuthState> = _state.asStateFlow()
@@ -52,6 +57,9 @@ class AuthViewModel @Inject constructor(
             _state.value = _state.value.copy(isLoading = true, error = null)
             when (val result = authService.signIn(email, password)) {
                 is AuthResult.Success -> {
+                    // Clear force account selection flag when user manually signs in
+                    userPreferencesManager.clearForceAccountSelection()
+                    
                     _state.value = _state.value.copy(
                         isLoading = false,
                         isAuthenticated = true
@@ -77,6 +85,10 @@ class AuthViewModel @Inject constructor(
                     try {
                         // Create the user document in Firestore
                         userRepository.createOrUpdateUser(result.user)
+                        
+                        // Clear force account selection flag when user manually signs up
+                        userPreferencesManager.clearForceAccountSelection()
+                        
                         _state.value = _state.value.copy(
                             isLoading = false,
                             isAuthenticated = true
@@ -128,9 +140,27 @@ class AuthViewModel @Inject constructor(
 
     fun signOut() {
         viewModelScope.launch {
-            googleAuthService.signOut()
-            authService.signOut()
-            _state.value = _state.value.copy(isAuthenticated = false)
+            try {
+                // Sign out from Google and Firebase with complete data clearing
+                googleAuthService.signOut()
+                authService.signOutWithDataClearing(userPreferencesManager, settingsDataStore)
+                
+                // Reset ViewModel state to initial values
+                _state.value = AuthState()
+                
+                // Emit reset event to trigger app-wide reset
+                _uiEvent.emit(AuthUiEvent.ResetApp)
+                
+                Log.d("AuthViewModel", "Sign out completed with data clearing")
+            } catch (e: Exception) {
+                Log.e("AuthViewModel", "Error during sign out", e)
+                // Fallback to basic sign out if data clearing fails
+                authService.signOut()
+                _state.value = _state.value.copy(isAuthenticated = false)
+                
+                // Still emit reset event
+                _uiEvent.emit(AuthUiEvent.ResetApp)
+            }
         }
     }
 
@@ -161,6 +191,8 @@ class AuthViewModel @Inject constructor(
                 account.idToken?.let { token ->
                     googleAuthService.firebaseAuthWithGoogle(token)
                         .onSuccess {
+                            // Clear force account selection flag when user manually signs in with Google
+                            userPreferencesManager.clearForceAccountSelection()
                             _uiEvent.emit(AuthUiEvent.NavigateToHome)
                         }
                         .onFailure { e ->
@@ -186,4 +218,5 @@ sealed class AuthUiEvent {
     data class ShowMessage(val message: String) : AuthUiEvent()
     data object NavigateToHome : AuthUiEvent()
     data class LaunchGoogleSignIn(val intent: Intent) : AuthUiEvent()
+    data object ResetApp : AuthUiEvent()
 } 
