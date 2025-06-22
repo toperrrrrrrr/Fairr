@@ -72,7 +72,7 @@ fun SplashScreen(
                 painter = painterResource(id = R.drawable.fairr_logo),
                 contentDescription = "Fairr Logo",
                 modifier = Modifier
-                    .size(200.dp)
+                    .size(140.dp)
                     .scale(scale),
                 contentScale = ContentScale.Fit
             )
@@ -83,7 +83,7 @@ fun SplashScreen(
             Text(
                 text = "Fairr",
                 style = MaterialTheme.typography.headlineLarge,
-                fontSize = 48.sp,
+                fontSize = 30.sp,
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
             )

@@ -195,6 +195,10 @@ class NotificationsViewModel @Inject constructor(
         }
     }
 
+    fun dismissNotification(notificationId: String) {
+        deleteNotification(notificationId)
+    }
+
     fun clearSnackbarMessage() {
         snackbarMessage = null
     }

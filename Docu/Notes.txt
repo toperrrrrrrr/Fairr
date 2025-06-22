@@ -25,3 +25,7 @@
 3. expenses must be deleted, or modified.
 4. Onboarding get started button crashes the app. 
 5. after sign out, on welcome screen where I select wether to sign in or create account. the app skips it and automatically log me back in.  I would like to give the users option to select wether they want to create new account or log in using a different account
+6. Onboarding page carousel is swiping automatically and getting stuck asymetrically.
+7. Fairr splashscreen text and logo is too big. reduce it by 50% 
+8. Sticky create group button on the bottom of the screen
+9. android nav button is white on white. need to update to black on white.

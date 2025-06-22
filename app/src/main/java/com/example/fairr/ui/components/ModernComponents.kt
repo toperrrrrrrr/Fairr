@@ -30,6 +30,11 @@ import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fairr.ui.theme.*
+import androidx.compose.foundation.gestures.detectHorizontalDragGestures
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.ui.graphics.graphicsLayer
+import com.example.fairr.data.model.Notification
+import com.example.fairr.data.model.NotificationType
 
 /**
  * Modern Card Components inspired by clean UI designs
@@ -552,6 +557,146 @@ fun ModernDivider(
         thickness = thickness.dp,
         color = color
     )
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun ModernNotificationCard(
+    notification: Notification,
+    onApprove: ((String) -> Unit)? = null,
+    onReject: ((String) -> Unit)? = null,
+    onAcceptInvite: ((String) -> Unit)? = null,
+    onDeclineInvite: ((String) -> Unit)? = null,
+    onMarkAsRead: (() -> Unit)? = null,
+    isProcessing: Boolean = false,
+    outcome: String? = null,
+    onDismiss: (() -> Unit)? = null,
+    modifier: Modifier = Modifier
+) {
+    var offsetX by remember { mutableStateOf(0f) }
+    val dismissThreshold = 150f
+    val isJoinRequest = notification.type == NotificationType.GROUP_JOIN_REQUEST
+    val isInvitation = notification.type == NotificationType.GROUP_INVITATION
+    val requestId = notification.data["requestId"] as? String
+    val inviteId = notification.data["inviteId"] as? String
+
+    Box(
+        modifier = modifier
+            .pointerInput(onDismiss) {
+                if (onDismiss != null) {
+                    detectHorizontalDragGestures { change, dragAmount ->
+                        offsetX += dragAmount
+                        if (offsetX > dismissThreshold || offsetX < -dismissThreshold) {
+                            onDismiss()
+                            offsetX = 0f
+                        }
+                    }
+                }
+            }
+    ) {
+        ModernCard(
+            modifier = Modifier
+                .graphicsLayer { translationX = offsetX }
+                .fillMaxWidth(),
+            backgroundColor = if (notification.isRead) CardBackground.copy(alpha = 0.7f) else CardBackground,
+            shadowElevation = if (notification.isRead) 1 else 4,
+            cornerRadius = 16
+        ) {
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Icon
+                val icon = when (notification.type) {
+                    NotificationType.GROUP_JOIN_REQUEST -> Icons.Default.Group
+                    NotificationType.GROUP_INVITATION -> Icons.Default.Group
+                    NotificationType.EXPENSE_ADDED -> Icons.Default.Receipt
+                    NotificationType.SETTLEMENT_REMINDER -> Icons.Default.Payment
+                    NotificationType.FRIEND_REQUEST -> Icons.Default.PersonAdd
+                    else -> Icons.Default.Notifications
+                }
+                val iconColor = when (notification.type) {
+                    NotificationType.EXPENSE_ADDED -> AccentGreen
+                    NotificationType.SETTLEMENT_REMINDER -> AccentBlue
+                    NotificationType.FRIEND_REQUEST -> Color(0xFF9C27B0) // Purple
+                    else -> Primary
+                }
+                Box(
+                    modifier = Modifier
+                        .size(44.dp)
+                        .background(iconColor.copy(alpha = 0.12f), shape = CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = icon,
+                        contentDescription = null,
+                        tint = iconColor,
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+                // Content
+                Column(modifier = Modifier.weight(1f)) {
+                    Text(
+                        text = notification.title,
+                        fontWeight = if (notification.isRead) FontWeight.Normal else FontWeight.SemiBold,
+                        fontSize = 16.sp,
+                        color = TextPrimary,
+                        maxLines = 2
+                    )
+                    Spacer(modifier = Modifier.height(2.dp))
+                    Text(
+                        text = notification.message,
+                        fontSize = 14.sp,
+                        color = TextSecondary,
+                        maxLines = 3
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    // Action buttons
+                    if (isJoinRequest && requestId != null && (onApprove != null || onReject != null)) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Button(
+                                onClick = { onApprove?.invoke(requestId) },
+                                enabled = !isProcessing,
+                                colors = ButtonDefaults.buttonColors(containerColor = AccentGreen)
+                            ) { Text("Approve") }
+                            OutlinedButton(
+                                onClick = { onReject?.invoke(requestId) },
+                                enabled = !isProcessing,
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = AccentRed)
+                            ) { Text("Reject") }
+                        }
+                    } else if (isInvitation && inviteId != null && (onAcceptInvite != null || onDeclineInvite != null)) {
+                        Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                            Button(
+                                onClick = { onAcceptInvite?.invoke(inviteId) },
+                                enabled = !isProcessing,
+                                colors = ButtonDefaults.buttonColors(containerColor = AccentGreen)
+                            ) { Text("Accept") }
+                            OutlinedButton(
+                                onClick = { onDeclineInvite?.invoke(inviteId) },
+                                enabled = !isProcessing,
+                                colors = ButtonDefaults.outlinedButtonColors(contentColor = AccentRed)
+                            ) { Text("Decline") }
+                        }
+                    } else if (onMarkAsRead != null && !notification.isRead) {
+                        TextButton(onClick = onMarkAsRead) {
+                            Text("Mark as read")
+                        }
+                    }
+                    // Outcome message
+                    outcome?.let {
+                        Text(
+                            text = it,
+                            color = if (it.contains("approved", true) || it.contains("accepted", true)) AccentGreen else AccentRed,
+                            fontWeight = FontWeight.Medium,
+                            fontSize = 13.sp,
+                            modifier = Modifier.padding(top = 4.dp)
+                        )
+                    }
+                }
+            }
+        }
+    }
 }
 
 // Preview Components

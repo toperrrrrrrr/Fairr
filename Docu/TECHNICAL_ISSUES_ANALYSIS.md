@@ -47,12 +47,12 @@
   - Files: `data/auth/AuthService.kt`, `data/preferences/UserPreferencesManager.kt`
 
 ### Group Management Features
-- [ ] **Complete remove member functionality**
+- [x] **Complete remove member functionality**
   - Implement `removeMemberFromGroup()` in `GroupSettingsViewModel.kt`
   - Add confirmation dialog and notifications
   - Files: `ui/viewmodel/GroupSettingsViewModel.kt`, `data/groups/GroupService.kt`
 
-- [ ] **Implement edit group functionality**
+- [x] **Implement edit group functionality**
   - Add group editing logic in `GroupSettingsViewModel.kt`
   - Create update methods in `GroupService.kt`
   - Files: `ui/viewmodel/GroupSettingsViewModel.kt`, `data/groups/GroupService.kt`

@@ -107,7 +107,7 @@ fun NotificationsScreen(
                         contentPadding = PaddingValues(16.dp),
                         verticalArrangement = Arrangement.spacedBy(8.dp)
                     ) {
-                        items(uiState.notifications) { notification ->
+                        items(uiState.notifications, key = { it.id }) { notification ->
                             val requestId = notification.data["requestId"] as? String
                             val inviteId = notification.data["inviteId"] as? String
                             val isProcessingForItem = when {
@@ -117,7 +117,7 @@ fun NotificationsScreen(
                                 else -> false
                             }
                             val outcome = uiState.decisionResults[notification.id]
-                            NotificationCard(
+                            ModernNotificationCard(
                                 notification = notification,
                                 onApprove = { reqId ->
                                     viewModel.respondToJoinRequest(notification.id, reqId, true)
@@ -135,7 +135,10 @@ fun NotificationsScreen(
                                     viewModel.markAsRead(notification.id)
                                 },
                                 isProcessing = isProcessingForItem,
-                                outcome = outcome
+                                outcome = outcome,
+                                onDismiss = {
+                                    viewModel.dismissNotification(notification.id)
+                                }
                             )
                         }
                     }
