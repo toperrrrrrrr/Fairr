@@ -110,7 +110,8 @@ class ExpenseRepositoryImpl @Inject constructor(
                             ExpenseCategory.OTHER
                         },
                         notes = data["notes"] as? String ?: "",
-                        attachments = (data["attachments"] as? List<String>) ?: emptyList()
+                        attachments = (data["attachments"] as? List<String>) ?: emptyList(),
+                        splitType = data["splitType"] as? String ?: "Equal Split"
                     )
                 } catch (e: Exception) {
                     Log.e(TAG, "Error parsing expense document", e)
@@ -438,7 +439,8 @@ class ExpenseRepositoryImpl @Inject constructor(
                     ExpenseCategory.OTHER
                 },
                 notes = data["notes"] as? String ?: "",
-                attachments = (data["attachments"] as? List<String>) ?: emptyList()
+                attachments = (data["attachments"] as? List<String>) ?: emptyList(),
+                splitType = data["splitType"] as? String ?: "Equal Split"
             )
         } catch (e: Exception) {
             Log.e(TAG, "Error getting expense by ID", e)

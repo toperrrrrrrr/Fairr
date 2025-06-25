@@ -31,7 +31,7 @@
 [] On the create group, there is still option for currency but we can remove it. we can use the currency on the app settings which will be saved on the user profile. 
 []  I would like to have an option to remove the notification once it is either accepted or declined. Create another button or section within the notification page to open the opened notification and review details of the notification
 [] Expense details have $ as symbol and not using whatever the user selected as default. 
-[]
+[] icons for group. but use material icons to select from instead of emojis
 []
 []
 []

@@ -14,7 +14,8 @@ data class Expense(
     val splitBetween: List<ExpenseSplit> = emptyList(),
     val category: ExpenseCategory = ExpenseCategory.OTHER,
     val notes: String = "",
-    val attachments: List<String> = emptyList() // URLs to attachments
+    val attachments: List<String> = emptyList(), // URLs to attachments
+    val splitType: String = "Equal Split" // Type of split: "Equal Split", "Percentage", "Custom Amount"
 )
 
 data class ExpenseSplit(

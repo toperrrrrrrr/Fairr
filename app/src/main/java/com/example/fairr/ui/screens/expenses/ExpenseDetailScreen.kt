@@ -285,7 +285,7 @@ fun ExpenseOverviewCard(
                 )
                 DetailItem(
                     label = "Split Type",
-                    value = "Equal Split" // TODO: Get from expense data
+                    value = expense.splitType
                 )
             }
             
