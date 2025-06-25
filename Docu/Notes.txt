@@ -20,12 +20,19 @@
 
 
 
-1. Instead using PHP pesos sign
-2. Group member error when saving expenses. Permission error , but record is being saved. seems like false alamrm or fase negative? 
-3. expenses must be deleted, or modified.
-4. Onboarding get started button crashes the app. 
-5. after sign out, on welcome screen where I select wether to sign in or create account. the app skips it and automatically log me back in.  I would like to give the users option to select wether they want to create new account or log in using a different account
-6. Onboarding page carousel is swiping automatically and getting stuck asymetrically.
-7. Fairr splashscreen text and logo is too big. reduce it by 50% 
-8. Sticky create group button on the bottom of the screen
-9. android nav button is white on white. need to update to black on white.
+[x]1. when PHP is selected, instead of using PHP, use pesos sign
+[x]2. Group member error when saving expenses. Permission error , but record is being saved. seems like false alamrm or fase negative? 
+[x]3. expenses must be deleted, or edited. 
+[x]4. Onboarding get started button crashes the app. 
+[]5. after sign out, on welcome screen where I select wether to sign in or create account. the app skips it and automatically log me back in.  I would like to give the users option to select wether they want to create new account or log in using a different account
+[]6. Onboarding page carousel is swiping automatically and getting stuck asymetrically.
+[]8. Sticky create group button on the bottom of the screen
+[x]9. android  device nav button when on app is white on white. need to update to black buttons on white background
+[] On the create group, there is still option for currency but we can remove it. we can use the currency on the app settings which will be saved on the user profile. 
+[] 
+[]
+[]
+[]
+[]
+[]
+[]

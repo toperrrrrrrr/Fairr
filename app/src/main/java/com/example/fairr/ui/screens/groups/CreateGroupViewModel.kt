@@ -19,6 +19,7 @@ import kotlinx.coroutines.flow.asSharedFlow
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.CoroutineExceptionHandler
 import javax.inject.Inject
+import com.example.fairr.data.settings.SettingsDataStore
 
 private const val TAG = "CreateGroupViewModel"
 
@@ -40,7 +41,8 @@ sealed class EmailValidationResult {
 @HiltViewModel
 class CreateGroupViewModel @Inject constructor(
     private val groupService: GroupService,
-    private val groupInviteService: GroupInviteService
+    private val groupInviteService: GroupInviteService,
+    private val settingsDataStore: SettingsDataStore
 ) : ViewModel() {
     var uiState by mutableStateOf<CreateGroupUiState>(CreateGroupUiState.Initial)
         private set
@@ -66,6 +68,17 @@ class CreateGroupViewModel @Inject constructor(
     private val exceptionHandler = CoroutineExceptionHandler { _, throwable ->
         Log.e(TAG, "Coroutine exception", throwable)
         uiState = CreateGroupUiState.Error(throwable.message ?: "An unexpected error occurred")
+    }
+
+    init {
+        // Load user's preferred currency from settings
+        viewModelScope.launch {
+            try {
+                settingsDataStore.defaultCurrency.collect { curr ->
+                    groupCurrency = curr
+                }
+            } catch (_: Exception) { }
+        }
     }
 
     /**

@@ -195,15 +195,23 @@ class ExpenseRepositoryImpl @Inject constructor(
                 .await()
             Log.d("ExpenseRepository", "Expense document added successfully with ID: ${expenseRef.id}")
 
-            // Update group total
-            Log.d("ExpenseRepository", "Updating group total")
-            val groupRef = firestore.collection("groups").document(groupId)
-            firestore.runTransaction { transaction ->
-                val groupDoc = transaction.get(groupRef)
-                val currentTotal = groupDoc.getDouble("totalExpenses") ?: 0.0
-                transaction.update(groupRef, "totalExpenses", currentTotal + amount)
-            }.await()
-            Log.d("ExpenseRepository", "Group total updated successfully")
+            // Try to update group total. If this fails due to permissions (non-admin user),
+            // we simply log the error but do NOT surface it to the UI because the expense
+            // itself has already been saved successfully. A backend function can recompute
+            // totals if needed.
+            try {
+                Log.d("ExpenseRepository", "Updating group total")
+                val groupRef = firestore.collection("groups").document(groupId)
+                firestore.runTransaction { transaction ->
+                    val groupDoc = transaction.get(groupRef)
+                    val currentTotal = groupDoc.getDouble("totalExpenses") ?: 0.0
+                    transaction.update(groupRef, "totalExpenses", currentTotal + amount)
+                }.await()
+                Log.d("ExpenseRepository", "Group total updated successfully")
+            } catch (perm: Exception) {
+                // Most likely a PERMISSION_DENIED for non-admin users
+                Log.w("ExpenseRepository", "Could not update group total (ignored): ${perm.message}")
+            }
 
         } catch (e: Exception) {
             Log.e("ExpenseRepository", "Error saving expense: ${e.message}", e)

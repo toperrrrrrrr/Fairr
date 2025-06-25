@@ -23,11 +23,17 @@ import com.example.fairr.ui.theme.FairrTheme
 import com.example.fairr.ui.viewmodels.StartupViewModel
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
+import androidx.core.view.WindowCompat
+import androidx.core.view.WindowInsetsControllerCompat
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
+        // Set navigation bar background to white and icons to dark before Compose content
+        WindowCompat.setDecorFitsSystemWindows(window, true)
+        window.navigationBarColor = android.graphics.Color.WHITE
+        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightNavigationBars = true
         setContent {
             FairrTheme {
                 Surface(

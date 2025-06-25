@@ -166,14 +166,12 @@ fun CreateGroupScreen(
                             )
                         }
 
-                        // Currency field
+                        // Display currency info (read-only)
                         item {
-                            OutlinedTextField(
-                                value = viewModel.groupCurrency,
-                                onValueChange = viewModel::onGroupCurrencyChange,
-                                label = { Text("Currency") },
-                                modifier = Modifier.fillMaxWidth(),
-                                singleLine = true
+                            Text(
+                                text = "Currency: " + com.example.fairr.util.CurrencyFormatter.getSymbol(viewModel.groupCurrency),
+                                style = MaterialTheme.typography.bodyLarge,
+                                modifier = Modifier.padding(vertical = 4.dp)
                             )
                         }
 
