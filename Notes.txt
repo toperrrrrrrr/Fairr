@@ -30,7 +30,7 @@
 [x]9. android  device nav button when on app is white on white. need to update to black buttons on white background
 [] On the create group, there is still option for currency but we can remove it. we can use the currency on the app settings which will be saved on the user profile. 
 []  I would like to have an option to remove the notification once it is either accepted or declined. Create another button or section within the notification page to open the opened notification and review details of the notification
-[]
+[] Expense details have $ as symbol and not using whatever the user selected as default. 
 []
 []
 []
