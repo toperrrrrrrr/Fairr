@@ -32,6 +32,8 @@ interface ExpenseRepository {
     
     suspend fun getExpensesByGroupId(groupId: String): List<Expense>
 
+    suspend fun getExpenseById(expenseId: String): Expense?
+
     suspend fun updateExpense(oldExpense: Expense, newExpense: Expense)
 
     suspend fun deleteExpense(expense: Expense)
@@ -370,6 +372,77 @@ class ExpenseRepositoryImpl @Inject constructor(
                 val currentTotal = (txn.get(groupRef).getDouble("totalExpenses") ?: 0.0) - expense.amount
                 txn.update(groupRef, "totalExpenses", currentTotal.coerceAtLeast(0.0))
             }.await()
+        }
+    }
+
+    override suspend fun getExpenseById(expenseId: String): Expense? {
+        try {
+            val expenseRef = firestore.collection("expenses").document(expenseId)
+            val expenseDoc = expenseRef.get().await()
+            
+            if (!expenseDoc.exists()) {
+                return null
+            }
+            
+            val data = expenseDoc.data ?: return null
+            
+            // Get the user who paid
+            val paidById = data["paidBy"] as? String
+            val paidByName = if (!paidById.isNullOrEmpty()) {
+                try {
+                    val paidByUser = firestore.collection("users")
+                        .document(paidById)
+                        .get()
+                        .await()
+                    paidByUser.getString("displayName") ?: "Unknown User"
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error fetching paid by user", e)
+                    "Unknown User"
+                }
+            } else {
+                "Unknown User"
+            }
+            
+            // Parse splits
+            val splitsData = data["splitBetween"] as? List<Map<String, Any>> ?: emptyList()
+            val splits = splitsData.mapNotNull { splitData ->
+                try {
+                    val userId = splitData["userId"] as? String
+                    if (userId.isNullOrEmpty()) return@mapNotNull null
+                    
+                    ExpenseSplit(
+                        userId = userId,
+                        userName = splitData["userName"] as? String ?: "Unknown",
+                        share = (splitData["share"] as? Number)?.toDouble() ?: 0.0,
+                        isPaid = splitData["isPaid"] as? Boolean ?: false
+                    )
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error parsing split data", e)
+                    null
+                }
+            }
+
+            return Expense(
+                id = expenseId,
+                groupId = data["groupId"] as? String ?: "",
+                description = data["description"] as? String ?: "",
+                amount = (data["amount"] as? Number)?.toDouble() ?: 0.0,
+                currency = data["currency"] as? String ?: "USD",
+                date = (data["date"] as? Timestamp) ?: Timestamp.now(),
+                paidBy = paidById ?: "",
+                paidByName = paidByName,
+                splitBetween = splits,
+                category = try {
+                    ExpenseCategory.valueOf((data["category"] as? String)?.uppercase() ?: "OTHER")
+                } catch (e: Exception) {
+                    ExpenseCategory.OTHER
+                },
+                notes = data["notes"] as? String ?: "",
+                attachments = (data["attachments"] as? List<String>) ?: emptyList()
+            )
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting expense by ID", e)
+            return null
         }
     }
 } 

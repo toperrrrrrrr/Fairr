@@ -45,6 +45,9 @@ fun NotificationsScreen(
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
 
+    // For detail dialog
+    var selectedNotification by remember { mutableStateOf<com.example.fairr.data.model.Notification?>(null) }
+
     Scaffold(
         topBar = {
             TopAppBar(
@@ -138,7 +141,8 @@ fun NotificationsScreen(
                                 outcome = outcome,
                                 onDismiss = {
                                     viewModel.dismissNotification(notification.id)
-                                }
+                                },
+                                onClick = { selectedNotification = notification }
                             )
                         }
                     }
@@ -155,6 +159,27 @@ fun NotificationsScreen(
                     Text(uiState.error!!)
                 }
             }
+        }
+
+        // Detail dialog when a notification is tapped
+        selectedNotification?.let { notif ->
+            AlertDialog(
+                onDismissRequest = { selectedNotification = null },
+                confirmButton = {
+                    TextButton(onClick = { selectedNotification = null }) {
+                        Text("Close")
+                    }
+                },
+                title = { Text(notif.title) },
+                text = {
+                    Column {
+                        Text(notif.message)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text("Type: ${notif.type}")
+                        Text("Date: ${formatTimestamp(notif.createdAt)}")
+                    }
+                }
+            )
         }
     }
 

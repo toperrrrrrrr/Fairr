@@ -22,9 +22,13 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.fairr.ui.theme.*
+import com.example.fairr.util.CurrencyFormatter
+import com.example.fairr.data.model.Expense
+import com.example.fairr.data.model.ExpenseSplit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -32,33 +36,10 @@ fun ExpenseDetailScreen(
     navController: NavController,
     expenseId: String,
     onEditExpense: () -> Unit = {},
-    onDeleteExpense: () -> Unit = {}
+    onDeleteExpense: () -> Unit = {},
+    viewModel: ExpenseDetailViewModel = hiltViewModel()
 ) {
-    // Sample expense data
-    val expense = remember {
-        ExpenseDetailData(
-            id = expenseId,
-            description = "Dinner at Italian Restaurant",
-            amount = 120.00,
-            currency = "$",
-            category = "Food & Dining",
-            paidBy = "Alice Johnson",
-            paidByUserId = "1",
-            date = "March 15, 2024",
-            splitType = "Equal Split",
-            groupName = "Weekend Trip"
-        )
-    }
-    
-    val participants = remember {
-        listOf(
-            ExpenseParticipant("1", "Alice Johnson", 30.00, true, true),
-            ExpenseParticipant("2", "Bob Smith", 30.00, false, false),
-            ExpenseParticipant("3", "Charlie Brown", 30.00, false, false),
-            ExpenseParticipant("4", "Diana Prince", 30.00, false, false)
-        )
-    }
-    
+    val uiState = viewModel.uiState
     var showMenu by remember { mutableStateOf(false) }
 
     Scaffold(
@@ -95,36 +76,16 @@ fun ExpenseDetailScreen(
                             onDismissRequest = { showMenu = false }
                         ) {
                             DropdownMenuItem(
-                                text = { 
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(
-                                            Icons.Default.Edit,
-                                            contentDescription = "Edit",
-                                            tint = TextPrimary,
-                                            modifier = Modifier.size(20.dp)
-                                        )
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Text("Edit Expense")
-                                    }
-                                },
+                                text = { Text("Edit") },
+                                leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
                                 onClick = {
                                     showMenu = false
                                     onEditExpense()
                                 }
                             )
                             DropdownMenuItem(
-                                text = { 
-                                    Row(verticalAlignment = Alignment.CenterVertically) {
-                                        Icon(
-                                            Icons.Default.Delete,
-                                            contentDescription = "Delete",
-                                            tint = ErrorRed,
-                                            modifier = Modifier.size(20.dp)
-                                        )
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Text("Delete Expense", color = ErrorRed)
-                                    }
-                                },
+                                text = { Text("Delete") },
+                                leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null) },
                                 onClick = {
                                     showMenu = false
                                     onDeleteExpense()
@@ -132,53 +93,99 @@ fun ExpenseDetailScreen(
                             )
                         }
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = NeutralWhite
-                )
+                }
             )
         }
     ) { padding ->
-        LazyColumn(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(LightBackground)
-                .padding(padding),
-            verticalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            item {
-                Spacer(modifier = Modifier.height(8.dp))
+        when (uiState) {
+            is ExpenseDetailUiState.Loading -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
             }
-            
-            // Expense Overview Card
-            item {
-                ExpenseOverviewCard(
-                    expense = expense,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
+            is ExpenseDetailUiState.Error -> {
+                Box(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Text(
+                            text = "Error",
+                            style = MaterialTheme.typography.headlineSmall,
+                            color = ErrorRed
+                        )
+                        Text(
+                            text = uiState.message,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = TextSecondary
+                        )
+                        Button(onClick = { viewModel.refresh() }) {
+                            Text("Retry")
+                        }
+                    }
+                }
             }
-            
-            // Split Details Section
-            item {
-                Text(
-                    text = "Split Details",
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    color = TextPrimary,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-            }
-            
-            items(participants) { participant ->
-                ParticipantCard(
-                    participant = participant,
-                    currency = expense.currency,
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-            }
-            
-            item {
-                Spacer(modifier = Modifier.height(16.dp))
+            is ExpenseDetailUiState.Success -> {
+                val expense = uiState.expense
+                val groupName = uiState.groupName
+                val currentUserId = uiState.currentUserId
+                
+                LazyColumn(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .background(LightBackground)
+                        .padding(padding),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    item {
+                        Spacer(modifier = Modifier.height(8.dp))
+                    }
+                    
+                    // Expense Overview Card
+                    item {
+                        ExpenseOverviewCard(
+                            expense = expense,
+                            groupName = groupName,
+                            viewModel = viewModel,
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+                    }
+                    
+                    // Split Details Section
+                    item {
+                        Text(
+                            text = "Split Details",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = TextPrimary,
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+                    }
+                    
+                    items(expense.splitBetween) { split ->
+                        ParticipantCard(
+                            split = split,
+                            expense = expense,
+                            currentUserId = currentUserId,
+                            viewModel = viewModel,
+                            modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+                    }
+                    
+                    item {
+                        Spacer(modifier = Modifier.height(16.dp))
+                    }
+                }
             }
         }
     }
@@ -186,7 +193,9 @@ fun ExpenseDetailScreen(
 
 @Composable
 fun ExpenseOverviewCard(
-    expense: ExpenseDetailData,
+    expense: Expense,
+    groupName: String,
+    viewModel: ExpenseDetailViewModel,
     modifier: Modifier = Modifier
 ) {
     Card(
@@ -212,7 +221,7 @@ fun ExpenseOverviewCard(
                         color = TextPrimary
                     )
                     Text(
-                        text = expense.groupName,
+                        text = groupName,
                         fontSize = 14.sp,
                         color = TextSecondary,
                         modifier = Modifier.padding(top = 4.dp)
@@ -241,7 +250,7 @@ fun ExpenseOverviewCard(
             
             // Amount
             Text(
-                text = "${expense.currency}${String.format("%.2f", expense.amount)}",
+                text = CurrencyFormatter.format(expense.currency, expense.amount),
                 fontSize = 32.sp,
                 fontWeight = FontWeight.Bold,
                 color = TextPrimary
@@ -256,11 +265,11 @@ fun ExpenseOverviewCard(
             ) {
                 DetailItem(
                     label = "Paid by",
-                    value = expense.paidBy
+                    value = expense.paidByName
                 )
                 DetailItem(
                     label = "Date",
-                    value = expense.date
+                    value = viewModel.formatDate(expense.date)
                 )
             }
             
@@ -272,11 +281,19 @@ fun ExpenseOverviewCard(
             ) {
                 DetailItem(
                     label = "Category",
-                    value = expense.category
+                    value = expense.category.name.replace("_", " ").capitalize()
                 )
                 DetailItem(
                     label = "Split Type",
-                    value = expense.splitType
+                    value = "Equal Split" // TODO: Get from expense data
+                )
+            }
+            
+            if (expense.notes.isNotEmpty()) {
+                Spacer(modifier = Modifier.height(12.dp))
+                DetailItem(
+                    label = "Notes",
+                    value = expense.notes
                 )
             }
         }
@@ -306,10 +323,15 @@ fun DetailItem(
 
 @Composable
 fun ParticipantCard(
-    participant: ExpenseParticipant,
-    currency: String,
+    split: ExpenseSplit,
+    expense: Expense,
+    currentUserId: String,
+    viewModel: ExpenseDetailViewModel,
     modifier: Modifier = Modifier
 ) {
+    val isPayer = split.userId == expense.paidBy
+    val isCurrentUser = split.userId == currentUserId
+    
     Card(
         modifier = modifier
             .fillMaxWidth()
@@ -328,8 +350,8 @@ fun ParticipantCard(
                 modifier = Modifier
                     .size(40.dp)
                     .background(
-                        if (participant.isPayer) DarkGreen.copy(alpha = 0.2f) 
-                        else if (participant.isCurrentUser) DarkBlue.copy(alpha = 0.2f)
+                        if (isPayer) DarkGreen.copy(alpha = 0.2f) 
+                        else if (isCurrentUser) DarkBlue.copy(alpha = 0.2f)
                         else PlaceholderText.copy(alpha = 0.2f),
                         CircleShape
                     ),
@@ -338,8 +360,8 @@ fun ParticipantCard(
                 Icon(
                     Icons.Default.Person,
                     contentDescription = "Participant",
-                    tint = if (participant.isPayer) DarkGreen 
-                          else if (participant.isCurrentUser) DarkBlue
+                    tint = if (isPayer) DarkGreen 
+                          else if (isCurrentUser) DarkBlue
                           else PlaceholderText,
                     modifier = Modifier.size(20.dp)
                 )
@@ -351,12 +373,12 @@ fun ParticipantCard(
             Column(modifier = Modifier.weight(1f)) {
                 Row(verticalAlignment = Alignment.CenterVertically) {
                     Text(
-                        text = if (participant.isCurrentUser) "${participant.name} (You)" else participant.name,
+                        text = if (isCurrentUser) "${split.userName} (You)" else split.userName,
                         fontSize = 16.sp,
                         fontWeight = FontWeight.Medium,
                         color = TextPrimary
                     )
-                    if (participant.isPayer) {
+                    if (isPayer) {
                         Spacer(modifier = Modifier.width(8.dp))
                         Surface(
                             color = DarkGreen.copy(alpha = 0.1f),
@@ -376,7 +398,7 @@ fun ParticipantCard(
             
             // Amount
             Text(
-                text = "$currency${String.format("%.2f", participant.amount)}",
+                text = CurrencyFormatter.format(expense.currency, split.share),
                 fontSize = 16.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = TextPrimary
@@ -385,27 +407,14 @@ fun ParticipantCard(
     }
 }
 
-// Data classes
-data class ExpenseDetailData(
-    val id: String,
-    val description: String,
-    val amount: Double,
-    val currency: String,
-    val category: String,
-    val paidBy: String,
-    val paidByUserId: String,
-    val date: String,
-    val splitType: String,
-    val groupName: String
-)
-
-data class ExpenseParticipant(
-    val id: String,
-    val name: String,
-    val amount: Double,
-    val isPayer: Boolean,
-    val isCurrentUser: Boolean
-)
+// Extension function to capitalize first letter
+fun String.capitalize(): String {
+    return if (isNotEmpty()) {
+        this[0].uppercase() + substring(1).lowercase()
+    } else {
+        this
+    }
+}
 
 @Preview(showBackground = true)
 @Composable

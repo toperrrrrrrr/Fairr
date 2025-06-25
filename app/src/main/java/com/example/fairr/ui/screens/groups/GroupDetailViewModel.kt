@@ -8,11 +8,12 @@ import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fairr.data.groups.GroupService
-import com.example.fairr.data.expenses.ExpenseService
-import com.example.fairr.data.expenses.Expense
+import com.example.fairr.data.repository.ExpenseRepository
+import com.example.fairr.data.model.Expense
 import com.example.fairr.data.model.Group
 import com.example.fairr.data.model.GroupMember as DataGroupMember
 import com.example.fairr.ui.model.GroupMember as UiGroupMember
+import com.example.fairr.data.settlements.SettlementService
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.catch
@@ -39,7 +40,8 @@ sealed interface GroupDetailUiState {
 @HiltViewModel
 class GroupDetailViewModel @Inject constructor(
     private val groupService: GroupService,
-    private val expenseService: ExpenseService,
+    private val expenseRepository: ExpenseRepository,
+    private val settlementService: SettlementService,
     private val auth: FirebaseAuth,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -74,11 +76,16 @@ class GroupDetailViewModel @Inject constructor(
             uiState = GroupDetailUiState.Loading
             try {
                 groupService.getGroupById(groupId)
-                    .combine(expenseService.getExpensesForGroup(groupId)) { group, expenses ->
+                    .combine(kotlinx.coroutines.flow.flow { 
+                        emit(expenseRepository.getExpensesByGroupId(groupId))
+                    }) { group, expenses ->
                         val uiMembers = group.members.map { convertToUiMember(it) }
                         val totalExpenses = expenses.sumOf { it.amount }
-                        val currentUserBalance = 0.0 // TODO: Calculate actual balance
-                        
+
+                        val summary = settlementService.getSettlementSummary(groupId)
+                        val currentUserId = auth.currentUser?.uid
+                        val currentUserBalance = summary.firstOrNull { it.userId == currentUserId }?.netBalance ?: 0.0
+
                         GroupDetailUiState.Success(
                             group = group,
                             members = uiMembers,
@@ -101,7 +108,7 @@ class GroupDetailViewModel @Inject constructor(
         }
     }
 
-    fun formatDate(timestamp: Long): String {
-        return dateFormat.format(Date(timestamp))
+    fun formatDate(timestamp: com.google.firebase.Timestamp): String {
+        return dateFormat.format(Date(timestamp.seconds * 1000))
     }
 } 

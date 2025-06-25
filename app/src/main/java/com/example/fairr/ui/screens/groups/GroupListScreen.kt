@@ -32,20 +32,6 @@ fun GroupListScreen(
             TopAppBar(
                 title = { Text("Groups") }
             )
-        },
-        floatingActionButton = {
-            if (uiState is GroupListUiState.Success && uiState.groups.isNotEmpty()) {
-                FloatingActionButton(
-                    onClick = onNavigateToCreateGroup,
-                    containerColor = MaterialTheme.colorScheme.primary
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "Create Group",
-                        tint = MaterialTheme.colorScheme.onPrimary
-                    )
-                }
-            }
         }
     ) { padding ->
         Box(

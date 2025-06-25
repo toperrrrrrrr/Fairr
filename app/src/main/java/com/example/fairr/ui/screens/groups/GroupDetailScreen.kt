@@ -31,7 +31,7 @@ import com.example.fairr.navigation.Screen
 import com.example.fairr.data.model.Group
 import com.example.fairr.ui.model.GroupMember as UiGroupMember
 import com.example.fairr.util.CurrencyFormatter
-import com.example.fairr.data.expenses.Expense
+import com.example.fairr.data.model.Expense
 
 // Data classes
 data class GroupDetail(
@@ -201,7 +201,7 @@ private fun ExpenseCard(
                     fontWeight = FontWeight.SemiBold
                 )
                 Text(
-                    text = viewModel.formatDate(expense.date.time),
+                    text = viewModel.formatDate(expense.date),
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )

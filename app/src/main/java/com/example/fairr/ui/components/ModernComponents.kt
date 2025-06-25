@@ -571,6 +571,7 @@ fun ModernNotificationCard(
     isProcessing: Boolean = false,
     outcome: String? = null,
     onDismiss: (() -> Unit)? = null,
+    onClick: (() -> Unit)? = null,
     modifier: Modifier = Modifier
 ) {
     var offsetX by remember { mutableStateOf(0f) }
@@ -597,7 +598,8 @@ fun ModernNotificationCard(
         ModernCard(
             modifier = Modifier
                 .graphicsLayer { translationX = offsetX }
-                .fillMaxWidth(),
+                .fillMaxWidth()
+                .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier),
             backgroundColor = if (notification.isRead) CardBackground.copy(alpha = 0.7f) else CardBackground,
             shadowElevation = if (notification.isRead) 1 else 4,
             cornerRadius = 16
@@ -692,6 +694,14 @@ fun ModernNotificationCard(
                             fontSize = 13.sp,
                             modifier = Modifier.padding(top = 4.dp)
                         )
+                    }
+
+                    // Remove button (visible when notification already processed or read)
+                    if ((notification.isRead || outcome != null) && onDismiss != null) {
+                        Spacer(modifier = Modifier.height(4.dp))
+                        TextButton(onClick = onDismiss) {
+                            Text("Remove", color = TextSecondary)
+                        }
                     }
                 }
             }
