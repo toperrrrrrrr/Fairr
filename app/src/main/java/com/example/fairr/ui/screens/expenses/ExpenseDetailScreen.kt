@@ -7,17 +7,12 @@ import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Delete
-import androidx.compose.material.icons.filled.Edit
-import androidx.compose.material.icons.filled.MoreVert
-import androidx.compose.material.icons.filled.Person
-import androidx.compose.material.icons.filled.Receipt
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -25,10 +20,11 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
-import com.example.fairr.ui.theme.*
-import com.example.fairr.util.CurrencyFormatter
 import com.example.fairr.data.model.Expense
 import com.example.fairr.data.model.ExpenseSplit
+import com.example.fairr.ui.theme.*
+import com.example.fairr.util.CurrencyFormatter
+import androidx.compose.ui.draw.shadow
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -55,7 +51,7 @@ fun ExpenseDetailScreen(
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
+                            Icons.Filled.ArrowBack,
                             contentDescription = "Back",
                             tint = TextPrimary
                         )
@@ -212,13 +208,14 @@ fun ExpenseOverviewCard(
     Card(
         modifier = modifier
             .fillMaxWidth()
-            .shadow(2.dp, RoundedCornerShape(16.dp)),
-        shape = RoundedCornerShape(16.dp),
+            .shadow(4.dp, RoundedCornerShape(20.dp)),
+        shape = RoundedCornerShape(20.dp),
         colors = CardDefaults.cardColors(containerColor = NeutralWhite)
     ) {
         Column(
-            modifier = Modifier.padding(20.dp)
+            modifier = Modifier.padding(24.dp)
         ) {
+            // Header with description and icon
             Row(
                 modifier = Modifier.fillMaxWidth(),
                 horizontalArrangement = Arrangement.SpaceBetween,
@@ -227,23 +224,28 @@ fun ExpenseOverviewCard(
                 Column(modifier = Modifier.weight(1f)) {
                     Text(
                         text = expense.description,
-                        fontSize = 20.sp,
+                        fontSize = 22.sp,
                         fontWeight = FontWeight.Bold,
-                        color = TextPrimary
+                        color = TextPrimary,
+                        lineHeight = 28.sp
                     )
+                    Spacer(modifier = Modifier.height(6.dp))
                     Text(
                         text = groupName,
-                        fontSize = 14.sp,
+                        fontSize = 15.sp,
                         color = TextSecondary,
-                        modifier = Modifier.padding(top = 4.dp)
+                        fontWeight = FontWeight.Medium
                     )
                 }
                 
+                Spacer(modifier = Modifier.width(16.dp))
+                
+                // Enhanced icon with better styling
                 Box(
                     modifier = Modifier
-                        .size(48.dp)
+                        .size(56.dp)
                         .background(
-                            DarkGreen.copy(alpha = 0.1f),
+                            DarkGreen.copy(alpha = 0.15f),
                             CircleShape
                         ),
                     contentAlignment = Alignment.Center
@@ -252,62 +254,119 @@ fun ExpenseOverviewCard(
                         Icons.Default.Receipt,
                         contentDescription = "Expense",
                         tint = DarkGreen,
-                        modifier = Modifier.size(24.dp)
+                        modifier = Modifier.size(28.dp)
                     )
                 }
             }
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(24.dp))
             
-            // Amount
-            Text(
-                text = CurrencyFormatter.format(expense.currency, expense.amount),
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold,
-                color = TextPrimary
-            )
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            // Details Grid
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+            // Enhanced amount display
+            Column(
+                horizontalAlignment = Alignment.Start
             ) {
-                DetailItem(
-                    label = "Paid by",
-                    value = expense.paidByName
+                Text(
+                    text = "Total Amount",
+                    fontSize = 14.sp,
+                    color = TextSecondary,
+                    fontWeight = FontWeight.Medium
                 )
-                DetailItem(
-                    label = "Date",
-                    value = viewModel.formatDate(expense.date)
+                Spacer(modifier = Modifier.height(4.dp))
+                Text(
+                    text = CurrencyFormatter.format(expense.currency, expense.amount),
+                    fontSize = 36.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary,
+                    lineHeight = 42.sp
                 )
             }
             
-            Spacer(modifier = Modifier.height(12.dp))
+            Spacer(modifier = Modifier.height(24.dp))
             
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalArrangement = Arrangement.SpaceBetween
+            // Enhanced details grid with better spacing
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                DetailItem(
-                    label = "Category",
-                    value = expense.category.name.replace("_", " ").capitalize()
-                )
-                DetailItem(
-                    label = "Split Type",
-                    value = expense.splitType
-                )
-            }
-            
-            if (expense.notes.isNotEmpty()) {
-                Spacer(modifier = Modifier.height(12.dp))
-                DetailItem(
-                    label = "Notes",
-                    value = expense.notes
-                )
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    EnhancedDetailItem(
+                        label = "Paid by",
+                        value = expense.paidByName,
+                        icon = Icons.Default.Person
+                    )
+                    EnhancedDetailItem(
+                        label = "Date",
+                        value = viewModel.formatDate(expense.date),
+                        icon = Icons.Default.CalendarToday
+                    )
+                }
+                
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween
+                ) {
+                    EnhancedDetailItem(
+                        label = "Category",
+                        value = expense.category.name.replace("_", " ").capitalize(),
+                        icon = Icons.Default.Category
+                    )
+                    EnhancedDetailItem(
+                        label = "Split Type",
+                        value = expense.splitType,
+                        icon = Icons.Default.CallSplit
+                    )
+                }
+                
+                if (expense.notes.isNotEmpty()) {
+                    EnhancedDetailItem(
+                        label = "Notes",
+                        value = expense.notes,
+                        icon = Icons.Default.Note,
+                        modifier = Modifier.fillMaxWidth()
+                    )
+                }
             }
         }
+    }
+}
+
+@Composable
+fun EnhancedDetailItem(
+    label: String,
+    value: String,
+    icon: ImageVector,
+    modifier: Modifier = Modifier
+) {
+    Column(
+        modifier = modifier
+    ) {
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier.padding(bottom = 4.dp)
+        ) {
+            Icon(
+                imageVector = icon,
+                contentDescription = null,
+                tint = TextSecondary,
+                modifier = Modifier.size(16.dp)
+            )
+            Spacer(modifier = Modifier.width(6.dp))
+            Text(
+                text = label,
+                fontSize = 13.sp,
+                color = TextSecondary,
+                fontWeight = FontWeight.Medium
+            )
+        }
+        Text(
+            text = value,
+            fontSize = 15.sp,
+            fontWeight = FontWeight.SemiBold,
+            color = TextPrimary,
+            lineHeight = 20.sp
+        )
     }
 }
 

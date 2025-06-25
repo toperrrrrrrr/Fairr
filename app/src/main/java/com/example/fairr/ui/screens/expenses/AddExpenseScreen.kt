@@ -1,10 +1,12 @@
 package com.example.fairr.ui.screens.expenses
 
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
+import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
@@ -36,7 +38,6 @@ import com.example.fairr.util.CurrencyFormatter
 import java.io.File
 import java.util.*
 import kotlinx.coroutines.launch
-import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
 
@@ -131,6 +132,15 @@ fun AddExpenseScreen(
                     if (amountValue == null) {
                         scope.launch {
                             snackbarHostState.showSnackbar("Please enter a valid amount")
+                        }
+                        return@ModernButton
+                    }
+                    
+                    // Validate split-specific data
+                    val splitValidationError = validateSplitData(selectedSplitType, amountValue)
+                    if (splitValidationError != null) {
+                        scope.launch {
+                            snackbarHostState.showSnackbar(splitValidationError)
                         }
                         return@ModernButton
                     }
@@ -339,42 +349,89 @@ fun AddExpenseScreen(
                     style = MaterialTheme.typography.titleMedium,
                     modifier = Modifier.padding(bottom = 16.dp)
                 )
+                
                 splitTypes.forEach { type ->
-                    ListItem(
-                        headlineContent = { 
-                            Text(
-                                type,
-                                style = MaterialTheme.typography.bodyLarge
-                            ) 
-                        },
-                        leadingContent = {
-                            Icon(
-                                when(type) {
-                                    "Equal Split" -> Icons.Default.Group
-                                    "Percentage" -> Icons.Default.Percent
-                                    "Custom Amount" -> Icons.Default.Calculate
-                                    else -> Icons.Default.CallSplit
-                                },
-                                contentDescription = null,
-                                tint = if (type == selectedSplitType) Primary else MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        },
-                        trailingContent = {
-                            if (type == selectedSplitType) {
-                                Icon(
-                                    Icons.Default.Check,
-                                    contentDescription = "Selected",
-                                    tint = Primary
-                                )
-                            }
-                        },
+                    val isSelected = type == selectedSplitType
+                    val description = when(type) {
+                        "Equal Split" -> "Split the expense equally among all members"
+                        "Percentage" -> "Split by percentage (e.g., 50%, 30%, 20%)"
+                        "Custom Amount" -> "Set specific amounts for each person"
+                        else -> "Custom split method"
+                    }
+                    
+                    Card(
                         modifier = Modifier
                             .fillMaxWidth()
+                            .padding(vertical = 4.dp)
                             .clickable {
                                 selectedSplitType = type
                                 showSplitSheet = false
+                            },
+                        colors = CardDefaults.cardColors(
+                            containerColor = if (isSelected) Primary.copy(alpha = 0.1f) else MaterialTheme.colorScheme.surface
+                        ),
+                        border = if (isSelected) BorderStroke(2.dp, Primary) else null
+                    ) {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // Icon with background
+                            Box(
+                                modifier = Modifier
+                                    .size(48.dp)
+                                    .background(
+                                        if (isSelected) Primary.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceVariant,
+                                        CircleShape
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Icon(
+                                    when(type) {
+                                        "Equal Split" -> Icons.Default.Group
+                                        "Percentage" -> Icons.Default.Percent
+                                        "Custom Amount" -> Icons.Default.Calculate
+                                        else -> Icons.Default.CallSplit
+                                    },
+                                    contentDescription = null,
+                                    tint = if (isSelected) Primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(24.dp)
+                                )
                             }
-                    )
+                            
+                            Spacer(modifier = Modifier.width(16.dp))
+                            
+                            // Content
+                            Column(
+                                modifier = Modifier.weight(1f)
+                            ) {
+                                Text(
+                                    text = type,
+                                    style = MaterialTheme.typography.titleSmall,
+                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                    color = if (isSelected) Primary else MaterialTheme.colorScheme.onSurface
+                                )
+                                Text(
+                                    text = description,
+                                    style = MaterialTheme.typography.bodySmall,
+                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.padding(top = 2.dp)
+                                )
+                            }
+                            
+                            // Selection indicator
+                            if (isSelected) {
+                                Icon(
+                                    Icons.Default.CheckCircle,
+                                    contentDescription = "Selected",
+                                    tint = Primary,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            }
+                        }
+                    }
                 }
                 Spacer(modifier = Modifier.height(16.dp))
             }
@@ -631,6 +688,22 @@ fun ReceiptPhotoCard(
                 }
             }
         }
+    }
+}
+
+fun validateSplitData(splitType: String, amount: Double): String? {
+    return when (splitType) {
+        "Percentage" -> {
+            // TODO: Validate that percentages sum to 100%
+            // This will be implemented when percentage input UI is added
+            null
+        }
+        "Custom Amount" -> {
+            // TODO: Validate that custom amounts sum to the total expense amount
+            // This will be implemented when custom amount input UI is added
+            null
+        }
+        else -> null
     }
 } 
 

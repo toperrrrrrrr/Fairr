@@ -17,15 +17,37 @@ These tasks are **quick wins** that can be completed in 1-4 hours each and provi
 ### Backend Improvements (2-4 hours each)
 - [x] **Complete expense editing functionality** - Replace placeholder logic in `EditExpenseScreen.kt` with real data operations
 - [x] **Add expense deletion with proper cleanup** - Ensure group totals are updated when expenses are deleted
-- [ ] **Validate custom splits before saving** - Add client-side validation in `AddExpenseScreen.kt`
+- [x] **Validate custom splits before saving** - Add client-side validation in `AddExpenseScreen.kt`
 
 ### Data Model Fixes (1-2 hours each)
-- [ ] **Store split type in Firestore** - Currently not persisted, causing the hardcoded display issue
-- [ ] **Add proper error handling for split calculations** - Handle edge cases in `calculateSplits` method
+- [x] **Store split type in Firestore** - Currently not persisted, causing the hardcoded display issue
+- [x] **Add proper error handling for split calculations** - Handle edge cases in `calculateSplits` method
 
 ### Testing & Quality (1-2 hours each)
 - [ ] **Add unit tests for split calculation logic** - Test the `calculateSplits` method in `ExpenseRepository.kt`
 - [ ] **Test expense CRUD operations** - Verify create, read, update, delete work correctly
+
+---
+
+## 🎯 NEXT QUICK WINS - UPDATED
+
+These tasks are **ready to tackle next** based on our completed work:
+
+### UI/UX Quick Wins (1-3 hours each)
+- [x] **Add visual feedback for split type selection** - Enhance the split selection modal with better visual indicators
+- [x] **Improve expense detail screen layout** - Better spacing, typography, and visual hierarchy
+- [x] **Add empty states to group and expense lists** - Show helpful messages when no data exists
+
+### Backend Quick Wins (2-4 hours each)
+- [x] **Add unit tests for split calculation logic** - Test the `calculateSplits` method we just enhanced
+- [ ] **Test expense CRUD operations** - Verify create, read, update, delete work correctly
+- [ ] **Add group settings edit fields** - Simple text fields for name, description in group settings
+- [ ] **Implement basic group deletion** - Add delete button with confirmation dialog
+
+### Data & Security Quick Wins (1-2 hours each)
+- [ ] **Add input validation to expense forms** - Validate amounts, descriptions, etc.
+- [ ] **Review Firestore security rules** - Ensure basic security is in place
+- [ ] **Add error logging for split calculations** - Better debugging for edge cases
 
 ---
 
@@ -43,26 +65,26 @@ These tasks are **quick wins** that can be completed in 1-4 hours each and provi
     - Display error if over/under-allocated.
   - [ ] Add visual feedback for split type selection (equal, percentage, custom).
 - **ViewModel/Logic**
-  - [ ] Ensure `AddExpenseViewModel.kt` and `ExpenseRepository.kt` handle all split types robustly.
-  - [ ] Validate splits before saving (client-side and server-side).
-  - [ ] Persist split type in Firestore (currently only "Equal Split" is shown in detail screen, see TODO in `ExpenseDetailScreen.kt`).
+  - [x] Ensure `AddExpenseViewModel.kt` and `ExpenseRepository.kt` handle all split types robustly.
+  - [x] Validate splits before saving (client-side and server-side).
+  - [x] Persist split type in Firestore (currently only "Equal Split" is shown in detail screen, see TODO in `ExpenseDetailScreen.kt`).
 
 #### 1.1.2 Validate and persist custom splits
-- [ ] Ensure backend (`ExpenseRepository.kt`) and Firestore rules enforce:
+- [x] Ensure backend (`ExpenseRepository.kt`) and Firestore rules enforce:
   - Only valid splits are accepted (sum matches total, no negative values).
   - Split details are stored in the `splitBetween` array.
 - [ ] Add unit tests for split calculation logic (see `calculateSplits`).
-- [ ] Add error handling for invalid splits in UI.
+- [x] Add error handling for invalid splits in UI.
 
 #### 1.1.3 Complete expense editing & deletion (UI + Firestore rules)
 - **UI**
-  - [ ] Replace placeholder logic in `EditExpenseScreen.kt` with real data loading and saving.
+  - [x] Replace placeholder logic in `EditExpenseScreen.kt` with real data loading and saving.
   - [ ] Implement split editing in the edit screen (mirroring add flow).
-  - [ ] Add confirmation dialog for deletion (already present, but wire up to real logic).
+  - [x] Add confirmation dialog for deletion (already present, but wire up to real logic).
 - **ViewModel/Repository**
-  - [ ] Use `EditExpenseViewModel.kt` to fetch, update, and delete expenses via `ExpenseRepository.kt`.
+  - [x] Use `EditExpenseViewModel.kt` to fetch, update, and delete expenses via `ExpenseRepository.kt`.
   - [ ] Ensure Firestore rules (`firestore.rules`) only allow group members (or creator/admin) to edit/delete.
-  - [ ] Update group totals on edit/delete (see transaction logic in `ExpenseRepository.kt`).
+  - [x] Update group totals on edit/delete (see transaction logic in `ExpenseRepository.kt`).
 - **Testing**
   - [ ] Add tests for update/delete flows, including permission errors.
 
@@ -284,45 +306,4 @@ These tasks are **quick wins** that can be completed in 1-4 hours each and provi
 
 ## 8. Documentation
 
-- [ ] Keep `MVP_SCOPE.md` and `TECHNICAL_ISSUES_ANALYSIS.md` up-to-date
-- [ ] Expand `Development/` and `Architecture/` guides as needed
-- [ ] API documentation for backend/cloud functions
-- [ ] User-facing guide for onboarding and FAQ
-- [ ] Add diagrams for data flow, navigation, and architecture
-- [ ] Document all major components with README files
-- [ ] Add changelog for major releases
-
----
-
-## 9. Nice-to-Have / Future
-
-- [ ] Receipt scanning (OCR with ML Kit)
-- [ ] Direct payment integration (PayPal, Venmo, etc.)
-- [ ] Android home screen widgets
-- [ ] Group chat feature
-- [ ] Voice input for adding expenses
-- [ ] Smart suggestions (auto-categorize expenses)
-- [ ] Gamification (badges, streaks)
-- [ ] Multi-language support
-- [ ] Web app or PWA version
-
----
-
-## 10. Additional Items (Post-Review)
-
-- [ ] **Refactor navigation for deep linking and external intents**
-- [ ] **Audit and optimize app startup time**
-- [ ] **Add support for large group sizes (performance, UI scaling)**
-- [ ] **Implement feature flags for beta features**
-- [ ] **Add legal documents (Terms of Service, Privacy Policy) in-app**
-- [ ] **Monitor and reduce app size (APK/Bundle)**
-- [ ] **Add support for tablet and foldable layouts**
-- [ ] **Review and optimize battery usage**
-- [ ] **Add fallback for Google Play Services unavailability**
-- [ ] **Implement robust error logging and user feedback reporting**
-- [ ] **Regularly review and prune unused dependencies and assets**
-
----
-
-*Last reviewed: December 2024*
-*Maintained by: Development Team* 
+- [ ] Keep `MVP_SCOPE.md` and `

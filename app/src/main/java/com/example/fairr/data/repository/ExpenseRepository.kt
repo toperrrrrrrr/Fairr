@@ -172,7 +172,7 @@ class ExpenseRepositoryImpl @Inject constructor(
         }
 
         // Calculate splits based on split type
-        val splitBetween = calculateSplits(amount, splitType, groupMembers)
+        val splitBetween = SplitCalculator.calculateSplits(amount, splitType, groupMembers)
 
         val expenseData = hashMapOf(
             "groupId" to groupId,
@@ -219,81 +219,6 @@ class ExpenseRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             Log.e("ExpenseRepository", "Error saving expense: ${e.message}", e)
             throw Exception("Failed to save expense: ${e.message}")
-        }
-    }
-
-    private fun calculateSplits(
-        totalAmount: Double,
-        splitType: String,
-        groupMembers: List<Map<String, Any>>
-    ): List<Map<String, Any>> {
-        return when (splitType) {
-            "Equal Split" -> {
-                val sharePerPerson = totalAmount / groupMembers.size
-                groupMembers.map { member ->
-                    mapOf(
-                        "userId" to member["userId"].toString(),
-                        "userName" to member["name"].toString(),
-                        "share" to sharePerPerson,
-                        "isPaid" to false
-                    )
-                }
-            }
-            "Percentage" -> {
-                // Expect each member map to optionally include a "percentage" key (Double 0-100)
-                val providedPercentTotal = groupMembers.sumOf { (it["percentage"] as? Number)?.toDouble() ?: 0.0 }
-
-                val percentages = if (providedPercentTotal in 99.9..100.1) {
-                    // Use given percentages, default missing ones to 0
-                    groupMembers.map { member ->
-                        val pct = (member["percentage"] as? Number)?.toDouble() ?: 0.0
-                        member to pct
-                    }
-                } else {
-                    // Fallback: divide equally
-                    val equalPct = 100.0 / groupMembers.size
-                    groupMembers.map { member -> member to equalPct }
-                }
-
-                percentages.map { (member, pct) ->
-                    mapOf(
-                        "userId" to member["userId"].toString(),
-                        "userName" to member["name"].toString(),
-                        "share" to (totalAmount * pct / 100),
-                        "isPaid" to false,
-                        "percentage" to pct
-                    )
-                }
-            }
-            "Custom Amount" -> {
-                // Expect a "customAmount" per member; fallback to equal split for unspecified
-                val specifiedTotal = groupMembers.sumOf { (it["customAmount"] as? Number)?.toDouble() ?: 0.0 }
-                val remainingMembers = groupMembers.filter { (it["customAmount"] as? Number) == null }
-                val remainingTotal = (totalAmount - specifiedTotal).coerceAtLeast(0.0)
-                val equalShareForRemaining = if (remainingMembers.isNotEmpty()) remainingTotal / remainingMembers.size else 0.0
-
-                groupMembers.map { member ->
-                    val share = (member["customAmount"] as? Number)?.toDouble() ?: equalShareForRemaining
-                    mapOf(
-                        "userId" to member["userId"].toString(),
-                        "userName" to member["name"].toString(),
-                        "share" to share,
-                        "isPaid" to false
-                    )
-                }
-            }
-            else -> {
-                // Default to equal split
-                val sharePerPerson = totalAmount / groupMembers.size
-                groupMembers.map { member ->
-                    mapOf(
-                        "userId" to member["userId"].toString(),
-                        "userName" to member["name"].toString(),
-                        "share" to sharePerPerson,
-                        "isPaid" to false
-                    )
-                }
-            }
         }
     }
 
