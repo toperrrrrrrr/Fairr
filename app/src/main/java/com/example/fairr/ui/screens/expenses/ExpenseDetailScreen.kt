@@ -105,7 +105,18 @@ fun ExpenseDetailScreen(
                         .padding(padding),
                     contentAlignment = Alignment.Center
                 ) {
-                    CircularProgressIndicator()
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.Center
+                    ) {
+                        CircularProgressIndicator()
+                        Spacer(modifier = Modifier.height(16.dp))
+                        Text(
+                            text = "Loading expense...",
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = TextSecondary
+                        )
+                    }
                 }
             }
             is ExpenseDetailUiState.Error -> {

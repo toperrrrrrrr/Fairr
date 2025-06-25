@@ -9,14 +9,14 @@ This document tracks all major and minor tasks needed to bring the Fairr app to 
 These tasks are **quick wins** that can be completed in 1-4 hours each and provide immediate value:
 
 ### Quick UI Fixes (1-2 hours each)
-- [ ] **Fix split type display in expense detail** - Currently shows hardcoded "Equal Split" in `ExpenseDetailScreen.kt` line 285
-- [ ] **Add loading states to expense detail screen** - Show spinner while loading expense data
-- [ ] **Add error handling to expense detail screen** - Show user-friendly error messages
-- [ ] **Add confirmation dialog for expense deletion** - Wire up the existing dialog in `EditExpenseScreen.kt`
+- [x] **Fix split type display in expense detail** - Currently shows hardcoded "Equal Split" in `ExpenseDetailScreen.kt` line 285
+- [x] **Add loading states to expense detail screen** - Show spinner while loading expense data
+- [x] **Add error handling to expense detail screen** - Show user-friendly error messages
+- [x] **Add confirmation dialog for expense deletion** - Wire up the existing dialog in `EditExpenseScreen.kt`
 
 ### Backend Improvements (2-4 hours each)
-- [ ] **Complete expense editing functionality** - Replace placeholder logic in `EditExpenseScreen.kt` with real data operations
-- [ ] **Add expense deletion with proper cleanup** - Ensure group totals are updated when expenses are deleted
+- [x] **Complete expense editing functionality** - Replace placeholder logic in `EditExpenseScreen.kt` with real data operations
+- [x] **Add expense deletion with proper cleanup** - Ensure group totals are updated when expenses are deleted
 - [ ] **Validate custom splits before saving** - Add client-side validation in `AddExpenseScreen.kt`
 
 ### Data Model Fixes (1-2 hours each)

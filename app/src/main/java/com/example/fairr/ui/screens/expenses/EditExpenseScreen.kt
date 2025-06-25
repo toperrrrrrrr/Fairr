@@ -26,6 +26,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.fairr.ui.theme.*
+import androidx.hilt.navigation.compose.hiltViewModel
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -33,32 +34,68 @@ import com.example.fairr.ui.theme.*
 fun EditExpenseScreen(
     navController: NavController,
     expenseId: String,
-    onExpenseUpdated: () -> Unit = {}
+    onExpenseUpdated: () -> Unit = {},
+    viewModel: EditExpenseViewModel = hiltViewModel()
 ) {
-    // Pre-populate with existing expense data
-    var description by remember { mutableStateOf("Lunch at Mountain Cafe") }
-    var amount by remember { mutableStateOf("80.00") }
-    var selectedCategory by remember { mutableStateOf("Food & Dining") }
-    var notes by remember { mutableStateOf("Great food, good service") }
-    var isLoading by remember { mutableStateOf(false) }
+    val state by viewModel.state.collectAsState()
     var showDeleteDialog by remember { mutableStateOf(false) }
+    var isLoading by remember { mutableStateOf(false) }
 
+    // UI fields bound to loaded expense
+    var description by remember { mutableStateOf("") }
+    var amount by remember { mutableStateOf("") }
+    var selectedCategory by remember { mutableStateOf("") }
+    var notes by remember { mutableStateOf("") }
     val categories = listOf(
         "Food & Dining", "Transportation", "Entertainment", 
         "Shopping", "Accommodation", "Groceries", "Bills", "Other"
     )
 
-    // Sample group members
+    // TODO: Replace with real group members from backend
     val groupMembers = remember {
         listOf(
-            Member("1", "John Doe", true),  // Current user, paid
+            Member("1", "John Doe", true),
             Member("2", "Jane Smith", true),
             Member("3", "Mike Johnson", true),
             Member("4", "Sarah Wilson", false)
         )
     }
-
     var memberSplits by remember { mutableStateOf(groupMembers) }
+
+    // Populate UI fields when expense loads
+    LaunchedEffect(state.expense) {
+        state.expense?.let { exp ->
+            description = exp.description
+            amount = exp.amount.toString()
+            selectedCategory = exp.category.name.replace("_", " ").capitalize()
+            notes = exp.notes
+            // TODO: Populate memberSplits from exp.splitBetween if needed
+        }
+    }
+
+    // Handle ViewModel events
+    LaunchedEffect(Unit) {
+        viewModel.events.collect { event ->
+            when (event) {
+                is EditExpenseEvent.ExpenseUpdated -> {
+                    onExpenseUpdated()
+                    navController.popBackStack()
+                }
+                is EditExpenseEvent.ExpenseDeleted -> {
+                    navController.popBackStack()
+                }
+                is EditExpenseEvent.ShowError -> {
+                    // TODO: Show error message to user
+                }
+                null -> {}
+            }
+        }
+    }
+
+    // Load expense data when screen opens
+    LaunchedEffect(expenseId) {
+        viewModel.loadExpense(expenseId)
+    }
 
     Scaffold(
         topBar = {
@@ -104,8 +141,21 @@ fun EditExpenseScreen(
                     onClick = {
                         if (description.isNotBlank() && amount.isNotBlank()) {
                             isLoading = true
-                            // TODO: Update expense
-                            onExpenseUpdated()
+                            // Update ViewModel's expense with new values
+                            viewModel.onFieldChange { exp ->
+                                exp.copy(
+                                    description = description,
+                                    amount = amount.toDoubleOrNull() ?: exp.amount,
+                                    category = try {
+                                        com.example.fairr.data.model.ExpenseCategory.valueOf(selectedCategory.uppercase().replace(" ", "_"))
+                                    } catch (e: Exception) {
+                                        exp.category
+                                    },
+                                    notes = notes
+                                    // TODO: Update splitBetween if memberSplits are edited
+                                )
+                            }
+                            viewModel.saveChanges()
                         }
                     },
                     modifier = Modifier
@@ -348,9 +398,8 @@ fun EditExpenseScreen(
             confirmButton = {
                 Button(
                     onClick = {
-                        // TODO: Delete expense
+                        viewModel.deleteExpense()
                         showDeleteDialog = false
-                        navController.popBackStack()
                     },
                     colors = ButtonDefaults.buttonColors(containerColor = ErrorRed)
                 ) {
