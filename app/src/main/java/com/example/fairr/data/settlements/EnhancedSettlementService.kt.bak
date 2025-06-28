@@ -1,0 +1,261 @@
+package com.example.fairr.data.settlements
+
+import com.example.fairr.data.model.Expense
+import com.example.fairr.data.model.Group
+import com.example.fairr.data.repository.AdvancedSplitCalculator
+import com.example.fairr.data.repository.ExpenseRepository
+import com.example.fairr.data.groups.GroupService
+import com.example.fairr.util.CurrencyFormatter
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.Flow
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.launch
+import java.util.*
+import javax.inject.Inject
+import javax.inject.Singleton
+import kotlin.math.abs
+
+@Singleton
+class EnhancedSettlementService @Inject constructor(
+    private val expenseRepository: ExpenseRepository,
+    private val groupService: GroupService
+) {
+    private val scope = CoroutineScope(Dispatchers.IO)
+    
+    data class SettlementSummary(
+        val groupId: String,
+        val groupName: String,
+        val totalExpenses: Double,
+        val totalTransactions: Int,
+        val settlements: List<AdvancedSplitCalculator.SettlementTransaction>,
+        val userBalances: List<AdvancedSplitCalculator.UserBalance>,
+        val currency: String,
+        val lastUpdated: Date
+    )
+    
+    data class SettlementHistory(
+        val id: String,
+        val groupId: String,
+        val fromUserId: String,
+        val fromUserName: String,
+        val toUserId: String,
+        val toUserName: String,
+        val amount: Double,
+        val currency: String,
+        val status: SettlementStatus,
+        val date: Date,
+        val notes: String? = null
+    )
+    
+    enum class SettlementStatus {
+        PENDING,
+        COMPLETED,
+        CANCELLED,
+        DISPUTED
+    }
+    
+    private val _settlementSummaries = MutableStateFlow<Map<String, SettlementSummary>>(emptyMap())
+    val settlementSummaries: StateFlow<Map<String, SettlementSummary>> = _settlementSummaries
+    
+    /**
+     * Calculate settlements for a specific group
+     */
+    suspend fun calculateSettlements(groupId: String): SettlementSummary? {
+        try {
+            val group = groupService.getGroupById(groupId).first() // Get first value from Flow
+            val expenses = expenseRepository.getExpensesByGroupId(groupId)
+            val groupMembers = group.members.map { member ->
+                mapOf(
+                    "userId" to member.userId,
+                    "name" to member.name
+                )
+            }
+            
+            val settlements = AdvancedSplitCalculator.calculateOptimalSettlements(expenses, groupMembers)
+            val userBalances = AdvancedSplitCalculator.calculateUserBalances(expenses, groupMembers)
+            
+            val summary = SettlementSummary(
+                groupId = groupId,
+                groupName = group.name,
+                totalExpenses = expenses.sumOf { it.amount },
+                totalTransactions = settlements.size,
+                settlements = settlements,
+                userBalances = userBalances,
+                currency = group.currency,
+                lastUpdated = Date()
+            )
+            
+            // Update the summaries
+            val currentSummaries = _settlementSummaries.value.toMutableMap()
+            currentSummaries[groupId] = summary
+            _settlementSummaries.value = currentSummaries
+            
+            return summary
+            
+        } catch (e: Exception) {
+            // Log error
+            return null
+        }
+    }
+    
+    /**
+     * Get settlement summary for a group
+     */
+    fun getSettlementSummary(groupId: String): SettlementSummary? {
+        return _settlementSummaries.value[groupId]
+    }
+    
+    /**
+     * Get all settlement summaries
+     */
+    fun getAllSettlementSummaries(): List<SettlementSummary> {
+        return _settlementSummaries.value.values.toList()
+    }
+    
+    /**
+     * Mark a settlement as completed
+     */
+    suspend fun markSettlementCompleted(
+        groupId: String,
+        fromUserId: String,
+        toUserId: String,
+        amount: Double
+    ): Boolean {
+        try {
+            // In a real app, this would update the database
+            // For now, we'll just recalculate the settlements
+            calculateSettlements(groupId)
+            return true
+        } catch (e: Exception) {
+            return false
+        }
+    }
+    
+    /**
+     * Get user's balance in a group
+     */
+    fun getUserBalance(groupId: String, userId: String): AdvancedSplitCalculator.UserBalance? {
+        val summary = getSettlementSummary(groupId) ?: return null
+        return summary.userBalances.find { it.userId == userId }
+    }
+    
+    /**
+     * Get simplified settlements for a user (what they owe and what they're owed)
+     */
+    fun getUserSettlements(groupId: String, userId: String): Pair<List<AdvancedSplitCalculator.SettlementTransaction>, List<AdvancedSplitCalculator.SettlementTransaction>> {
+        val summary = getSettlementSummary(groupId) ?: return Pair(emptyList(), emptyList())
+        
+        val userOwes = summary.settlements.filter { it.fromUserId == userId }
+        val userOwed = summary.settlements.filter { it.toUserId == userId }
+        
+        return Pair(userOwes, userOwed)
+    }
+    
+    /**
+     * Calculate total amount user owes across all groups
+     */
+    suspend fun getUserTotalOwed(userId: String): Double {
+        val summaries = getAllSettlementSummaries()
+        return summaries.sumOf { summary ->
+            val userBalance = summary.userBalances.find { it.userId == userId }
+            userBalance?.netBalance?.coerceAtLeast(0.0) ?: 0.0
+        }
+    }
+    
+    /**
+     * Calculate total amount user is owed across all groups
+     */
+    suspend fun getUserTotalOwedTo(userId: String): Double {
+        val summaries = getAllSettlementSummaries()
+        return summaries.sumOf { summary ->
+            val userBalance = summary.userBalances.find { it.userId == userId }
+            abs(userBalance?.netBalance?.coerceAtMost(0.0) ?: 0.0)
+        }
+    }
+    
+    /**
+     * Get settlement statistics for a group
+     */
+    fun getSettlementStatistics(groupId: String): Map<String, Any> {
+        val summary = getSettlementSummary(groupId) ?: return emptyMap()
+        
+        val totalAmount = summary.settlements.sumOf { it.amount }
+        val averageTransaction = if (summary.totalTransactions > 0) {
+            totalAmount / summary.totalTransactions 
+        } else 0.0
+        
+        val maxTransaction = summary.settlements.maxOfOrNull { it.amount } ?: 0.0
+        val minTransaction = summary.settlements.minOfOrNull { it.amount } ?: 0.0
+        
+        return mapOf(
+            "totalAmount" to totalAmount,
+            "totalTransactions" to summary.totalTransactions,
+            "averageTransaction" to averageTransaction,
+            "maxTransaction" to maxTransaction,
+            "minTransaction" to minTransaction,
+            "currency" to summary.currency,
+            "lastUpdated" to summary.lastUpdated
+        )
+    }
+    
+    /**
+     * Refresh all settlement summaries
+     */
+    suspend fun refreshAllSettlements() {
+        val groups = groupService.getUserGroups().first() // Get first value from Flow
+        groups.forEach { group ->
+            calculateSettlements(group.id)
+        }
+    }
+    
+    /**
+     * Get settlement summary as formatted string
+     */
+    fun getSettlementSummaryText(summary: SettlementSummary): String {
+        val currency = summary.currency
+        val totalAmount = summary.settlements.sumOf { it.amount }
+        
+        return buildString {
+            appendLine("Settlement Summary for ${summary.groupName}")
+            appendLine("Total Amount: ${CurrencyFormatter.format(currency, totalAmount)}")
+            appendLine("Transactions: ${summary.totalTransactions}")
+            appendLine()
+            
+            if (summary.settlements.isNotEmpty()) {
+                appendLine("Settlements:")
+                summary.settlements.forEach { settlement ->
+                    appendLine("• ${settlement.fromUserName} → ${settlement.toUserName}: ${CurrencyFormatter.format(currency, settlement.amount)}")
+                }
+            } else {
+                appendLine("All settled up! 🎉")
+            }
+        }
+    }
+    
+    /**
+     * Check if a group is fully settled
+     */
+    fun isGroupSettled(groupId: String): Boolean {
+        val summary = getSettlementSummary(groupId) ?: return true
+        return summary.settlements.isEmpty()
+    }
+    
+    /**
+     * Get groups that need settlements
+     */
+    fun getGroupsNeedingSettlements(): List<String> {
+        return _settlementSummaries.value.filter { !isGroupSettled(it.key) }.keys.toList()
+    }
+    
+    /**
+     * Initialize settlements for all groups
+     */
+    suspend fun initializeSettlements() {
+        scope.launch {
+            refreshAllSettlements()
+        }
+    }
+} 

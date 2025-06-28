@@ -92,10 +92,11 @@ object SplitCalculator {
             "Custom Amount" -> {
                 try {
                     // Expect a "customAmount" per member; fallback to equal split for unspecified
-                    val specifiedTotal = groupMembers.sumOf { (it["customAmount"] as? Number)?.toDouble() ?: 0.0 }
-                    
-                    // Validate that specified total doesn't exceed the expense amount
-                    val validSpecifiedTotal = specifiedTotal.coerceAtMost(totalAmount)
+                    // Also ensure negative amounts are clamped to 0
+                    val validSpecifiedTotal = groupMembers.sumOf { member ->
+                        val customAmount = (member["customAmount"] as? Number)?.toDouble() ?: 0.0
+                        customAmount.coerceAtLeast(0.0)
+                    }.coerceAtMost(totalAmount)
                     
                     val remainingMembers = groupMembers.filter { (it["customAmount"] as? Number) == null }
                     val remainingTotal = (totalAmount - validSpecifiedTotal).coerceAtLeast(0.0)

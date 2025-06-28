@@ -27,6 +27,16 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.fairr.ui.theme.*
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.fairr.data.groups.GroupService
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.first
+import javax.inject.Inject
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.DatePickerState
+import androidx.compose.material3.rememberDatePickerState
+import com.example.fairr.data.model.RecurrenceRule
+import com.example.fairr.data.model.RecurrenceFrequency
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -46,19 +56,41 @@ fun EditExpenseScreen(
     var amount by remember { mutableStateOf("") }
     var selectedCategory by remember { mutableStateOf("") }
     var notes by remember { mutableStateOf("") }
+    
+    // Recurrence fields
+    var isRecurring by remember { mutableStateOf(false) }
+    var selectedFrequency by remember { mutableStateOf("Weekly") }
+    var interval by remember { mutableStateOf("1") }
+    var endDate by remember { mutableStateOf<Long?>(null) }
+    var showEndDatePicker by remember { mutableStateOf(false) }
+    
     val categories = listOf(
         "Food & Dining", "Transportation", "Entertainment", 
         "Shopping", "Accommodation", "Groceries", "Bills", "Other"
     )
+    
+    val frequencies = listOf("Daily", "Weekly", "Monthly", "Yearly")
 
-    // TODO: Replace with real group members from backend
-    val groupMembers = remember {
-        listOf(
-            Member("1", "John Doe", true),
-            Member("2", "Jane Smith", true),
-            Member("3", "Mike Johnson", true),
-            Member("4", "Sarah Wilson", false)
-        )
+    // Load real group members from the expense's group
+    var groupMembers by remember { mutableStateOf<List<Member>>(emptyList()) }
+    
+    // Load group members when expense loads
+    LaunchedEffect(state.expense) {
+        state.expense?.let { exp ->
+            try {
+                // Load group members from the group service via ViewModel
+                viewModel.loadGroupMembers(exp.groupId)
+            } catch (e: Exception) {
+                // Fallback to expense split data if group loading fails
+                groupMembers = exp.splitBetween.map { split ->
+                    Member(
+                        id = split.userId,
+                        name = split.userName,
+                        isSelected = true
+                    )
+                }
+            }
+        }
     }
     var memberSplits by remember { mutableStateOf(groupMembers) }
 
@@ -69,9 +101,29 @@ fun EditExpenseScreen(
             amount = exp.amount.toString()
             selectedCategory = exp.category.name.replace("_", " ").capitalize()
             notes = exp.notes
-            // TODO: Populate memberSplits from exp.splitBetween if needed
+            
+            // Populate recurrence fields
+            isRecurring = exp.recurrenceRule != null
+            if (exp.recurrenceRule != null) {
+                val rule = exp.recurrenceRule!!
+                selectedFrequency = rule.frequency.displayName
+                interval = rule.interval.toString()
+                endDate = rule.endDate?.toDate()?.time
+            }
+            
+            // Populate memberSplits from exp.splitBetween
+            memberSplits = exp.splitBetween.map { split ->
+                Member(
+                    id = split.userId,
+                    name = split.userName,
+                    isSelected = true
+                )
+            }
         }
     }
+
+    val snackbarHostState = remember { SnackbarHostState() }
+    val scope = rememberCoroutineScope()
 
     // Handle ViewModel events
     LaunchedEffect(Unit) {
@@ -85,7 +137,9 @@ fun EditExpenseScreen(
                     navController.popBackStack()
                 }
                 is EditExpenseEvent.ShowError -> {
-                    // TODO: Show error message to user
+                    scope.launch {
+                        snackbarHostState.showSnackbar(event.message)
+                    }
                 }
                 null -> {}
             }
@@ -139,24 +193,39 @@ fun EditExpenseScreen(
             ) {
                 Button(
                     onClick = {
-                        if (description.isNotBlank() && amount.isNotBlank()) {
-                            isLoading = true
-                            // Update ViewModel's expense with new values
-                            viewModel.onFieldChange { exp ->
-                                exp.copy(
-                                    description = description,
-                                    amount = amount.toDoubleOrNull() ?: exp.amount,
-                                    category = try {
-                                        com.example.fairr.data.model.ExpenseCategory.valueOf(selectedCategory.uppercase().replace(" ", "_"))
-                                    } catch (e: Exception) {
-                                        exp.category
-                                    },
-                                    notes = notes
-                                    // TODO: Update splitBetween if memberSplits are edited
-                                )
+                        val trimmedDescription = description.trim()
+                        val amountValue = amount.trim().toDoubleOrNull()
+                        if (trimmedDescription.length < 3) {
+                            scope.launch {
+                                snackbarHostState.showSnackbar("Description must be at least 3 characters")
                             }
-                            viewModel.saveChanges()
+                            return@Button
                         }
+                        if (amountValue == null || amountValue <= 0.0) {
+                            scope.launch {
+                                snackbarHostState.showSnackbar("Please enter a valid amount greater than 0")
+                            }
+                            return@Button
+                        }
+                        isLoading = true
+                        // Update ViewModel's expense with new values
+                        viewModel.onFieldChange { exp ->
+                            exp.copy(
+                                description = trimmedDescription,
+                                amount = amountValue,
+                                category = try {
+                                    com.example.fairr.data.model.ExpenseCategory.valueOf(selectedCategory.uppercase().replace(" ", "_"))
+                                } catch (e: Exception) {
+                                    exp.category
+                                },
+                                notes = notes,
+                                recurrenceRule = if (isRecurring) {
+                                    buildRecurrenceRule(selectedFrequency, interval.toIntOrNull() ?: 1, endDate)
+                                } else null
+                                // TODO: Update splitBetween if memberSplits are edited
+                            )
+                        }
+                        viewModel.saveChanges()
                     },
                     modifier = Modifier
                         .fillMaxWidth()
@@ -183,6 +252,7 @@ fun EditExpenseScreen(
                     }
                 }
             }
+            SnackbarHost(hostState = snackbarHostState)
         }
     ) { padding ->
         Column(
@@ -316,14 +386,14 @@ fun EditExpenseScreen(
                         TextButton(
                             onClick = {
                                 // Toggle all members
-                                val allSelected = memberSplits.all { it.isIncluded }
+                                val allSelected = memberSplits.all { it.isSelected }
                                 memberSplits = memberSplits.map { 
-                                    it.copy(isIncluded = !allSelected) 
+                                    it.copy(isSelected = !allSelected) 
                                 }
                             }
                         ) {
                             Text(
-                                if (memberSplits.all { it.isIncluded }) "Deselect All" else "Select All",
+                                if (memberSplits.all { it.isSelected }) "Deselect All" else "Select All",
                                 color = DarkGreen
                             )
                         }
@@ -335,7 +405,7 @@ fun EditExpenseScreen(
                                 .fillMaxWidth()
                                 .clickable {
                                     memberSplits = memberSplits.map {
-                                        if (it.id == member.id) it.copy(isIncluded = !it.isIncluded)
+                                        if (it.id == member.id) it.copy(isSelected = !it.isSelected)
                                         else it
                                     }
                                 }
@@ -343,10 +413,10 @@ fun EditExpenseScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Checkbox(
-                                checked = member.isIncluded,
+                                checked = member.isSelected,
                                 onCheckedChange = { checked ->
                                     memberSplits = memberSplits.map {
-                                        if (it.id == member.id) it.copy(isIncluded = checked)
+                                        if (it.id == member.id) it.copy(isSelected = checked)
                                         else it
                                     }
                                 },
@@ -364,10 +434,10 @@ fun EditExpenseScreen(
                                 modifier = Modifier.weight(1f)
                             )
                             
-                            if (member.isIncluded && amount.isNotBlank()) {
+                            if (member.isSelected && amount.isNotBlank()) {
                                 val splitAmount = try {
                                     val totalAmount = amount.toDouble()
-                                    val includedCount = memberSplits.count { it.isIncluded }
+                                    val includedCount = memberSplits.count { it.isSelected }
                                     if (includedCount > 0) totalAmount / includedCount else 0.0
                                 } catch (e: NumberFormatException) {
                                     0.0
@@ -379,6 +449,147 @@ fun EditExpenseScreen(
                                     color = DarkGreen,
                                     fontWeight = FontWeight.Medium
                                 )
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Recurrence Options Card (only show if expense is recurring or user wants to make it recurring)
+            if (isRecurring || state.expense?.recurrenceRule != null) {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .shadow(2.dp, RoundedCornerShape(16.dp)),
+                    shape = RoundedCornerShape(16.dp),
+                    colors = CardDefaults.cardColors(containerColor = NeutralWhite)
+                ) {
+                    Column(
+                        modifier = Modifier.padding(20.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Recurrence Settings",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = TextPrimary
+                            )
+                            
+                            Switch(
+                                checked = isRecurring,
+                                onCheckedChange = { isRecurring = it },
+                                colors = SwitchDefaults.colors(
+                                    checkedThumbColor = DarkGreen,
+                                    checkedTrackColor = DarkGreen.copy(alpha = 0.5f)
+                                )
+                            )
+                        }
+                        
+                        if (isRecurring) {
+                            // Frequency Selection
+                            var frequencyExpanded by remember { mutableStateOf(false) }
+                            
+                            ExposedDropdownMenuBox(
+                                expanded = frequencyExpanded,
+                                onExpandedChange = { frequencyExpanded = !frequencyExpanded },
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                OutlinedTextField(
+                                    value = selectedFrequency,
+                                    onValueChange = {},
+                                    readOnly = true,
+                                    label = { Text("Frequency") },
+                                    trailingIcon = { ExposedDropdownMenuDefaults.TrailingIcon(expanded = frequencyExpanded) },
+                                    modifier = Modifier
+                                        .menuAnchor()
+                                        .fillMaxWidth(),
+                                    colors = OutlinedTextFieldDefaults.colors(
+                                        focusedBorderColor = DarkGreen,
+                                        focusedLabelColor = DarkGreen
+                                    )
+                                )
+                                
+                                ExposedDropdownMenu(
+                                    expanded = frequencyExpanded,
+                                    onDismissRequest = { frequencyExpanded = false }
+                                ) {
+                                    frequencies.forEach { freq ->
+                                        DropdownMenuItem(
+                                            text = { Text(freq) },
+                                            onClick = {
+                                                selectedFrequency = freq
+                                                frequencyExpanded = false
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                            
+                            // Interval Input
+                            OutlinedTextField(
+                                value = interval,
+                                onValueChange = { interval = it },
+                                label = { Text("Interval") },
+                                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = OutlinedTextFieldDefaults.colors(
+                                    focusedBorderColor = DarkGreen,
+                                    focusedLabelColor = DarkGreen
+                                )
+                            )
+                            
+                            // End Date Selection
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Text(
+                                    text = "End Date",
+                                    fontSize = 16.sp,
+                                    color = TextPrimary
+                                )
+                                
+                                TextButton(
+                                    onClick = { showEndDatePicker = true }
+                                ) {
+                                    Text(
+                                        endDate?.let { 
+                                            val date = java.util.Date(it)
+                                            java.text.SimpleDateFormat("MMM dd, yyyy", java.util.Locale.getDefault()).format(date)
+                                        } ?: "Set End Date",
+                                        color = DarkGreen
+                                    )
+                                }
+                            }
+                            
+                            // Recurrence Summary
+                            Card(
+                                modifier = Modifier.fillMaxWidth(),
+                                colors = CardDefaults.cardColors(containerColor = DarkGreen.copy(alpha = 0.1f)),
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Column(
+                                    modifier = Modifier.padding(12.dp)
+                                ) {
+                                    Text(
+                                        text = "Recurrence Summary",
+                                        fontSize = 14.sp,
+                                        fontWeight = FontWeight.SemiBold,
+                                        color = DarkGreen
+                                    )
+                                    Spacer(modifier = Modifier.height(4.dp))
+                                    Text(
+                                        text = buildRecurrenceSummary(selectedFrequency, interval.toIntOrNull() ?: 1, endDate),
+                                        fontSize = 12.sp,
+                                        color = TextPrimary
+                                    )
+                                }
                             }
                         }
                     }
@@ -413,12 +624,73 @@ fun EditExpenseScreen(
             }
         )
     }
+
+    // Date Picker Dialog
+    if (showEndDatePicker) {
+        val datePickerState = rememberDatePickerState()
+        
+        DatePickerDialog(
+            onDismissRequest = { showEndDatePicker = false },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        datePickerState.selectedDateMillis?.let { timestamp ->
+                            endDate = timestamp
+                        }
+                        showEndDatePicker = false
+                    }
+                ) {
+                    Text("OK")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEndDatePicker = false }) {
+                    Text("Cancel")
+                }
+            }
+        ) {
+            DatePicker(state = datePickerState)
+        }
+    }
+}
+
+private fun buildRecurrenceRule(frequency: String, interval: Int, endDate: Long?): RecurrenceRule {
+    val freq = when (frequency) {
+        "Daily" -> RecurrenceFrequency.DAILY
+        "Weekly" -> RecurrenceFrequency.WEEKLY
+        "Monthly" -> RecurrenceFrequency.MONTHLY
+        "Yearly" -> RecurrenceFrequency.YEARLY
+        else -> RecurrenceFrequency.WEEKLY
+    }
+    
+    val endTimestamp = endDate?.let { com.google.firebase.Timestamp(java.util.Date(it)) }
+    
+    return RecurrenceRule(
+        frequency = freq,
+        interval = interval,
+        endDate = endTimestamp
+    )
+}
+
+private fun buildRecurrenceSummary(frequency: String, interval: Int, endDate: Long?): String {
+    val intervalText = if (interval == 1) "" else " every $interval ${frequency.lowercase()}"
+    val frequencyText = if (interval == 1) frequency else "${frequency}s"
+    
+    val summary = "Repeats $frequencyText$intervalText"
+    
+    return if (endDate != null) {
+        val date = java.util.Date(endDate)
+        val dateStr = java.text.SimpleDateFormat("MMM dd, yyyy", java.util.Locale.getDefault()).format(date)
+        "$summary until $dateStr"
+    } else {
+        "$summary indefinitely"
+    }
 }
 
 data class Member(
     val id: String,
     val name: String,
-    val isIncluded: Boolean
+    val isSelected: Boolean
 )
 
 @Preview(showBackground = true)

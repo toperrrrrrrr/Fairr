@@ -85,6 +85,12 @@ sealed class Screen(val route: String) {
     object Friends : Screen("friends")
     object PrivacyPolicy : Screen("privacy_policy")
     object ContactSupport : Screen("contact_support")
+    object RecurringExpenseManagement : Screen("recurring_expense_management/{groupId}") {
+        fun createRoute(groupId: String) = "recurring_expense_management/$groupId"
+    }
+    object RecurringExpenseAnalytics : Screen("recurring_analytics/{groupId}") {
+        fun createRoute(groupId: String) = "recurring_analytics/$groupId"
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -419,6 +425,36 @@ fun FairrNavGraph(
         // Settlements Overview screen
         composable(Screen.SettlementsOverview.route) {
             SettlementsOverviewScreen(
+                navController = navController
+            )
+        }
+
+        // Recurring Expense Management screen
+        composable(
+            route = Screen.RecurringExpenseManagement.route,
+            arguments = listOf(
+                navArgument("groupId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val groupId = backStackEntry.arguments?.getString("groupId")
+                ?: return@composable
+            RecurringExpenseManagementScreen(
+                groupId = groupId,
+                navController = navController
+            )
+        }
+
+        // Recurring Expense Analytics screen
+        composable(
+            route = Screen.RecurringExpenseAnalytics.route,
+            arguments = listOf(
+                navArgument("groupId") { type = NavType.StringType }
+            )
+        ) { backStackEntry ->
+            val groupId = backStackEntry.arguments?.getString("groupId")
+                ?: return@composable
+            RecurringExpenseAnalyticsScreen(
+                groupId = groupId,
                 navController = navController
             )
         }

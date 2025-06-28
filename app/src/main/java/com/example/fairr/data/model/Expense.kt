@@ -1,6 +1,7 @@
 package com.example.fairr.data.model
 
 import com.google.firebase.Timestamp
+import androidx.compose.ui.graphics.Color
 
 data class Expense(
     val id: String = "",
@@ -15,7 +16,12 @@ data class Expense(
     val category: ExpenseCategory = ExpenseCategory.OTHER,
     val notes: String = "",
     val attachments: List<String> = emptyList(), // URLs to attachments
-    val splitType: String = "Equal Split" // Type of split: "Equal Split", "Percentage", "Custom Amount"
+    val splitType: String = "Equal Split", // Type of split: "Equal Split", "Percentage", "Custom Amount"
+    // Recurrence fields
+    val isRecurring: Boolean = false,
+    val recurrenceRule: RecurrenceRule? = null,
+    // Link to parent recurring expense (for instances)
+    val parentExpenseId: String? = null
 )
 
 data class ExpenseSplit(
@@ -25,13 +31,45 @@ data class ExpenseSplit(
     val isPaid: Boolean = false
 )
 
-enum class ExpenseCategory {
-    FOOD,
-    TRANSPORTATION,
-    ACCOMMODATION,
-    ENTERTAINMENT,
-    SHOPPING,
-    UTILITIES,
-    RENT,
-    OTHER
+data class RecurrenceRule(
+    val frequency: RecurrenceFrequency = RecurrenceFrequency.NONE,
+    val interval: Int = 1, // e.g., every 2 weeks
+    val endDate: Timestamp? = null // null = no end
+)
+
+enum class ExpenseCategory(val displayName: String, val icon: String, val color: String) {
+    FOOD("Food & Dining", "🍽️", "#FF6B6B"),
+    TRANSPORTATION("Transportation", "🚗", "#4ECDC4"),
+    ACCOMMODATION("Accommodation", "🏨", "#45B7D1"),
+    ENTERTAINMENT("Entertainment", "🎬", "#96CEB4"),
+    SHOPPING("Shopping", "🛍️", "#FFEAA7"),
+    UTILITIES("Utilities", "⚡", "#DDA0DD"),
+    RENT("Rent", "🏠", "#98D8C8"),
+    HEALTHCARE("Healthcare", "🏥", "#F7DC6F"),
+    EDUCATION("Education", "📚", "#BB8FCE"),
+    TRAVEL("Travel", "✈️", "#85C1E9"),
+    WORK("Work", "💼", "#F8C471"),
+    GAMING("Gaming", "🎮", "#E74C3C"),
+    SPORTS("Sports", "⚽", "#2ECC71"),
+    BEAUTY("Beauty", "💄", "#E91E63"),
+    PETS("Pets", "🐾", "#8E44AD"),
+    OTHER("Other", "📦", "#95A5A6");
+
+    companion object {
+        fun fromString(value: String): ExpenseCategory {
+            return try {
+                valueOf(value.uppercase())
+            } catch (e: IllegalArgumentException) {
+                OTHER
+            }
+        }
+    }
+}
+
+enum class RecurrenceFrequency(val displayName: String) {
+    NONE("None"),
+    DAILY("Daily"),
+    WEEKLY("Weekly"),
+    MONTHLY("Monthly"),
+    YEARLY("Yearly")
 } 

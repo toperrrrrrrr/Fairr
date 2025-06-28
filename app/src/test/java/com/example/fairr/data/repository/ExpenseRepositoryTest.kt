@@ -2,7 +2,10 @@ package com.example.fairr.data.repository
 
 import org.junit.Assert.*
 import org.junit.Test
+import org.junit.runner.RunWith
+import org.mockito.junit.MockitoJUnitRunner
 
+@RunWith(MockitoJUnitRunner::class)
 class SplitCalculatorTest {
 
     @Test
@@ -74,4 +77,35 @@ class SplitCalculatorTest {
         val splits = SplitCalculator.calculateSplits(0.0, "Equal Split", members)
         assertTrue(splits.all { it["share"] == 0.0 })
     }
-} 
+
+    @Test
+    fun `negative amount returns zero shares`() {
+        val members = listOf(
+            mapOf("userId" to "1", "name" to "Alice"),
+            mapOf("userId" to "2", "name" to "Bob")
+        )
+        val splits = SplitCalculator.calculateSplits(-50.0, "Equal Split", members)
+        assertTrue(splits.all { it["share"] == 0.0 })
+    }
+
+    @Test
+    fun `percentage split with missing percentages defaults to equal`() {
+        val members = listOf(
+            mapOf("userId" to "1", "name" to "Alice", "percentage" to 50),
+            mapOf("userId" to "2", "name" to "Bob")
+        )
+        val splits = SplitCalculator.calculateSplits(100.0, "Percentage", members)
+        assertTrue(splits.all { it["share"] == 50.0 })
+    }
+
+    @Test
+    fun `custom amount split with negative amounts clamps to zero`() {
+        val members = listOf(
+            mapOf("userId" to "1", "name" to "Alice", "customAmount" to -10.0),
+            mapOf("userId" to "2", "name" to "Bob")
+        )
+        val splits = SplitCalculator.calculateSplits(100.0, "Custom Amount", members)
+        assertEquals(0.0, splits[0]["share"])
+        assertEquals(100.0, splits[1]["share"])
+    }
+}

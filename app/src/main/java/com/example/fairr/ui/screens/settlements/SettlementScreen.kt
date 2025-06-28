@@ -26,6 +26,7 @@ import androidx.navigation.compose.rememberNavController
 import androidx.hilt.navigation.compose.hiltViewModel
 import kotlinx.coroutines.launch
 import com.example.fairr.ui.theme.*
+import com.example.fairr.ui.components.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -92,14 +93,12 @@ fun SettlementScreen(
         }
     ) { padding ->
         if (state.isLoading) {
-            Box(
+            FairrLoadingCard(
+                message = "Loading settlements...",
                 modifier = Modifier
                     .fillMaxSize()
-                    .padding(padding),
-                contentAlignment = Alignment.Center
-            ) {
-                CircularProgressIndicator(color = Primary)
-            }
+                    .padding(padding)
+            )
         } else {
             LazyColumn(
                 modifier = Modifier

@@ -40,6 +40,15 @@ import java.util.*
 import kotlinx.coroutines.launch
 import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.unit.ExperimentalUnitApi
+import com.example.fairr.data.model.RecurrenceRule
+import com.example.fairr.data.model.RecurrenceFrequency
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.rememberDatePickerState
+import com.example.fairr.data.groups.GroupService
+import kotlinx.coroutines.flow.first
+import javax.inject.Inject
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -58,6 +67,12 @@ fun AddExpenseScreen(
     var showOcrSuggestion by remember { mutableStateOf(false) }
     var suggestedData by remember { mutableStateOf<com.example.fairr.utils.ExtractedReceiptData?>(null) }
     var selectedPaidBy by remember { mutableStateOf("You") }
+    var selectedCategory by remember { mutableStateOf(com.example.fairr.data.model.ExpenseCategory.FOOD) }
+    // Recurrence state
+    var recurrenceFrequency by remember { mutableStateOf(com.example.fairr.data.model.RecurrenceFrequency.NONE) }
+    var recurrenceInterval by remember { mutableStateOf(1) }
+    var recurrenceEndDate by remember { mutableStateOf<Date?>(null) }
+    var showEndDatePicker by remember { mutableStateOf(false) }
     val state = viewModel.state
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -67,6 +82,7 @@ fun AddExpenseScreen(
     val members = state.groupMembers.map { it.displayName }.ifEmpty { listOf("You") }
     var showPayerSheet by remember { mutableStateOf(false) }
     var showSplitSheet by remember { mutableStateOf(false) }
+    var showCategorySheet by remember { mutableStateOf(false) }
 
     // Auto-fill from OCR data when photos are added
     LaunchedEffect(receiptPhotos) {
@@ -124,18 +140,26 @@ fun AddExpenseScreen(
             ModernButton(
                 text = "Save Expense",
                 onClick = {
+                    val trimmedDescription = description.trim()
                     val amountValue = amount.replace(viewModel.getCurrencySymbol(), "")
                         .replace(",", "")
                         .trim()
                         .toDoubleOrNull()
-                    
-                    if (amountValue == null) {
+
+                    if (trimmedDescription.length < 3) {
                         scope.launch {
-                            snackbarHostState.showSnackbar("Please enter a valid amount")
+                            snackbarHostState.showSnackbar("Description must be at least 3 characters")
                         }
                         return@ModernButton
                     }
-                    
+
+                    if (amountValue == null || amountValue <= 0.0) {
+                        scope.launch {
+                            snackbarHostState.showSnackbar("Please enter a valid amount greater than 0")
+                        }
+                        return@ModernButton
+                    }
+
                     // Validate split-specific data
                     val splitValidationError = validateSplitData(selectedSplitType, amountValue)
                     if (splitValidationError != null) {
@@ -144,14 +168,19 @@ fun AddExpenseScreen(
                         }
                         return@ModernButton
                     }
-                    
+
                     viewModel.addExpense(
                         groupId = groupId,
-                        description = description,
+                        description = trimmedDescription,
                         amount = amountValue,
                         date = Date(),
                         paidBy = viewModel.getMemberIdByDisplayName(selectedPaidBy),
-                        splitType = selectedSplitType
+                        splitType = selectedSplitType,
+                        category = selectedCategory,
+                        isRecurring = recurrenceFrequency != com.example.fairr.data.model.RecurrenceFrequency.NONE,
+                        recurrenceRule = if (recurrenceFrequency != com.example.fairr.data.model.RecurrenceFrequency.NONE)
+                            buildRecurrenceRule(recurrenceFrequency.displayName, recurrenceInterval, recurrenceEndDate?.time)
+                        else null
                     )
                 },
                 modifier = Modifier
@@ -191,6 +220,107 @@ fun AddExpenseScreen(
                             focusedLabelColor = Primary
                         )
                     )
+
+                    // Category selection
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "Category",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = TextPrimary
+                        )
+                        CategoryChip(
+                            category = selectedCategory,
+                            selected = true,
+                            onClick = { showCategorySheet = true },
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+
+                    // Recurrence section
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        Text(
+                            text = "Recurrence",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = TextPrimary
+                        )
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            // Frequency dropdown
+                            var expanded by remember { mutableStateOf(false) }
+                            Box {
+                                OutlinedButton(
+                                    onClick = { expanded = true }
+                                ) {
+                                    Text(recurrenceFrequency.displayName)
+                                }
+                                DropdownMenu(
+                                    expanded = expanded,
+                                    onDismissRequest = { expanded = false }
+                                ) {
+                                    com.example.fairr.data.model.RecurrenceFrequency.values().forEach { freq ->
+                                        DropdownMenuItem(
+                                            text = { Text(freq.displayName) },
+                                            onClick = {
+                                                recurrenceFrequency = freq
+                                                expanded = false
+                                            }
+                                        )
+                                    }
+                                }
+                            }
+                            // Interval input
+                            if (recurrenceFrequency != com.example.fairr.data.model.RecurrenceFrequency.NONE) {
+                                OutlinedTextField(
+                                    value = recurrenceInterval.toString(),
+                                    onValueChange = { val v = it.toIntOrNull(); if (v != null && v > 0) recurrenceInterval = v },
+                                    label = { Text("Every") },
+                                    singleLine = true,
+                                    modifier = Modifier.width(80.dp)
+                                )
+                                Text(text = recurrenceFrequency.displayName.lowercase())
+                            }
+                        }
+                        // End date picker
+                        if (recurrenceFrequency != com.example.fairr.data.model.RecurrenceFrequency.NONE) {
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                OutlinedButton(onClick = { showEndDatePicker = true }) {
+                                    Text(
+                                        text = recurrenceEndDate?.let { java.text.SimpleDateFormat("MMM dd, yyyy").format(it) } ?: "No end date"
+                                    )
+                                }
+                                if (recurrenceEndDate != null) {
+                                    IconButton(onClick = { recurrenceEndDate = null }) {
+                                        Icon(Icons.Default.Close, contentDescription = "Clear end date")
+                                    }
+                                }
+                            }
+                        }
+                        // Recurrence summary
+                        if (recurrenceFrequency != com.example.fairr.data.model.RecurrenceFrequency.NONE) {
+                            val summary = buildString {
+                                append("Repeats every $recurrenceInterval ")
+                                append(recurrenceFrequency.displayName.lowercase())
+                                if (recurrenceEndDate != null) {
+                                    append(" until ")
+                                    append(java.text.SimpleDateFormat("MMM dd, yyyy").format(recurrenceEndDate))
+                                }
+                            }
+                            Text(text = summary, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
+                        }
+                    }
 
                     // Conversational sentence row
                     Row(
@@ -435,6 +565,59 @@ fun AddExpenseScreen(
                 }
                 Spacer(modifier = Modifier.height(16.dp))
             }
+        }
+    }
+
+    // Modal sheet for category selection
+    if (showCategorySheet) {
+        ModalBottomSheet(onDismissRequest = { showCategorySheet = false }) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(16.dp)
+            ) {
+                Text(
+                    text = "Select Category",
+                    style = MaterialTheme.typography.titleMedium,
+                    modifier = Modifier.padding(bottom = 16.dp)
+                )
+                
+                CategorySelectionGrid(
+                    selectedCategory = selectedCategory,
+                    onCategorySelected = { category ->
+                        selectedCategory = category
+                        showCategorySheet = false
+                    },
+                    modifier = Modifier.fillMaxWidth()
+                )
+                
+                Spacer(modifier = Modifier.height(16.dp))
+            }
+        }
+    }
+
+    // Date picker for recurrence end date
+    if (showEndDatePicker) {
+        val datePickerState = rememberDatePickerState(
+            initialSelectedDateMillis = recurrenceEndDate?.time,
+            initialDisplayedMonthMillis = recurrenceEndDate?.time
+        )
+        DatePickerDialog(
+            onDismissRequest = { showEndDatePicker = false },
+            confirmButton = {
+                TextButton(onClick = {
+                    val millis = datePickerState.selectedDateMillis
+                    if (millis != null) {
+                        recurrenceEndDate = Date(millis)
+                    }
+                    showEndDatePicker = false
+                }) { Text("OK") }
+            },
+            dismissButton = {
+                TextButton(onClick = { showEndDatePicker = false }) { Text("Cancel") }
+            }
+        ) {
+            DatePicker(state = datePickerState)
         }
     }
 }
@@ -694,16 +877,61 @@ fun ReceiptPhotoCard(
 fun validateSplitData(splitType: String, amount: Double): String? {
     return when (splitType) {
         "Percentage" -> {
-            // TODO: Validate that percentages sum to 100%
-            // This will be implemented when percentage input UI is added
+            // For now, return null since percentage input UI is not yet implemented
+            // When percentage input is added, validate that percentages sum to 100%
             null
         }
         "Custom Amount" -> {
-            // TODO: Validate that custom amounts sum to the total expense amount
-            // This will be implemented when custom amount input UI is added
+            // For now, return null since custom amount input UI is not yet implemented
+            // When custom amount input is added, validate that amounts sum to the total expense amount
             null
         }
         else -> null
     }
+}
+
+// Enhanced validation function for when split input UI is implemented
+fun validateSplitInputs(
+    splitType: String,
+    amount: Double,
+    memberSplits: List<Map<String, Any>>
+): String? {
+    return when (splitType) {
+        "Percentage" -> {
+            val totalPercentage = memberSplits.sumOf { (it["percentage"] as? Number)?.toDouble() ?: 0.0 }
+            when {
+                totalPercentage < 99.9 -> "Total percentage must be 100% (currently ${String.format("%.1f", totalPercentage)}%)"
+                totalPercentage > 100.1 -> "Total percentage cannot exceed 100% (currently ${String.format("%.1f", totalPercentage)}%)"
+                else -> null
+            }
+        }
+        "Custom Amount" -> {
+            val totalCustomAmount = memberSplits.sumOf { (it["customAmount"] as? Number)?.toDouble() ?: 0.0 }
+            when {
+                totalCustomAmount < amount * 0.99 -> "Total custom amounts must equal the expense amount (currently ${String.format("%.2f", totalCustomAmount)} vs ${String.format("%.2f", amount)})"
+                totalCustomAmount > amount * 1.01 -> "Total custom amounts cannot exceed the expense amount (currently ${String.format("%.2f", totalCustomAmount)} vs ${String.format("%.2f", amount)})"
+                else -> null
+            }
+        }
+        else -> null
+    }
+}
+
+private fun buildRecurrenceRule(frequency: String, interval: Int, endDate: Long?): RecurrenceRule {
+    val freq = when (frequency) {
+        "Daily" -> RecurrenceFrequency.DAILY
+        "Weekly" -> RecurrenceFrequency.WEEKLY
+        "Monthly" -> RecurrenceFrequency.MONTHLY
+        "Yearly" -> RecurrenceFrequency.YEARLY
+        else -> RecurrenceFrequency.WEEKLY
+    }
+    
+    val endTimestamp = endDate?.let { com.google.firebase.Timestamp(java.util.Date(it)) }
+    
+    return RecurrenceRule(
+        frequency = freq,
+        interval = interval,
+        endDate = endTimestamp
+    )
 } 
 

@@ -14,9 +14,16 @@ import androidx.compose.ui.unit.dp
 import androidx.navigation.NavController
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fairr.data.model.Group
-import com.example.fairr.ui.components.GroupCard
+import com.example.fairr.ui.components.*
+import androidx.compose.animation.core.tween
+import androidx.compose.animation.core.EaseOutCubic
+import androidx.compose.material.ExperimentalMaterialApi
+import androidx.compose.material.pullrefresh.PullRefreshIndicator
+import androidx.compose.material.pullrefresh.pullRefresh
+import androidx.compose.material.pullrefresh.rememberPullRefreshState
+import androidx.compose.foundation.ExperimentalFoundationApi
 
-@OptIn(ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun GroupListScreen(
     navController: NavController,
@@ -26,6 +33,11 @@ fun GroupListScreen(
     viewModel: GroupListViewModel = hiltViewModel()
 ) {
     val uiState = viewModel.uiState
+    val refreshing = uiState is GroupListUiState.Loading
+    val pullRefreshState = rememberPullRefreshState(
+        refreshing = refreshing,
+        onRefresh = { viewModel.loadGroups() }
+    )
 
     Scaffold(
         topBar = {
@@ -37,11 +49,13 @@ fun GroupListScreen(
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .pullRefresh(pullRefreshState)
                 .padding(padding)
         ) {
             when (uiState) {
                 is GroupListUiState.Loading -> {
-                    CircularProgressIndicator(
+                    FairrLoadingCard(
+                        message = "Loading your groups...",
                         modifier = Modifier.align(Alignment.Center)
                     )
                 }
@@ -100,25 +114,21 @@ fun GroupListScreen(
                     }
                 }
                 is GroupListUiState.Error -> {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxSize()
-                            .padding(16.dp),
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.Center
-                    ) {
-                        Text(
-                            text = uiState.message,
-                            color = MaterialTheme.colorScheme.error,
-                            textAlign = TextAlign.Center
-                        )
-                        Spacer(modifier = Modifier.height(16.dp))
-                        Button(onClick = { viewModel.loadGroups() }) {
-                            Text("Retry")
-                        }
-                    }
+                    FairrErrorState(
+                        title = "Failed to Load Groups",
+                        message = uiState.message,
+                        actionText = "Retry",
+                        onActionClick = { viewModel.loadGroups() },
+                        modifier = Modifier.align(Alignment.Center)
+                    )
                 }
             }
+            
+            PullRefreshIndicator(
+                refreshing = refreshing,
+                state = pullRefreshState,
+                modifier = Modifier.align(Alignment.TopCenter)
+            )
         }
     }
 }
@@ -218,12 +228,19 @@ private fun GroupList(
         modifier = modifier.padding(16.dp),
         verticalArrangement = Arrangement.spacedBy(8.dp)
     ) {
-        items(groups) { group ->
-            GroupCard(
-                group = group,
-                balance = getBalance(group.id),
-                onClick = { onGroupClick(group.id) }
-            )
+        items(
+            items = groups,
+            key = { it.id }
+        ) { group ->
+            FairrAnimatedListItem(
+                visible = true
+            ) {
+                GroupCard(
+                    group = group,
+                    balance = getBalance(group.id),
+                    onClick = { onGroupClick(group.id) }
+                )
+            }
         }
     }
 } 

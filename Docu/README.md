@@ -60,6 +60,15 @@ The **[AnalysisSteps/](./AnalysisSteps/)** folder contains a comprehensive 6-pha
 - **Firebase Console**: [Project Configuration](./firebase.json)
 - **Security Rules**: [Firestore Rules](./app/src/main/firestore.rules)
 
+## Recent Improvements
+
+### Input Validation for Expenses
+- The Add and Edit Expense screens now enforce:
+  - Description must be at least 3 characters and not just whitespace.
+  - Amount must be a valid number greater than 0.
+  - User-friendly error messages are shown via snackbar before saving.
+- This is part of ongoing data quality and UX improvements.
+
 ---
 
 *Last updated: December 2024*

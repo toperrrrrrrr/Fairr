@@ -1,0 +1,304 @@
+package com.example.fairr.data.activity
+
+import com.example.fairr.data.model.Expense
+import com.example.fairr.data.repository.ExpenseRepository
+import com.example.fairr.data.groups.GroupService
+import com.google.firebase.Timestamp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import java.util.*
+import javax.inject.Inject
+import javax.inject.Singleton
+
+@Singleton
+class GroupActivityService @Inject constructor(
+    private val expenseRepository: ExpenseRepository,
+    private val groupService: GroupService
+) {
+    private val scope = CoroutineScope(Dispatchers.IO)
+    
+    data class ActivityEvent(
+        val id: String,
+        val groupId: String,
+        val type: ActivityType,
+        val userId: String,
+        val userName: String,
+        val description: String,
+        val amount: Double? = null,
+        val currency: String? = null,
+        val timestamp: Timestamp,
+        val metadata: Map<String, Any> = emptyMap()
+    )
+    
+    enum class ActivityType {
+        EXPENSE_ADDED,
+        EXPENSE_EDITED,
+        EXPENSE_DELETED,
+        MEMBER_JOINED,
+        MEMBER_LEFT,
+        SETTLEMENT_COMPLETED,
+        GROUP_CREATED,
+        GROUP_SETTINGS_UPDATED,
+        RECURRING_EXPENSE_CREATED,
+        RECURRING_EXPENSE_INSTANCE_GENERATED
+    }
+    
+    data class ActivitySummary(
+        val groupId: String,
+        val totalEvents: Int,
+        val recentEvents: List<ActivityEvent>,
+        val memberActivity: Map<String, Int>, // userId to event count
+        val expenseActivity: Map<String, Double>, // userId to total amount
+        val lastActivity: Timestamp?
+    )
+    
+    private val _groupActivities = MutableStateFlow<Map<String, List<ActivityEvent>>>(emptyMap())
+    val groupActivities: StateFlow<Map<String, List<ActivityEvent>>> = _groupActivities
+    
+    /**
+     * Record a new activity event
+     */
+    suspend fun recordActivity(
+        groupId: String,
+        type: ActivityType,
+        userId: String,
+        userName: String,
+        description: String,
+        amount: Double? = null,
+        currency: String? = null,
+        metadata: Map<String, Any> = emptyMap()
+    ) {
+        val event = ActivityEvent(
+            id = UUID.randomUUID().toString(),
+            groupId = groupId,
+            type = type,
+            userId = userId,
+            userName = userName,
+            description = description,
+            amount = amount,
+            currency = currency,
+            timestamp = Timestamp.now(),
+            metadata = metadata
+        )
+        
+        val currentActivities = _groupActivities.value.toMutableMap()
+        val groupEvents = currentActivities[groupId]?.toMutableList() ?: mutableListOf()
+        groupEvents.add(0, event) // Add to beginning for recent first
+        
+        // Keep only last 100 events per group
+        if (groupEvents.size > 100) {
+            groupEvents.removeAt(groupEvents.size - 1)
+        }
+        
+        currentActivities[groupId] = groupEvents
+        _groupActivities.value = currentActivities
+    }
+    
+    /**
+     * Get recent activities for a group
+     */
+    fun getRecentActivities(groupId: String, limit: Int = 20): List<ActivityEvent> {
+        return _groupActivities.value[groupId]?.take(limit) ?: emptyList()
+    }
+    
+    /**
+     * Get activity summary for a group
+     */
+    fun getActivitySummary(groupId: String): ActivitySummary {
+        val events = _groupActivities.value[groupId] ?: emptyList()
+        
+        val memberActivity = events.groupBy { it.userId }
+            .mapValues { it.value.size }
+        
+        val expenseActivity = events.filter { it.amount != null }
+            .groupBy { it.userId }
+            .mapValues { it.value.sumOf { event -> event.amount ?: 0.0 } }
+        
+        return ActivitySummary(
+            groupId = groupId,
+            totalEvents = events.size,
+            recentEvents = events.take(10),
+            memberActivity = memberActivity,
+            expenseActivity = expenseActivity,
+            lastActivity = events.firstOrNull()?.timestamp
+        )
+    }
+    
+    /**
+     * Get user's activity in a group
+     */
+    fun getUserActivity(groupId: String, userId: String): List<ActivityEvent> {
+        return _groupActivities.value[groupId]?.filter { it.userId == userId } ?: emptyList()
+    }
+    
+    /**
+     * Get activities by type
+     */
+    fun getActivitiesByType(groupId: String, type: ActivityType): List<ActivityEvent> {
+        return _groupActivities.value[groupId]?.filter { it.type == type } ?: emptyList()
+    }
+    
+    /**
+     * Get activities in date range
+     */
+    fun getActivitiesInRange(
+        groupId: String,
+        startDate: Timestamp,
+        endDate: Timestamp
+    ): List<ActivityEvent> {
+        return _groupActivities.value[groupId]?.filter { event ->
+            event.timestamp >= startDate && event.timestamp <= endDate
+        } ?: emptyList()
+    }
+    
+    /**
+     * Get most active members
+     */
+    fun getMostActiveMembers(groupId: String, limit: Int = 5): List<Pair<String, Int>> {
+        val summary = getActivitySummary(groupId)
+        return summary.memberActivity.entries
+            .sortedByDescending { it.value }
+            .take(limit)
+            .map { it.key to it.value }
+    }
+    
+    /**
+     * Get highest spenders
+     */
+    fun getHighestSpenders(groupId: String, limit: Int = 5): List<Pair<String, Double>> {
+        val summary = getActivitySummary(groupId)
+        return summary.expenseActivity.entries
+            .sortedByDescending { it.value }
+            .take(limit)
+            .map { it.key to it.value }
+    }
+    
+    /**
+     * Auto-record expense activities
+     */
+    suspend fun recordExpenseActivity(expense: Expense, type: ActivityType) {
+        val description = when (type) {
+            ActivityType.EXPENSE_ADDED -> "added expense: ${expense.description}"
+            ActivityType.EXPENSE_EDITED -> "edited expense: ${expense.description}"
+            ActivityType.EXPENSE_DELETED -> "deleted expense: ${expense.description}"
+            else -> "expense activity: ${expense.description}"
+        }
+        
+        recordActivity(
+            groupId = expense.groupId,
+            type = type,
+            userId = expense.paidBy,
+            userName = expense.paidByName,
+            description = description,
+            amount = expense.amount,
+            currency = expense.currency,
+            metadata = mapOf(
+                "expenseId" to expense.id,
+                "category" to expense.category.name
+            )
+        )
+    }
+    
+    /**
+     * Auto-record member activities
+     */
+    suspend fun recordMemberActivity(
+        groupId: String,
+        userId: String,
+        userName: String,
+        type: ActivityType
+    ) {
+        val description = when (type) {
+            ActivityType.MEMBER_JOINED -> "joined the group"
+            ActivityType.MEMBER_LEFT -> "left the group"
+            else -> "member activity"
+        }
+        
+        recordActivity(
+            groupId = groupId,
+            type = type,
+            userId = userId,
+            userName = userName,
+            description = description
+        )
+    }
+    
+    /**
+     * Auto-record settlement activities
+     */
+    suspend fun recordSettlementActivity(
+        groupId: String,
+        fromUserId: String,
+        fromUserName: String,
+        toUserId: String,
+        toUserName: String,
+        amount: Double,
+        currency: String
+    ) {
+        recordActivity(
+            groupId = groupId,
+            type = ActivityType.SETTLEMENT_COMPLETED,
+            userId = fromUserId,
+            userName = fromUserName,
+            description = "settled up with $toUserName",
+            amount = amount,
+            currency = currency,
+            metadata = mapOf(
+                "toUserId" to toUserId,
+                "toUserName" to toUserName
+            )
+        )
+    }
+    
+    /**
+     * Get activity statistics
+     */
+    fun getActivityStatistics(groupId: String): Map<String, Any> {
+        val events = _groupActivities.value[groupId] ?: emptyList()
+        
+        val typeCounts = events.groupBy { it.type }
+            .mapValues { it.value.size }
+            .mapKeys { it.key.name }
+        
+        val totalAmount = events.filter { it.amount != null }
+            .sumOf { it.amount ?: 0.0 }
+        
+        val uniqueUsers = events.map { it.userId }.distinct().size
+        
+        return mapOf<String, Any>(
+            "totalEvents" to events.size,
+            "totalAmount" to totalAmount,
+            "uniqueUsers" to uniqueUsers,
+            "typeCounts" to typeCounts,
+            "lastActivity" to (events.firstOrNull()?.timestamp?.toString() ?: "")
+        )
+    }
+    
+    /**
+     * Clear old activities (older than 30 days)
+     */
+    suspend fun clearOldActivities() {
+        val thirtyDaysAgo = Timestamp(Date(System.currentTimeMillis() - 30L * 24 * 60 * 60 * 1000))
+        
+        val currentActivities = _groupActivities.value.toMutableMap()
+        currentActivities.forEach { (groupId, events) ->
+            val recentEvents = events.filter { it.timestamp >= thirtyDaysAgo }
+            currentActivities[groupId] = recentEvents
+        }
+        
+        _groupActivities.value = currentActivities
+    }
+    
+    /**
+     * Initialize activity tracking for existing data
+     */
+    suspend fun initializeActivityTracking() {
+        scope.launch {
+            // This would typically load existing activities from database
+            // For now, we'll start with empty activities
+        }
+    }
+} 

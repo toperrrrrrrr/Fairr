@@ -1,0 +1,318 @@
+package com.example.fairr.data.sharing
+
+import com.example.fairr.data.model.Expense
+import com.example.fairr.data.repository.ExpenseRepository
+import com.example.fairr.data.groups.GroupService
+import com.google.firebase.Timestamp
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import kotlinx.coroutines.launch
+import java.util.*
+import javax.inject.Inject
+import javax.inject.Singleton
+
+@Singleton
+class ExpenseSharingService @Inject constructor(
+    private val expenseRepository: ExpenseRepository,
+    private val groupService: GroupService
+) {
+    private val scope = CoroutineScope(Dispatchers.IO)
+    
+    data class SharedExpense(
+        val id: String,
+        val originalExpenseId: String,
+        val groupId: String,
+        val sharedBy: String,
+        val sharedByName: String,
+        val sharedWith: List<String>, // userIds
+        val message: String?,
+        val status: SharingStatus,
+        val createdAt: Timestamp,
+        val expiresAt: Timestamp?,
+        val responses: Map<String, SharingResponse> = emptyMap()
+    )
+    
+    enum class SharingStatus {
+        ACTIVE,
+        ACCEPTED,
+        DECLINED,
+        EXPIRED,
+        CANCELLED
+    }
+    
+    enum class SharingResponse {
+        PENDING,
+        ACCEPTED,
+        DECLINED,
+        MODIFIED
+    }
+    
+    data class ExpenseTemplate(
+        val id: String,
+        val name: String,
+        val description: String,
+        val amount: Double,
+        val currency: String,
+        val category: String,
+        val splitType: String,
+        val createdBy: String,
+        val isPublic: Boolean = false,
+        val usageCount: Int = 0,
+        val createdAt: Timestamp
+    )
+    
+    private val _sharedExpenses = MutableStateFlow<Map<String, SharedExpense>>(emptyMap())
+    val sharedExpenses: StateFlow<Map<String, SharedExpense>> = _sharedExpenses
+    
+    private val _expenseTemplates = MutableStateFlow<Map<String, ExpenseTemplate>>(emptyMap())
+    val expenseTemplates: StateFlow<Map<String, ExpenseTemplate>> = _expenseTemplates
+    
+    /**
+     * Share an expense with specific users
+     */
+    suspend fun shareExpense(
+        expenseId: String,
+        groupId: String,
+        sharedBy: String,
+        sharedByName: String,
+        sharedWith: List<String>,
+        message: String? = null,
+        expiresInDays: Int = 7
+    ): SharedExpense? {
+        try {
+            val expense = expenseRepository.getExpenseById(expenseId) ?: return null
+            
+            val expiresAt = if (expiresInDays > 0) {
+                val calendar = Calendar.getInstance()
+                calendar.add(Calendar.DAY_OF_MONTH, expiresInDays)
+                Timestamp(calendar.time)
+            } else null
+            
+            val sharedExpense = SharedExpense(
+                id = UUID.randomUUID().toString(),
+                originalExpenseId = expenseId,
+                groupId = groupId,
+                sharedBy = sharedBy,
+                sharedByName = sharedByName,
+                sharedWith = sharedWith,
+                message = message,
+                status = SharingStatus.ACTIVE,
+                createdAt = Timestamp.now(),
+                expiresAt = expiresAt
+            )
+            
+            val currentShared = _sharedExpenses.value.toMutableMap()
+            currentShared[sharedExpense.id] = sharedExpense
+            _sharedExpenses.value = currentShared
+            
+            return sharedExpense
+            
+        } catch (e: Exception) {
+            return null
+        }
+    }
+    
+    /**
+     * Respond to a shared expense
+     */
+    suspend fun respondToSharedExpense(
+        sharedExpenseId: String,
+        userId: String,
+        response: SharingResponse,
+        modifiedAmount: Double? = null,
+        notes: String? = null
+    ): Boolean {
+        try {
+            val currentShared = _sharedExpenses.value.toMutableMap()
+            val sharedExpense = currentShared[sharedExpenseId] ?: return false
+            
+            val updatedResponses = sharedExpense.responses.toMutableMap()
+            updatedResponses[userId] = response
+            
+            val updatedSharedExpense = sharedExpense.copy(
+                responses = updatedResponses,
+                status = determineNewStatus(sharedExpense, updatedResponses)
+            )
+            
+            currentShared[sharedExpenseId] = updatedSharedExpense
+            _sharedExpenses.value = currentShared
+            
+            return true
+            
+        } catch (e: Exception) {
+            return false
+        }
+    }
+    
+    /**
+     * Get shared expenses for a user
+     */
+    fun getSharedExpensesForUser(userId: String): List<SharedExpense> {
+        return _sharedExpenses.value.values.filter { sharedExpense ->
+            sharedExpense.sharedWith.contains(userId) || sharedExpense.sharedBy == userId
+        }.sortedByDescending { it.createdAt }
+    }
+    
+    /**
+     * Get active shared expenses for a group
+     */
+    fun getActiveSharedExpenses(groupId: String): List<SharedExpense> {
+        return _sharedExpenses.value.values.filter { sharedExpense ->
+            sharedExpense.groupId == groupId && sharedExpense.status == SharingStatus.ACTIVE
+        }.sortedByDescending { it.createdAt }
+    }
+    
+    /**
+     * Create an expense template
+     */
+    suspend fun createExpenseTemplate(
+        name: String,
+        description: String,
+        amount: Double,
+        currency: String,
+        category: String,
+        splitType: String,
+        createdBy: String,
+        isPublic: Boolean = false
+    ): ExpenseTemplate {
+        val template = ExpenseTemplate(
+            id = UUID.randomUUID().toString(),
+            name = name,
+            description = description,
+            amount = amount,
+            currency = currency,
+            category = category,
+            splitType = splitType,
+            createdBy = createdBy,
+            isPublic = isPublic,
+            createdAt = Timestamp.now()
+        )
+        
+        val currentTemplates = _expenseTemplates.value.toMutableMap()
+        currentTemplates[template.id] = template
+        _expenseTemplates.value = currentTemplates
+        
+        return template
+    }
+    
+    /**
+     * Get expense templates
+     */
+    fun getExpenseTemplates(createdBy: String? = null, isPublic: Boolean = true): List<ExpenseTemplate> {
+        return _expenseTemplates.value.values.filter { template ->
+            (createdBy == null || template.createdBy == createdBy) &&
+            (isPublic == template.isPublic || template.createdBy == createdBy)
+        }.sortedByDescending { it.usageCount }
+    }
+    
+    /**
+     * Use an expense template to create an expense
+     */
+    suspend fun useExpenseTemplate(
+        templateId: String,
+        groupId: String,
+        paidBy: String,
+        paidByName: String,
+        groupMembers: List<Map<String, Any>>
+    ): Expense? {
+        try {
+            val template = _expenseTemplates.value[templateId] ?: return null
+            
+            // Create expense from template
+            val expense = Expense(
+                id = UUID.randomUUID().toString(),
+                groupId = groupId,
+                description = template.description,
+                amount = template.amount,
+                currency = template.currency,
+                category = com.example.fairr.data.model.ExpenseCategory.fromString(template.category),
+                splitType = template.splitType,
+                paidBy = paidBy,
+                paidByName = paidByName,
+                date = Timestamp.now(),
+                splitBetween = emptyList() // Will be calculated by the expense service
+            )
+            
+            // Add expense to repository
+            expenseRepository.addExpense(expense)
+            
+            // Update template usage count
+            val currentTemplates = _expenseTemplates.value.toMutableMap()
+            val updatedTemplate = template.copy(usageCount = template.usageCount + 1)
+            currentTemplates[templateId] = updatedTemplate
+            _expenseTemplates.value = currentTemplates
+            
+            return expense
+            
+        } catch (e: Exception) {
+            return null
+        }
+    }
+    
+    /**
+     * Get sharing statistics
+     */
+    fun getSharingStatistics(userId: String): Map<String, Any> {
+        val userSharedExpenses = getSharedExpensesForUser(userId)
+        
+        val sharedByMe = userSharedExpenses.filter { it.sharedBy == userId }
+        val sharedWithMe = userSharedExpenses.filter { it.sharedWith.contains(userId) }
+        
+        val acceptedCount = sharedWithMe.count { 
+            it.responses[userId] == SharingResponse.ACCEPTED 
+        }
+        val declinedCount = sharedWithMe.count { 
+            it.responses[userId] == SharingResponse.DECLINED 
+        }
+        
+        return mapOf(
+            "totalSharedByMe" to sharedByMe.size,
+            "totalSharedWithMe" to sharedWithMe.size,
+            "acceptedCount" to acceptedCount,
+            "declinedCount" to declinedCount,
+            "pendingCount" to (sharedWithMe.size - acceptedCount - declinedCount)
+        )
+    }
+    
+    /**
+     * Clean up expired shared expenses
+     */
+    suspend fun cleanupExpiredSharedExpenses() {
+        val now = Timestamp.now()
+        val currentShared = _sharedExpenses.value.toMutableMap()
+        
+        currentShared.values.forEach { sharedExpense ->
+            if (sharedExpense.expiresAt != null && sharedExpense.expiresAt < now) {
+                val updatedExpense = sharedExpense.copy(status = SharingStatus.EXPIRED)
+                currentShared[sharedExpense.id] = updatedExpense
+            }
+        }
+        
+        _sharedExpenses.value = currentShared
+    }
+    
+    private fun determineNewStatus(
+        sharedExpense: SharedExpense,
+        responses: Map<String, SharingResponse>
+    ): SharingStatus {
+        val allResponded = sharedExpense.sharedWith.all { responses.containsKey(it) }
+        
+        if (!allResponded) return SharingStatus.ACTIVE
+        
+        val allAccepted = sharedExpense.sharedWith.all { 
+            responses[it] == SharingResponse.ACCEPTED 
+        }
+        
+        val anyDeclined = sharedExpense.sharedWith.any { 
+            responses[it] == SharingResponse.DECLINED 
+        }
+        
+        return when {
+            allAccepted -> SharingStatus.ACCEPTED
+            anyDeclined -> SharingStatus.DECLINED
+            else -> SharingStatus.ACTIVE
+        }
+    }
+} 

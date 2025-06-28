@@ -1,0 +1,368 @@
+package com.example.fairr.data.budget
+
+import com.example.fairr.data.model.Expense
+import com.example.fairr.data.repository.ExpenseRepository
+import com.google.firebase.Timestamp
+import kotlinx.coroutines.flow.MutableStateFlow
+import kotlinx.coroutines.flow.StateFlow
+import java.util.*
+import javax.inject.Inject
+import javax.inject.Singleton
+
+@Singleton
+class BudgetService @Inject constructor(
+    private val expenseRepository: ExpenseRepository
+) {
+    
+    data class Budget(
+        val id: String,
+        val groupId: String,
+        val name: String,
+        val amount: Double,
+        val currency: String,
+        val period: BudgetPeriod,
+        val categories: List<String> = emptyList(), // Empty means all categories
+        val startDate: Timestamp,
+        val endDate: Timestamp?,
+        val createdBy: String,
+        val isActive: Boolean = true,
+        val notifications: BudgetNotifications = BudgetNotifications(),
+        val createdAt: Timestamp
+    )
+    
+    enum class BudgetPeriod {
+        DAILY,
+        WEEKLY,
+        MONTHLY,
+        YEARLY,
+        CUSTOM
+    }
+    
+    data class BudgetNotifications(
+        val enabled: Boolean = true,
+        val at50Percent: Boolean = true,
+        val at80Percent: Boolean = true,
+        val at90Percent: Boolean = true,
+        val at100Percent: Boolean = true,
+        val overBudget: Boolean = true
+    )
+    
+    data class BudgetProgress(
+        val budgetId: String,
+        val budgetName: String,
+        val totalBudget: Double,
+        val spentAmount: Double,
+        val remainingAmount: Double,
+        val percentageUsed: Double,
+        val isOverBudget: Boolean,
+        val period: BudgetPeriod,
+        val startDate: Timestamp,
+        val endDate: Timestamp?,
+        val categoryBreakdown: Map<String, Double> = emptyMap()
+    )
+    
+    data class BudgetAlert(
+        val id: String,
+        val budgetId: String,
+        val type: AlertType,
+        val message: String,
+        val percentage: Double,
+        val createdAt: Timestamp,
+        val isRead: Boolean = false
+    )
+    
+    enum class AlertType {
+        BUDGET_50_PERCENT,
+        BUDGET_80_PERCENT,
+        BUDGET_90_PERCENT,
+        BUDGET_100_PERCENT,
+        OVER_BUDGET
+    }
+    
+    private val _budgets = MutableStateFlow<Map<String, Budget>>(emptyMap())
+    val budgets: StateFlow<Map<String, Budget>> = _budgets
+    
+    private val _budgetAlerts = MutableStateFlow<Map<String, List<BudgetAlert>>>(emptyMap())
+    val budgetAlerts: StateFlow<Map<String, List<BudgetAlert>>> = _budgetAlerts
+    
+    /**
+     * Create a new budget
+     */
+    suspend fun createBudget(
+        groupId: String,
+        name: String,
+        amount: Double,
+        currency: String,
+        period: BudgetPeriod,
+        categories: List<String> = emptyList(),
+        startDate: Timestamp,
+        endDate: Timestamp?,
+        createdBy: String,
+        notifications: BudgetNotifications = BudgetNotifications()
+    ): Budget {
+        val budget = Budget(
+            id = UUID.randomUUID().toString(),
+            groupId = groupId,
+            name = name,
+            amount = amount,
+            currency = currency,
+            period = period,
+            categories = categories,
+            startDate = startDate,
+            endDate = endDate,
+            createdBy = createdBy,
+            notifications = notifications,
+            createdAt = Timestamp.now()
+        )
+        
+        val currentBudgets = _budgets.value.toMutableMap()
+        currentBudgets[budget.id] = budget
+        _budgets.value = currentBudgets
+        
+        return budget
+    }
+    
+    /**
+     * Get budgets for a group
+     */
+    fun getBudgetsForGroup(groupId: String): List<Budget> {
+        return _budgets.value.values.filter { it.groupId == groupId && it.isActive }
+            .sortedBy { it.startDate }
+    }
+    
+    /**
+     * Get budget progress
+     */
+    suspend fun getBudgetProgress(budgetId: String): BudgetProgress? {
+        val budget = _budgets.value[budgetId] ?: return null
+        
+        val expenses = getExpensesForBudget(budget)
+        val spentAmount = expenses.sumOf { it.amount }
+        val remainingAmount = budget.amount - spentAmount
+        val percentageUsed = (spentAmount / budget.amount) * 100
+        val isOverBudget = spentAmount > budget.amount
+        
+        val categoryBreakdown = if (budget.categories.isNotEmpty()) {
+            expenses.groupBy { it.category.displayName }
+                .mapValues { it.value.sumOf { expense -> expense.amount } }
+        } else {
+            emptyMap()
+        }
+        
+        return BudgetProgress(
+            budgetId = budget.id,
+            budgetName = budget.name,
+            totalBudget = budget.amount,
+            spentAmount = spentAmount,
+            remainingAmount = remainingAmount,
+            percentageUsed = percentageUsed,
+            isOverBudget = isOverBudget,
+            period = budget.period,
+            startDate = budget.startDate,
+            endDate = budget.endDate,
+            categoryBreakdown = categoryBreakdown
+        )
+    }
+    
+    /**
+     * Get all budget progress for a group
+     */
+    suspend fun getAllBudgetProgress(groupId: String): List<BudgetProgress> {
+        val groupBudgets = getBudgetsForGroup(groupId)
+        return groupBudgets.mapNotNull { getBudgetProgress(it.id) }
+    }
+    
+    /**
+     * Update budget
+     */
+    suspend fun updateBudget(
+        budgetId: String,
+        name: String? = null,
+        amount: Double? = null,
+        categories: List<String>? = null,
+        endDate: Timestamp? = null,
+        isActive: Boolean? = null,
+        notifications: BudgetNotifications? = null
+    ): Boolean {
+        try {
+            val currentBudgets = _budgets.value.toMutableMap()
+            val budget = currentBudgets[budgetId] ?: return false
+            
+            val updatedBudget = budget.copy(
+                name = name ?: budget.name,
+                amount = amount ?: budget.amount,
+                categories = categories ?: budget.categories,
+                endDate = endDate ?: budget.endDate,
+                isActive = isActive ?: budget.isActive,
+                notifications = notifications ?: budget.notifications
+            )
+            
+            currentBudgets[budgetId] = updatedBudget
+            _budgets.value = currentBudgets
+            
+            return true
+            
+        } catch (e: Exception) {
+            return false
+        }
+    }
+    
+    /**
+     * Delete budget
+     */
+    suspend fun deleteBudget(budgetId: String): Boolean {
+        try {
+            val currentBudgets = _budgets.value.toMutableMap()
+            currentBudgets.remove(budgetId)
+            _budgets.value = currentBudgets
+            return true
+        } catch (e: Exception) {
+            return false
+        }
+    }
+    
+    /**
+     * Check budget alerts
+     */
+    suspend fun checkBudgetAlerts(budgetId: String) {
+        val progress = getBudgetProgress(budgetId) ?: return
+        val budget = _budgets.value[budgetId] ?: return
+        
+        val alerts = mutableListOf<BudgetAlert>()
+        
+        // Check notification thresholds
+        if (budget.notifications.enabled) {
+            when {
+                progress.percentageUsed >= 100 && budget.notifications.overBudget -> {
+                    alerts.add(createAlert(budgetId, AlertType.OVER_BUDGET, progress.percentageUsed))
+                }
+                progress.percentageUsed >= 90 && budget.notifications.at100Percent -> {
+                    alerts.add(createAlert(budgetId, AlertType.BUDGET_100_PERCENT, progress.percentageUsed))
+                }
+                progress.percentageUsed >= 80 && budget.notifications.at90Percent -> {
+                    alerts.add(createAlert(budgetId, AlertType.BUDGET_90_PERCENT, progress.percentageUsed))
+                }
+                progress.percentageUsed >= 50 && budget.notifications.at80Percent -> {
+                    alerts.add(createAlert(budgetId, AlertType.BUDGET_80_PERCENT, progress.percentageUsed))
+                }
+                progress.percentageUsed >= 50 && budget.notifications.at50Percent -> {
+                    alerts.add(createAlert(budgetId, AlertType.BUDGET_50_PERCENT, progress.percentageUsed))
+                }
+            }
+        }
+        
+        if (alerts.isNotEmpty()) {
+            addBudgetAlerts(budgetId, alerts)
+        }
+    }
+    
+    /**
+     * Get budget alerts for a group
+     */
+    fun getBudgetAlerts(groupId: String): List<BudgetAlert> {
+        val groupBudgets = getBudgetsForGroup(groupId)
+        return groupBudgets.flatMap { budget ->
+            _budgetAlerts.value[budget.id] ?: emptyList()
+        }.sortedByDescending { it.createdAt }
+    }
+    
+    /**
+     * Mark alert as read
+     */
+    suspend fun markAlertAsRead(alertId: String): Boolean {
+        try {
+            val currentAlerts = _budgetAlerts.value.toMutableMap()
+            
+            currentAlerts.forEach { (budgetId, alerts) ->
+                val updatedAlerts = alerts.map { alert ->
+                    if (alert.id == alertId) alert.copy(isRead = true) else alert
+                }
+                currentAlerts[budgetId] = updatedAlerts
+            }
+            
+            _budgetAlerts.value = currentAlerts
+            return true
+            
+        } catch (e: Exception) {
+            return false
+        }
+    }
+    
+    /**
+     * Get budget statistics
+     */
+    suspend fun getBudgetStatistics(groupId: String): Map<String, Any> {
+        val progressList = getAllBudgetProgress(groupId)
+        
+        if (progressList.isEmpty()) {
+            return mapOf(
+                "totalBudgets" to 0,
+                "totalBudgeted" to 0.0,
+                "totalSpent" to 0.0,
+                "averageUsage" to 0.0,
+                "overBudgetCount" to 0
+            )
+        }
+        
+        val totalBudgeted = progressList.sumOf { it.totalBudget }
+        val totalSpent = progressList.sumOf { it.spentAmount }
+        val averageUsage = progressList.map { it.percentageUsed }.average()
+        val overBudgetCount = progressList.count { it.isOverBudget }
+        
+        return mapOf(
+            "totalBudgets" to progressList.size,
+            "totalBudgeted" to totalBudgeted,
+            "totalSpent" to totalSpent,
+            "averageUsage" to averageUsage,
+            "overBudgetCount" to overBudgetCount,
+            "remainingTotal" to (totalBudgeted - totalSpent)
+        )
+    }
+    
+    private suspend fun getExpensesForBudget(budget: Budget): List<Expense> {
+        val allExpenses = expenseRepository.getExpensesByGroupId(budget.groupId)
+        
+        return allExpenses.filter { expense ->
+            // Check date range
+            val inDateRange = expense.date >= budget.startDate &&
+                    (budget.endDate == null || expense.date <= budget.endDate)
+            
+            // Check categories
+            val inCategories = budget.categories.isEmpty() ||
+                    budget.categories.contains(expense.category.name)
+            
+            inDateRange && inCategories
+        }
+    }
+    
+    private fun createAlert(
+        budgetId: String,
+        type: AlertType,
+        percentage: Double
+    ): BudgetAlert {
+        val message = when (type) {
+            AlertType.BUDGET_50_PERCENT -> "You've used 50% of your budget"
+            AlertType.BUDGET_80_PERCENT -> "You've used 80% of your budget"
+            AlertType.BUDGET_90_PERCENT -> "You've used 90% of your budget"
+            AlertType.BUDGET_100_PERCENT -> "You've reached your budget limit"
+            AlertType.OVER_BUDGET -> "You've exceeded your budget"
+        }
+        
+        return BudgetAlert(
+            id = UUID.randomUUID().toString(),
+            budgetId = budgetId,
+            type = type,
+            message = message,
+            percentage = percentage,
+            createdAt = Timestamp.now()
+        )
+    }
+    
+    private fun addBudgetAlerts(budgetId: String, alerts: List<BudgetAlert>) {
+        val currentAlerts = _budgetAlerts.value.toMutableMap()
+        val existingAlerts = currentAlerts[budgetId]?.toMutableList() ?: mutableListOf()
+        existingAlerts.addAll(alerts)
+        currentAlerts[budgetId] = existingAlerts
+        _budgetAlerts.value = currentAlerts
+    }
+} 

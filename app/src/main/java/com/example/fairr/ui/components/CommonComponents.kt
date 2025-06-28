@@ -23,15 +23,21 @@ import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.platform.LocalFocusManager
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.unit.Dp
 import androidx.compose.ui.window.Dialog
 import androidx.compose.ui.window.DialogProperties
 import com.example.fairr.ui.theme.*
 import kotlinx.coroutines.delay
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.items
 
 /**
  * Custom Chip Components
@@ -596,6 +602,356 @@ fun KeyboardDismissibleBox(
     }
 }
 
+/**
+ * Animation Components
+ */
+@Composable
+fun FairrAnimatedVisibility(
+    visible: Boolean,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    AnimatedVisibility(
+        visible = visible,
+        enter = slideInVertically(
+            initialOffsetY = { it / 2 },
+            animationSpec = tween(300, easing = EaseOutCubic)
+        ) + fadeIn(
+            animationSpec = tween(300)
+        ),
+        exit = slideOutVertically(
+            targetOffsetY = { it / 2 },
+            animationSpec = tween(300, easing = EaseInCubic)
+        ) + fadeOut(
+            animationSpec = tween(300)
+        ),
+        modifier = modifier
+    ) {
+        content()
+    }
+}
+
+@Composable
+fun FairrAnimatedListItem(
+    visible: Boolean,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    AnimatedVisibility(
+        visible = visible,
+        enter = slideInVertically(
+            initialOffsetY = { 50 },
+            animationSpec = tween(400, easing = EaseOutCubic)
+        ) + fadeIn(
+            animationSpec = tween(400)
+        ),
+        modifier = modifier
+    ) {
+        content()
+    }
+}
+
+@Composable
+fun FairrScaleInAnimation(
+    visible: Boolean,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    AnimatedVisibility(
+        visible = visible,
+        enter = scaleIn(
+            initialScale = 0.8f,
+            animationSpec = tween(300, easing = EaseOutBack)
+        ) + fadeIn(
+            animationSpec = tween(300)
+        ),
+        exit = scaleOut(
+            targetScale = 0.8f,
+            animationSpec = tween(300, easing = EaseInBack)
+        ) + fadeOut(
+            animationSpec = tween(300)
+        ),
+        modifier = modifier
+    ) {
+        content()
+    }
+}
+
+/**
+ * Loading Animation Components
+ */
+@Composable
+fun FairrPulsingDot(
+    modifier: Modifier = Modifier,
+    color: Color = DarkGreen
+) {
+    val infiniteTransition = rememberInfiniteTransition(label = "pulse")
+    val scale by infiniteTransition.animateFloat(
+        initialValue = 0.8f,
+        targetValue = 1.2f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000, easing = EaseInOutCubic),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "pulse_scale"
+    )
+
+    Box(
+        modifier = modifier
+            .size(8.dp)
+            .scale(scale)
+            .background(color, CircleShape)
+    )
+}
+
+@Composable
+fun FairrLoadingDots(
+    modifier: Modifier = Modifier,
+    color: Color = DarkGreen
+) {
+    Row(
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(4.dp)
+    ) {
+        repeat(3) { index ->
+            val delay = index * 200
+            val infiniteTransition = rememberInfiniteTransition(label = "dot_$index")
+            val scale by infiniteTransition.animateFloat(
+                initialValue = 0.8f,
+                targetValue = 1.2f,
+                animationSpec = infiniteRepeatable(
+                    animation = tween(1000, delayMillis = delay, easing = EaseInOutCubic),
+                    repeatMode = RepeatMode.Reverse
+                ),
+                label = "dot_scale_$index"
+            )
+
+            Box(
+                modifier = Modifier
+                    .size(8.dp)
+                    .scale(scale)
+                    .background(color, CircleShape)
+            )
+        }
+    }
+}
+
+/**
+ * Interactive Components with Haptic Feedback
+ */
+@Composable
+fun FairrInteractiveButton(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    content: @Composable RowScope.() -> Unit
+) {
+    val hapticFeedback = LocalHapticFeedback.current
+    
+    Button(
+        onClick = {
+            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+            onClick()
+        },
+        modifier = modifier,
+        enabled = enabled,
+        content = content
+    )
+}
+
+@Composable
+fun FairrInteractiveCard(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier,
+    enabled: Boolean = true,
+    content: @Composable () -> Unit
+) {
+    val hapticFeedback = LocalHapticFeedback.current
+    
+    Card(
+        modifier = modifier.clickable(
+            enabled = enabled,
+            onClick = {
+                hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                onClick()
+            }
+        )
+    ) {
+        content()
+    }
+}
+
+@Composable
+fun FairrInteractiveChip(
+    selected: Boolean,
+    onClick: () -> Unit,
+    label: String,
+    modifier: Modifier = Modifier,
+    leadingIcon: ImageVector? = null,
+    enabled: Boolean = true
+) {
+    val hapticFeedback = LocalHapticFeedback.current
+    
+    FilterChip(
+        selected = selected,
+        onClick = {
+            hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+            onClick()
+        },
+        label = { Text(label) },
+        modifier = modifier,
+        enabled = enabled,
+        leadingIcon = leadingIcon?.let {
+            {
+                Icon(
+                    imageVector = it,
+                    contentDescription = null,
+                    modifier = Modifier.size(18.dp)
+                )
+            }
+        },
+        colors = FilterChipDefaults.filterChipColors(
+            selectedContainerColor = DarkGreen,
+            selectedLabelColor = NeutralWhite,
+            selectedLeadingIconColor = NeutralWhite,
+            containerColor = NeutralWhite,
+            labelColor = TextPrimary,
+            iconColor = TextSecondary
+        )
+    )
+}
+
+/**
+ * Progress Indicators
+ */
+@Composable
+fun FairrProgressBar(
+    progress: Float,
+    modifier: Modifier = Modifier,
+    color: Color = DarkGreen
+) {
+    LinearProgressIndicator(
+        progress = progress,
+        modifier = modifier,
+        color = color,
+        trackColor = color.copy(alpha = 0.2f)
+    )
+}
+
+@Composable
+fun FairrCircularProgress(
+    progress: Float,
+    modifier: Modifier = Modifier,
+    color: Color = DarkGreen,
+    strokeWidth: Dp = 4.dp
+) {
+    CircularProgressIndicator(
+        progress = progress,
+        modifier = modifier,
+        color = color,
+        strokeWidth = strokeWidth,
+        trackColor = color.copy(alpha = 0.2f)
+    )
+}
+
+/**
+ * Category Selection Components
+ */
+@Composable
+fun CategoryChip(
+    category: com.example.fairr.data.model.ExpenseCategory,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val backgroundColor = if (selected) {
+        Color(android.graphics.Color.parseColor(category.color))
+    } else {
+        MaterialTheme.colorScheme.surface
+    }
+    
+    val textColor = if (selected) {
+        Color.White
+    } else {
+        MaterialTheme.colorScheme.onSurface
+    }
+
+    Card(
+        modifier = modifier
+            .clickable { onClick() }
+            .padding(4.dp),
+        colors = CardDefaults.cardColors(containerColor = backgroundColor),
+        border = if (!selected) {
+            androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+        } else null
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = category.icon,
+                fontSize = 16.sp
+            )
+            Text(
+                text = category.displayName,
+                color = textColor,
+                fontSize = 12.sp,
+                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
+            )
+        }
+    }
+}
+
+@Composable
+fun CategorySelectionGrid(
+    selectedCategory: com.example.fairr.data.model.ExpenseCategory,
+    onCategorySelected: (com.example.fairr.data.model.ExpenseCategory) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val categories = com.example.fairr.data.model.ExpenseCategory.values()
+    
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(3),
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(categories) { category ->
+            CategoryChip(
+                category = category,
+                selected = selectedCategory == category,
+                onClick = { onCategorySelected(category) },
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+    }
+}
+
+@Composable
+fun CategoryIcon(
+    category: com.example.fairr.data.model.ExpenseCategory,
+    modifier: Modifier = Modifier,
+    size: Dp = 24.dp
+) {
+    Box(
+        modifier = modifier
+            .size(size)
+            .background(
+                Color(android.graphics.Color.parseColor(category.color)),
+                CircleShape
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = category.icon,
+            fontSize = (size.value * 0.6).sp
+        )
+    }
+}
+
 // Preview Components
 @Preview(showBackground = true)
 @Composable
@@ -626,6 +982,12 @@ fun ComponentsPreview() {
                 actionText = "Add Something",
                 icon = Icons.Default.Inbox
             )
+            
+            FairrLoadingDots()
+            
+            FairrProgressBar(progress = 0.7f)
+            
+            FairrCircularProgress(progress = 0.5f)
         }
     }
 } 

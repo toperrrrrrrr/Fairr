@@ -82,12 +82,34 @@ class AddExpenseViewModel @Inject constructor(
         amount: Double,
         date: Date,
         paidBy: String,
-        splitType: String
+        splitType: String,
+        category: com.example.fairr.data.model.ExpenseCategory = com.example.fairr.data.model.ExpenseCategory.OTHER,
+        isRecurring: Boolean = false,
+        recurrenceRule: com.example.fairr.data.model.RecurrenceRule? = null
     ) {
         viewModelScope.launch {
             try {
                 state = state.copy(isLoading = true)
-                expenseRepository.addExpense(groupId, description, amount, date, paidBy, splitType)
+                
+                // Add the expense
+                expenseRepository.addExpense(groupId, description, amount, date, paidBy, splitType, category, isRecurring, recurrenceRule)
+                
+                // If it's a recurring expense, generate instances
+                if (isRecurring && recurrenceRule != null) {
+                    // Get the expense we just created to generate instances
+                    val expenses = expenseRepository.getExpensesByGroupId(groupId)
+                    val createdExpense = expenses.find { 
+                        it.description == description && 
+                        it.amount == amount && 
+                        it.isRecurring && 
+                        it.recurrenceRule == recurrenceRule 
+                    }
+                    
+                    createdExpense?.let { expense ->
+                        expenseRepository.generateRecurringInstances(expense, monthsAhead = 3)
+                    }
+                }
+                
                 state = state.copy(isLoading = false)
                 _events.emit(AddExpenseEvent.ExpenseSaved)
             } catch (e: Exception) {

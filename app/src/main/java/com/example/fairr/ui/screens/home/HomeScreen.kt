@@ -36,6 +36,7 @@ import com.example.fairr.ui.components.*
 import com.example.fairr.util.CurrencyFormatter
 import androidx.compose.material.ExperimentalMaterialApi
 import com.example.fairr.navigation.Screen
+import com.example.fairr.data.model.RecurrenceRule
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -124,12 +125,25 @@ fun HomeScreen(
                     )
                 }
 
-                items(state.groups) { group ->
-                    GroupCard(
-                        group = group,
-                        onClick = { onNavigateToGroupDetail(group.id) },
-                        onAddExpenseClick = { onNavigateToAddExpense(group.id) }
-                    )
+                if (state.groups.isEmpty()) {
+                    item {
+                        FairrEmptyState(
+                            title = "No Groups Yet",
+                            message = "Create your first group to start tracking shared expenses with friends and family.",
+                            actionText = "Create Group",
+                            onActionClick = onNavigateToCreateGroup,
+                            icon = Icons.Default.Group,
+                            modifier = Modifier.fillMaxWidth()
+                        )
+                    }
+                } else {
+                    items(state.groups) { group ->
+                        GroupCard(
+                            group = group,
+                            onClick = { onNavigateToGroupDetail(group.id) },
+                            onAddExpenseClick = { onNavigateToAddExpense(group.id) }
+                        )
+                    }
                 }
 
                 // Recent Expenses
@@ -148,6 +162,21 @@ fun HomeScreen(
                             expense = expense,
                             onClick = { navController.navigate(Screen.ExpenseDetail.createRoute(expense.id)) },
                             viewModel = viewModel
+                        )
+                    }
+                } else if (state.groups.isNotEmpty()) {
+                    item {
+                        FairrEmptyState(
+                            title = "No Recent Expenses",
+                            message = "Add your first expense to start tracking shared costs.",
+                            actionText = "Add Expense",
+                            onActionClick = { 
+                                if (state.groups.isNotEmpty()) {
+                                    onNavigateToAddExpense(state.groups.first().id)
+                                }
+                            },
+                            icon = Icons.Default.Receipt,
+                            modifier = Modifier.fillMaxWidth()
                         )
                     }
                 }
@@ -181,17 +210,73 @@ private fun ExpenseCard(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
-                Text(
-                    text = expense.description,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.weight(1f)
+            ) {
+                CategoryIcon(
+                    category = expense.category,
+                    size = 32.dp
                 )
-                Text(
-                    text = "Paid by ${expense.paidByName}",
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
-                )
+                
+                Column {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = expense.description,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        
+                        // Show recurring indicator
+                        if (expense.recurrenceRule != null) {
+                            Icon(
+                                imageVector = Icons.Default.Repeat,
+                                contentDescription = "Recurring expense",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
+                    
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = expense.category.displayName,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        )
+                        Text(
+                            text = "•",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        )
+                        Text(
+                            text = "Paid by ${expense.paidByName}",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                        )
+                        
+                        // Show recurrence info
+                        expense.recurrenceRule?.let { rule ->
+                            Text(
+                                text = "•",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurface.copy(alpha = 0.7f)
+                            )
+                            Text(
+                                text = getRecurrenceDisplayText(rule),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
             }
             Text(
                 text = viewModel.formatCurrency(expense.amount),
@@ -201,6 +286,11 @@ private fun ExpenseCard(
             )
         }
     }
+}
+
+@Composable
+private fun getRecurrenceDisplayText(rule: RecurrenceRule): String {
+    return rule.frequency.displayName
 }
 
 @Composable

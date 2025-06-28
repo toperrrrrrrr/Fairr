@@ -32,6 +32,7 @@ import com.example.fairr.data.model.Group
 import com.example.fairr.ui.model.GroupMember as UiGroupMember
 import com.example.fairr.util.CurrencyFormatter
 import com.example.fairr.data.model.Expense
+import com.example.fairr.data.model.RecurrenceRule
 
 // Data classes
 data class GroupDetail(
@@ -172,8 +173,6 @@ fun GroupDetailScreen(
     }
 }
 
-
-
 @Composable
 private fun ExpenseCard(
     expense: Expense,
@@ -194,17 +193,73 @@ private fun ExpenseCard(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = expense.description,
-                    style = MaterialTheme.typography.titleMedium,
-                    fontWeight = FontWeight.SemiBold
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.weight(1f)
+            ) {
+                CategoryIcon(
+                    category = expense.category,
+                    size = 32.dp
                 )
-                Text(
-                    text = viewModel.formatDate(expense.date),
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
-                )
+                
+                Column {
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = expense.description,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        
+                        // Show recurring indicator
+                        if (expense.recurrenceRule != null) {
+                            Icon(
+                                imageVector = Icons.Default.Repeat,
+                                contentDescription = "Recurring expense",
+                                tint = MaterialTheme.colorScheme.primary,
+                                modifier = Modifier.size(16.dp)
+                            )
+                        }
+                    }
+                    
+                    Row(
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = expense.category.displayName,
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = "•",
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        Text(
+                            text = viewModel.formatDate(expense.date),
+                            style = MaterialTheme.typography.bodySmall,
+                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                        )
+                        
+                        // Show recurrence info
+                        expense.recurrenceRule?.let { rule ->
+                            Text(
+                                text = "•",
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant
+                            )
+                            Text(
+                                text = getRecurrenceDisplayText(rule),
+                                style = MaterialTheme.typography.bodySmall,
+                                color = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                    }
+                }
             }
             
             Text(
@@ -214,6 +269,11 @@ private fun ExpenseCard(
             )
         }
     }
+}
+
+@Composable
+private fun getRecurrenceDisplayText(rule: RecurrenceRule): String {
+    return rule.frequency.displayName
 }
 
 @Composable
@@ -439,6 +499,43 @@ private fun QuickActionsSection(
                 icon = Icons.Default.History,
                 onClick = { 
                     navController.navigate(Screen.GroupActivity.createRoute(groupId))
+                },
+                modifier = Modifier.weight(1f)
+            )
+        }
+        
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            horizontalArrangement = Arrangement.spacedBy(16.dp)
+        ) {
+            Button(
+                onClick = { 
+                    navController.navigate(Screen.RecurringExpenseManagement.createRoute(groupId))
+                },
+                modifier = Modifier.fillMaxWidth(),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Primary,
+                    contentColor = NeutralWhite
+                ),
+                shape = RoundedCornerShape(12.dp)
+            ) {
+                Icon(
+                    Icons.Default.Repeat,
+                    contentDescription = null,
+                    modifier = Modifier.size(20.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Manage Recurring",
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+            QuickActionCard(
+                title = "Settings",
+                icon = Icons.Default.Settings,
+                onClick = { 
+                    navController.navigate(Screen.GroupSettings.createRoute(groupId))
                 },
                 modifier = Modifier.weight(1f)
             )

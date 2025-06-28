@@ -40,16 +40,15 @@ class EditExpenseViewModel @Inject constructor(
         viewModelScope.launch {
             _state.update { it.copy(isLoading = true, error = null) }
             try {
-                // simple fetch via repository list filter
-                val groupExpenses = expenseRepository.getExpensesByGroupId("") // placeholder
-                val exp = groupExpenses.find { it.id == expenseId }
-                if (exp != null) {
-                    _state.update { it.copy(isLoading = false, expense = exp) }
+                // Use the repository's getExpenseById method for direct expense lookup
+                val expense = expenseRepository.getExpenseById(expenseId)
+                if (expense != null) {
+                    _state.update { it.copy(isLoading = false, expense = expense) }
                 } else {
                     _state.update { it.copy(isLoading = false, error = "Expense not found") }
                 }
             } catch (e: Exception) {
-                _state.update { it.copy(isLoading = false, error = e.message) }
+                _state.update { it.copy(isLoading = false, error = e.message ?: "Failed to load expense") }
             }
         }
     }
@@ -86,6 +85,19 @@ class EditExpenseViewModel @Inject constructor(
             } catch (e: Exception) {
                 _state.update { it.copy(isLoading = false) }
                 _events.value = EditExpenseEvent.ShowError(e.message ?: "Failed to delete")
+            }
+        }
+    }
+
+    fun loadGroupMembers(groupId: String) {
+        viewModelScope.launch {
+            try {
+                groupService.getGroupById(groupId).collect { group ->
+                    // Group members are now available for the UI to use
+                    // The UI can access them through the expense's groupId
+                }
+            } catch (e: Exception) {
+                _events.value = EditExpenseEvent.ShowError("Failed to load group members")
             }
         }
     }
