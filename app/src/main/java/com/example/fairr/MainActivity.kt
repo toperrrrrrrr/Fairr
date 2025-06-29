@@ -21,13 +21,19 @@ import com.example.fairr.navigation.handleAuthRedirect
 import com.example.fairr.ui.screens.SplashScreen
 import com.example.fairr.ui.theme.FairrTheme
 import com.example.fairr.ui.viewmodels.StartupViewModel
+import com.example.fairr.data.notifications.RecurringExpenseNotificationService
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import javax.inject.Inject
 
 @AndroidEntryPoint
 class MainActivity : ComponentActivity() {
+    
+    @Inject
+    lateinit var recurringExpenseNotificationService: RecurringExpenseNotificationService
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Set navigation bar background to white and icons to dark before Compose content
@@ -66,6 +72,15 @@ class MainActivity : ComponentActivity() {
                             delay(500)
                             navController.handleAuthRedirect(isAuthenticated, startupState)
                             showSplash = false
+                        }
+                    }
+
+                    // Trigger notification check when user is authenticated
+                    LaunchedEffect(isAuthenticated) {
+                        if (isAuthenticated) {
+                            // Small delay to ensure app is fully loaded
+                            delay(1000)
+                            recurringExpenseNotificationService.triggerNotificationCheck()
                         }
                     }
 

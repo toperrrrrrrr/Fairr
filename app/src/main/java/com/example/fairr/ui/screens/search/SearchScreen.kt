@@ -29,13 +29,16 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.fairr.ui.theme.*
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.runtime.collectAsState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SearchScreen(
     navController: NavController,
     onNavigateToExpense: (String) -> Unit = {},
-    onNavigateToGroup: (String) -> Unit = {}
+    onNavigateToGroup: (String) -> Unit = {},
+    viewModel: SearchViewModel = hiltViewModel()
 ) {
     var searchQuery by remember { mutableStateOf("") }
     var showFilters by remember { mutableStateOf(false) }
@@ -47,16 +50,18 @@ fun SearchScreen(
     val focusRequester = remember { FocusRequester() }
     val keyboardController = LocalSoftwareKeyboardController.current
     
-    // Sample search results
-    val searchResults = remember {
-        getSearchResults(searchQuery, selectedFilter, selectedCategory, selectedDateRange, sortBy)
-    }
+    val uiState = viewModel.uiState
     
     val categories = listOf("All Categories", "Food & Dining", "Transportation", "Entertainment", "Shopping", "Bills", "Other")
     val dateRanges = listOf("All Time", "Last 7 Days", "Last 30 Days", "Last 3 Months", "This Year")
 
     LaunchedEffect(Unit) {
         focusRequester.requestFocus()
+    }
+
+    // Search when query or filters change
+    LaunchedEffect(searchQuery, selectedFilter, selectedCategory, selectedDateRange, sortBy) {
+        viewModel.search(searchQuery, selectedFilter, selectedCategory, selectedDateRange, sortBy)
     }
 
     Scaffold(
@@ -143,7 +148,7 @@ fun SearchScreen(
                 if (searchQuery.isNotEmpty()) {
                     item {
                         Text(
-                            text = "${searchResults.size} results for \"$searchQuery\"",
+                            text = "${uiState.searchResults.size} results for \"$searchQuery\"",
                             fontSize = 14.sp,
                             color = TextSecondary,
                             modifier = Modifier.padding(bottom = 8.dp)
@@ -151,7 +156,7 @@ fun SearchScreen(
                     }
                 }
                 
-                if (searchResults.isEmpty() && searchQuery.isNotEmpty()) {
+                if (uiState.searchResults.isEmpty() && searchQuery.isNotEmpty()) {
                     item {
                         EmptySearchState(query = searchQuery)
                     }
@@ -160,7 +165,7 @@ fun SearchScreen(
                         SearchSuggestionsState()
                     }
                 } else {
-                    items(searchResults) { result ->
+                    items(uiState.searchResults) { result: SearchResult ->
                         when (result) {
                             is SearchResult.ExpenseResult -> {
                                 ExpenseSearchCard(
@@ -602,49 +607,6 @@ enum class SortOption(val displayName: String) {
     AMOUNT_ASC("Lowest Amount"),
     NAME_ASC("A to Z"),
     NAME_DESC("Z to A")
-}
-
-// Sample data function
-@Suppress("UNUSED_PARAMETER")
-fun getSearchResults(
-    query: String,
-    filter: SearchFilter,
-    unusedCategory: String,
-    unusedDateRange: String,
-    unusedSortBy: SortOption
-): List<SearchResult> {
-    // Sample implementation - in real app, this would query your database
-    val sampleExpenses = listOf(
-        SearchResult.ExpenseResult("1", "Lunch at Pizza Place", 25.50, "Dec 28", "Food & Dining", "Weekend Trip"),
-        SearchResult.ExpenseResult("2", "Gas for Road Trip", 45.00, "Dec 27", "Transportation", "Weekend Trip"),
-        SearchResult.ExpenseResult("3", "Movie Tickets", 32.00, "Dec 26", "Entertainment", "Weekend Trip"),
-        SearchResult.ExpenseResult("4", "Grocery Shopping", 85.75, "Dec 25", "Food & Dining", "Apartment Rent")
-    )
-    
-    val sampleGroups = listOf(
-        SearchResult.GroupResult("1", "Weekend Trip", 4, 12, -125.75),
-        SearchResult.GroupResult("2", "Apartment Rent", 3, 8, 150.25),
-        SearchResult.GroupResult("3", "Office Lunch", 8, 15, -45.50)
-    )
-    
-    if (query.isEmpty()) return emptyList()
-    
-    val results = mutableListOf<SearchResult>()
-    
-    when (filter) {
-        SearchFilter.ALL -> {
-            results.addAll(sampleExpenses.filter { it.description.contains(query, ignoreCase = true) })
-            results.addAll(sampleGroups.filter { it.name.contains(query, ignoreCase = true) })
-        }
-        SearchFilter.EXPENSES -> {
-            results.addAll(sampleExpenses.filter { it.description.contains(query, ignoreCase = true) })
-        }
-        SearchFilter.GROUPS -> {
-            results.addAll(sampleGroups.filter { it.name.contains(query, ignoreCase = true) })
-        }
-    }
-    
-    return results
 }
 
 @Preview(showBackground = true)

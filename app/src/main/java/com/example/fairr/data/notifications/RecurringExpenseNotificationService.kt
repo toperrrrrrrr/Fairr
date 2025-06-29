@@ -12,11 +12,14 @@ import com.example.fairr.MainActivity
 import com.example.fairr.R
 import com.example.fairr.data.model.Expense
 import com.example.fairr.data.repository.ExpenseRepository
+import com.example.fairr.data.groups.GroupService
 import com.example.fairr.navigation.Screen
 import com.example.fairr.util.CurrencyFormatter
+import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.first
 import java.text.SimpleDateFormat
 import java.util.*
 import javax.inject.Inject
@@ -25,7 +28,9 @@ import javax.inject.Singleton
 @Singleton
 class RecurringExpenseNotificationService @Inject constructor(
     private val context: Context,
-    private val expenseRepository: ExpenseRepository
+    private val expenseRepository: ExpenseRepository,
+    private val groupService: GroupService,
+    private val auth: FirebaseAuth
 ) {
     private val scope = CoroutineScope(Dispatchers.IO)
     private val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
@@ -83,19 +88,89 @@ class RecurringExpenseNotificationService @Inject constructor(
     }
     
     /**
+     * Manually trigger notification check (called from MainActivity or other parts of the app)
+     */
+    fun triggerNotificationCheck() {
+        Log.d(TAG, "Triggering notification check")
+        checkUpcomingExpenses()
+    }
+    
+    /**
+     * Check if we should show notifications (avoid spam by checking last notification time)
+     */
+    private fun shouldShowNotification(): Boolean {
+        val prefs = context.getSharedPreferences("notification_prefs", Context.MODE_PRIVATE)
+        val lastNotificationTime = prefs.getLong("last_notification_time", 0)
+        val currentTime = System.currentTimeMillis()
+        
+        // Only show notifications if it's been more than 1 hour since the last one
+        val oneHour = 60 * 60 * 1000L
+        return (currentTime - lastNotificationTime) > oneHour
+    }
+    
+    /**
+     * Update the last notification time
+     */
+    private fun updateLastNotificationTime() {
+        val prefs = context.getSharedPreferences("notification_prefs", Context.MODE_PRIVATE)
+        prefs.edit().putLong("last_notification_time", System.currentTimeMillis()).apply()
+    }
+    
+    /**
      * Get upcoming recurring expenses for all groups the user is a member of
      */
     private suspend fun getUpcomingExpensesForAllGroups(daysAhead: Int): List<Expense> {
-        // This is a simplified implementation
-        // In a real app, you'd get all groups the user is a member of
-        // For now, we'll return an empty list
-        return emptyList()
+        val currentUserId = auth.currentUser?.uid ?: return emptyList()
+        
+        try {
+            // Get all groups the user is a member of
+            val userGroups = groupService.getUserGroups().first()
+            val upcomingExpenses = mutableListOf<Expense>()
+            
+            // Calculate the target date range
+            val calendar = Calendar.getInstance()
+            val startDate = calendar.time
+            calendar.add(Calendar.DAY_OF_YEAR, daysAhead)
+            val endDate = calendar.time
+            
+            // Get recurring expenses from each group
+            userGroups.forEach { group ->
+                try {
+                    val groupExpenses = expenseRepository.getExpensesByGroupId(group.id)
+                    
+                    // Filter for recurring expenses that fall within the date range
+                    val recurringExpenses = groupExpenses.filter { expense ->
+                        expense.isRecurring && 
+                        expense.recurrenceRule != null &&
+                        expense.date.toDate().after(startDate) && 
+                        expense.date.toDate().before(endDate)
+                    }
+                    
+                    upcomingExpenses.addAll(recurringExpenses)
+                    
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error fetching expenses for group ${group.id}", e)
+                }
+            }
+            
+            // Sort by date (earliest first)
+            return upcomingExpenses.sortedBy { it.date }
+            
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting upcoming expenses for all groups", e)
+            return emptyList()
+        }
     }
     
     /**
      * Send notification for upcoming recurring expenses
      */
     private fun sendUpcomingExpensesNotification(expenses: List<Expense>) {
+        if (!shouldShowNotification()) {
+            Log.d(TAG, "Skipping notification due to spam prevention")
+            return
+        }
+
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             putExtra("navigate_to", "recurring_expenses")
@@ -121,6 +196,7 @@ class RecurringExpenseNotificationService @Inject constructor(
             .build()
         
         notificationManager.notify(NOTIFICATION_ID_BASE, notification)
+        updateLastNotificationTime()
         Log.d(TAG, "Sent upcoming expenses notification for ${expenses.size} expenses")
     }
     
@@ -128,6 +204,11 @@ class RecurringExpenseNotificationService @Inject constructor(
      * Send notification for an expense due today
      */
     private fun sendDueTodayNotification(expense: Expense) {
+        if (!shouldShowNotification()) {
+            Log.d(TAG, "Skipping due today notification due to spam prevention")
+            return
+        }
+
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             putExtra("navigate_to", "group_detail")
@@ -155,6 +236,7 @@ class RecurringExpenseNotificationService @Inject constructor(
             .build()
         
         notificationManager.notify(NOTIFICATION_ID_BASE + expense.id.hashCode(), notification)
+        updateLastNotificationTime()
         Log.d(TAG, "Sent due today notification for expense ${expense.id}")
     }
     

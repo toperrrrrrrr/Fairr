@@ -38,6 +38,11 @@ data class AddExpenseState(
     val userCurrency: String = "PHP"
 )
 
+sealed class ValidationResult {
+    object Success : ValidationResult()
+    data class Error(val message: String) : ValidationResult()
+}
+
 @HiltViewModel
 class AddExpenseViewModel @Inject constructor(
     private val expenseRepository: ExpenseRepository,
@@ -76,6 +81,27 @@ class AddExpenseViewModel @Inject constructor(
         return CurrencyFormatter.formatWithSpacing(state.userCurrency, amount)
     }
 
+    /**
+     * Validate expense data before saving
+     */
+    private fun validateExpense(
+        description: String,
+        amount: Double,
+        paidBy: String,
+        splitType: String
+    ): ValidationResult {
+        return when {
+            description.isBlank() -> ValidationResult.Error("Description cannot be empty")
+            description.length > 100 -> ValidationResult.Error("Description is too long (max 100 characters)")
+            amount <= 0 -> ValidationResult.Error("Amount must be greater than 0")
+            amount > 999999.99 -> ValidationResult.Error("Amount is too large")
+            paidBy.isBlank() -> ValidationResult.Error("Please select who paid")
+            splitType.isBlank() -> ValidationResult.Error("Please select a split type")
+            state.groupMembers.isEmpty() -> ValidationResult.Error("No group members found")
+            else -> ValidationResult.Success
+        }
+    }
+
     fun addExpense(
         groupId: String,
         description: String,
@@ -89,6 +115,17 @@ class AddExpenseViewModel @Inject constructor(
     ) {
         viewModelScope.launch {
             try {
+                // Validate input first
+                when (val validation = validateExpense(description, amount, paidBy, splitType)) {
+                    is ValidationResult.Error -> {
+                        _events.emit(AddExpenseEvent.ShowError(validation.message))
+                        return@launch
+                    }
+                    is ValidationResult.Success -> {
+                        // Continue with saving
+                    }
+                }
+
                 state = state.copy(isLoading = true)
                 
                 // Add the expense

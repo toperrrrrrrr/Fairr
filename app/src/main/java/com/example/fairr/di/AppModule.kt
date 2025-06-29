@@ -4,6 +4,7 @@ import com.example.fairr.data.groups.GroupService
 import com.example.fairr.data.groups.GroupJoinService
 import com.example.fairr.data.groups.GroupInviteService
 import com.example.fairr.data.notifications.NotificationService
+import com.example.fairr.data.notifications.RecurringExpenseNotificationService
 import com.example.fairr.data.repository.*
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
@@ -13,6 +14,7 @@ import dagger.Provides
 import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
+import android.content.Context
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -71,4 +73,13 @@ object AppModule {
         expenseRepository: ExpenseRepository,
         firestore: FirebaseFirestore
     ): com.example.fairr.data.settlements.SettlementService = com.example.fairr.data.settlements.SettlementService(expenseRepository, firestore)
+
+    @Provides
+    @Singleton
+    fun provideRecurringExpenseNotificationService(
+        context: Context,
+        expenseRepository: ExpenseRepository,
+        groupService: GroupService,
+        auth: FirebaseAuth
+    ): RecurringExpenseNotificationService = RecurringExpenseNotificationService(context, expenseRepository, groupService, auth)
 } 
