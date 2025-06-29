@@ -1,8 +1,155 @@
-# Phase 4: Detailed Component/Module Analysis - Fairr Android Codebase Analysis
+# Fairr Codebase Analysis - Phase 4: Detailed Component/Module Analysis
 
 ## Overview
+This phase provides a deep dive into the responsibilities, key classes/functions, and relationships of the major components and modules in the Fairr codebase. The focus is on how each part fits into the overall architecture and how they interact to deliver the app's features.
 
-This phase provides a deep dive into individual component implementations, ViewModel state management patterns, repository data access strategies, and cross-module dependencies that form the technical foundation of the Fairr application.
+---
+
+## 1. Data Layer
+
+### ExpenseRepository
+- **File:** `data/repository/ExpenseRepository.kt`
+- **Responsibilities:**
+  - CRUD operations for expenses (add, update, delete, fetch by group/id)
+  - Expense split calculation (delegates to `SplitCalculator`)
+  - Handles recurring expenses (generation, fetching upcoming/recurring)
+  - Updates group totals and logs activities
+  - Ensures user is a group member before allowing expense operations
+- **Key Methods:**
+  - `addExpense(...)`: Adds a new expense, calculates splits, logs activity, updates group total
+  - `updateExpense(...)`: Updates an expense and adjusts group total
+  - `deleteExpense(...)`: Deletes an expense and updates group total
+  - `generateRecurringInstances(...)`: Creates future instances for recurring expenses
+  - `getExpensesByGroupId(...)`, `getExpenseById(...)`: Fetches expenses
+- **Relationships:**
+  - Uses `SplitCalculator` for split logic
+  - Interacts with Firestore for persistence
+  - Logs activities via `ActivityService`
+
+### SplitCalculator & AdvancedSplitCalculator
+- **Files:** `data/repository/SplitCalculator.kt`, `AdvancedSplitCalculator.kt`
+- **Responsibilities:**
+  - `SplitCalculator`: Implements core split logic (equal, percentage, custom)
+  - `AdvancedSplitCalculator`: Placeholder for advanced/optimized settlement algorithms
+- **Key Methods:**
+  - `calculateSplits(...)`: Main entry for split calculation
+  - `calculateOptimalSettlements(...)`: (Advanced) Placeholder for optimal debt minimization
+- **Relationships:**
+  - Used by `ExpenseRepository` and settlement logic
+
+### GroupService
+- **File:** `data/groups/GroupService.kt`
+- **Responsibilities:**
+  - Group CRUD (create, join, leave, delete)
+  - Real-time group updates (Flow-based)
+  - Member management and role validation
+  - Invite code generation
+- **Key Methods:**
+  - `createGroup(...)`, `joinGroup(...)`, `leaveGroup(...)`, `deleteGroup(...)`
+  - `getUserGroups()`, `getGroupById()`: Real-time listeners for group data
+- **Relationships:**
+  - Interacts with Firestore for group and member data
+  - Used by ViewModels for group-related UI
+
+### NotificationService
+- **File:** `data/notifications/NotificationService.kt`
+- **Responsibilities:**
+  - Fetches notifications for the current user (real-time listener)
+  - Marks notifications as read, deletes notifications
+- **Key Methods:**
+  - `getNotificationsForUser()`: Flow of notifications
+  - `markNotificationAsRead(...)`, `deleteNotification(...)`
+- **Relationships:**
+  - Used by notification-related ViewModels and screens
+
+---
+
+## 2. UI Layer
+
+### CommonComponents
+- **File:** `ui/components/CommonComponents.kt`
+- **Responsibilities:**
+  - Provides reusable UI elements (chips, dialogs, loading spinners, banners, etc.)
+  - Customizes Material 3 components for app branding
+- **Key Composables:**
+  - `FairrFilterChip`, `FairrActionChip`, `FairrConfirmationDialog`, `FairrLoadingDialog`, etc.
+- **Relationships:**
+  - Used throughout screens for consistent UI/UX
+
+### SettlementScreen & SettlementViewModel
+- **Files:** `ui/screens/settlements/SettlementScreen.kt`, `SettlementViewModel.kt`
+- **Responsibilities:**
+  - Displays user debts, settlement summary, and allows recording payments
+  - Handles settlement events, error feedback, and UI state
+- **Key Composables:**
+  - `SettlementScreen`, `SettlementSummaryCard`, `SettlementCard`
+- **Key Methods (ViewModel):**
+  - `loadSettlements(groupId)`: Loads and calculates settlements
+  - `recordSettlement(...)`: Records a payment and updates state
+- **Relationships:**
+  - Uses `SettlementService` for business logic
+  - Consumes data from `ExpenseRepository` and group modules
+
+### AddExpenseViewModel
+- **File:** `ui/screens/expenses/AddExpenseViewModel.kt`
+- **Responsibilities:**
+  - Manages state and logic for adding expenses
+  - Validates input, triggers split calculation, handles receipt uploads
+- **Key Methods:**
+  - `addExpense(...)`: Validates and saves a new expense
+  - `uploadReceiptPhotos(...)`: Handles file uploads to Firebase Storage
+- **Relationships:**
+  - Uses `ExpenseRepository`, `GroupService`, and `SettingsDataStore`
+
+### CreateGroupViewModel
+- **File:** `ui/screens/groups/CreateGroupViewModel.kt`
+- **Responsibilities:**
+  - Manages group creation flow, member addition, and validation
+  - Handles currency selection and emits navigation events
+- **Key Methods:**
+  - `createGroup()`: Validates and creates a new group, sends invites
+  - `addMember(...)`, `removeMember(...)`: Manages member list
+- **Relationships:**
+  - Uses `GroupService`, `GroupInviteService`, and `SettingsDataStore`
+
+---
+
+## 3. Notification & Activity Modules
+
+### RecurringExpenseNotificationService
+- **File:** `data/notifications/RecurringExpenseNotificationService.kt`
+- **Responsibilities:**
+  - Schedules and triggers notifications for recurring expenses
+  - Integrates with system notification manager
+- **Relationships:**
+  - Used by `MainActivity` and background flows
+
+### ActivityService
+- **File:** `data/activity/ActivityService.kt`
+- **Responsibilities:**
+  - Logs activities (expense added, group joined, etc.)
+  - Used for activity feeds and audit trails
+
+---
+
+## 4. Relationships & Patterns
+- **ViewModels** orchestrate business logic and UI state, delegating to repositories/services
+- **Repositories** abstract data access and business rules
+- **Services** encapsulate business logic, notifications, and activity logging
+- **Composable UI components** provide reusable, branded UI elements
+- **Flows** and **StateFlow** are used for real-time updates and reactive UI
+- **Dependency Injection** (Hilt) is used throughout for testability and modularity
+
+---
+
+## Summary & Next Steps
+- Each major module is well-encapsulated with clear responsibilities
+- Real-time data and business logic are handled in repositories/services, with ViewModels bridging to the UI
+- UI components are modular and reusable, supporting a consistent user experience
+
+**Next Phase:**
+- Data Models and Persistence: Analyze data models, schemas, and storage mechanisms
+- Document how data is created, read, updated, and deleted
 
 ## UI Component Architecture
 

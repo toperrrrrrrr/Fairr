@@ -35,6 +35,8 @@ interface ExpenseRepository {
     
     suspend fun getExpensesByGroupId(groupId: String): List<Expense>
 
+    fun getExpensesByGroupIdFlow(groupId: String): Flow<List<Expense>>
+
     suspend fun getExpenseById(expenseId: String): Expense?
 
     suspend fun updateExpense(oldExpense: Expense, newExpense: Expense)
@@ -46,12 +48,15 @@ interface ExpenseRepository {
     suspend fun getUpcomingRecurringExpenses(groupId: String, daysAhead: Int): List<Expense>
     
     suspend fun getRecurringExpenses(groupId: String): List<Expense>
+
+    suspend fun getExpensesByGroup(groupId: String): Flow<List<Expense>>
 }
 
 @Singleton
 class ExpenseRepositoryImpl @Inject constructor(
     private val firestore: FirebaseFirestore,
-    private val auth: FirebaseAuth
+    private val auth: FirebaseAuth,
+    private val activityService: com.example.fairr.data.activity.ActivityService
 ) : ExpenseRepository {
 
     @Suppress("UNCHECKED_CAST")
@@ -130,6 +135,86 @@ class ExpenseRepositoryImpl @Inject constructor(
         } catch (e: Exception) {
             Log.e(TAG, "Error getting expenses", e)
             return emptyList()
+        }
+    }
+
+    @Suppress("UNCHECKED_CAST")
+    override fun getExpensesByGroupIdFlow(groupId: String): Flow<List<Expense>> = flow {
+        try {
+            val expensesRef = firestore.collection("expenses")
+                .whereEqualTo("groupId", groupId)
+                .orderBy("createdAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
+                .get()
+                .await()
+
+            val expenses = expensesRef.documents.mapNotNull { doc ->
+                try {
+                    val data = doc.data ?: return@mapNotNull null
+                    
+                    // Get the user who paid
+                    val paidById = data["paidBy"] as? String
+                    val paidByName = if (!paidById.isNullOrEmpty()) {
+                        try {
+                            val paidByUser = firestore.collection("users")
+                                .document(paidById)
+                                .get()
+                                .await()
+                            paidByUser.getString("displayName") ?: "Unknown User"
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Error fetching paid by user", e)
+                            "Unknown User"
+                        }
+                    } else {
+                        "Unknown User"
+                    }
+                    
+                    // Parse splits
+                    val splitsData = data["splitBetween"] as? List<Map<String, Any>> ?: emptyList()
+                    val splits = splitsData.mapNotNull { splitData ->
+                        try {
+                            val userId = splitData["userId"] as? String
+                            if (userId.isNullOrEmpty()) return@mapNotNull null
+                            
+                            ExpenseSplit(
+                                userId = userId,
+                                userName = splitData["userName"] as? String ?: "Unknown",
+                                share = (splitData["share"] as? Number)?.toDouble() ?: 0.0,
+                                isPaid = splitData["isPaid"] as? Boolean ?: false
+                            )
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Error parsing split data", e)
+                            null
+                        }
+                    }
+
+                    Expense(
+                        id = doc.id,
+                        groupId = data["groupId"] as? String ?: "",
+                        description = data["description"] as? String ?: "",
+                        amount = (data["amount"] as? Number)?.toDouble() ?: 0.0,
+                        currency = data["currency"] as? String ?: "USD",
+                        date = (data["date"] as? Timestamp) ?: Timestamp.now(),
+                        paidBy = paidById ?: "",
+                        paidByName = paidByName,
+                        splitBetween = splits,
+                        category = try {
+                            ExpenseCategory.valueOf((data["category"] as? String)?.uppercase() ?: "OTHER")
+                        } catch (e: Exception) {
+                            ExpenseCategory.OTHER
+                        },
+                        notes = data["notes"] as? String ?: "",
+                        attachments = (data["attachments"] as? List<String>) ?: emptyList(),
+                        splitType = data["splitType"] as? String ?: "Equal Split"
+                    )
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error parsing expense document", e)
+                    null
+                }
+            }
+            emit(expenses)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error getting expenses", e)
+            emit(emptyList())
         }
     }
 
@@ -213,6 +298,33 @@ class ExpenseRepositoryImpl @Inject constructor(
                 .await()
             Log.d("ExpenseRepository", "Expense document added successfully with ID: ${expenseRef.id}")
 
+            // Log activity for expense added
+            try {
+                val currentUser = auth.currentUser
+                if (currentUser != null) {
+                    val userDoc = firestore.collection("users")
+                        .document(currentUser.uid)
+                        .get()
+                        .await()
+                    
+                    val userName = userDoc.getString("displayName") ?: currentUser.email?.substringBefore("@") ?: "Unknown User"
+                    val userInitials = userName.split(" ").take(2).joinToString("") { it.firstOrNull()?.uppercase() ?: "" }
+                    
+                    activityService.logActivity(
+                        groupId = groupId,
+                        type = com.example.fairr.data.model.ActivityType.EXPENSE_ADDED,
+                        title = description,
+                        description = "Added expense for $description",
+                        amount = amount,
+                        userName = userName,
+                        userInitials = userInitials,
+                        isPositive = false
+                    )
+                }
+            } catch (e: Exception) {
+                Log.w("ExpenseRepository", "Failed to log activity for expense added: ${e.message}")
+            }
+
             // Try to update group total. If this fails due to permissions (non-admin user),
             // we simply log the error but do NOT surface it to the UI because the expense
             // itself has already been saved successfully. A backend function can recompute
@@ -237,42 +349,84 @@ class ExpenseRepositoryImpl @Inject constructor(
         }
     }
 
-    suspend fun addExpense(expense: Expense): Result<Unit> = withContext(Dispatchers.IO) {
+    override suspend fun getExpensesByGroup(groupId: String): Flow<List<Expense>> = flow {
         try {
-            val expenseRef = firestore.collection("expenses").document()
-            val expenseData = mapOf(
-                "id" to expenseRef.id,
-                "amount" to expense.amount,
-                "description" to expense.description,
-                "date" to expense.date,
-                "groupId" to expense.groupId,
-                "paidBy" to expense.paidBy,
-                "splitBetween" to expense.splitBetween
-            )
-            
-            expenseRef.set(expenseData).await()
-            Result.success(Unit)
-        } catch (e: Exception) {
-            Result.failure(e)
-        }
-    }
-
-    suspend fun getExpensesByGroup(groupId: String): Flow<List<Expense>> = flow {
-        try {
-            val expenses = firestore.collection("expenses")
+            val expensesRef = firestore.collection("expenses")
                 .whereEqualTo("groupId", groupId)
+                .orderBy("createdAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
                 .get()
                 .await()
-                .documents
-                .mapNotNull { doc ->
-                    doc.toObject(Expense::class.java)?.copy(id = doc.id)
+
+            val expenses = expensesRef.documents.mapNotNull { doc ->
+                try {
+                    val data = doc.data ?: return@mapNotNull null
+                    
+                    // Get the user who paid
+                    val paidById = data["paidBy"] as? String
+                    val paidByName = if (!paidById.isNullOrEmpty()) {
+                        try {
+                            val paidByUser = firestore.collection("users")
+                                .document(paidById)
+                                .get()
+                                .await()
+                            paidByUser.getString("displayName") ?: "Unknown User"
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Error fetching paid by user", e)
+                            "Unknown User"
+                        }
+                    } else {
+                        "Unknown User"
+                    }
+                    
+                    // Parse splits
+                    val splitsData = data["splitBetween"] as? List<Map<String, Any>> ?: emptyList()
+                    val splits = splitsData.mapNotNull { splitData ->
+                        try {
+                            val userId = splitData["userId"] as? String
+                            if (userId.isNullOrEmpty()) return@mapNotNull null
+                            
+                            ExpenseSplit(
+                                userId = userId,
+                                userName = splitData["userName"] as? String ?: "Unknown",
+                                share = (splitData["share"] as? Number)?.toDouble() ?: 0.0,
+                                isPaid = splitData["isPaid"] as? Boolean ?: false
+                            )
+                        } catch (e: Exception) {
+                            Log.e(TAG, "Error parsing split data", e)
+                            null
+                        }
+                    }
+
+                    Expense(
+                        id = doc.id,
+                        groupId = data["groupId"] as? String ?: "",
+                        description = data["description"] as? String ?: "",
+                        amount = (data["amount"] as? Number)?.toDouble() ?: 0.0,
+                        currency = data["currency"] as? String ?: "USD",
+                        date = (data["date"] as? Timestamp) ?: Timestamp.now(),
+                        paidBy = paidById ?: "",
+                        paidByName = paidByName,
+                        splitBetween = splits,
+                        category = try {
+                            ExpenseCategory.valueOf((data["category"] as? String)?.uppercase() ?: "OTHER")
+                        } catch (e: Exception) {
+                            ExpenseCategory.OTHER
+                        },
+                        notes = data["notes"] as? String ?: "",
+                        attachments = (data["attachments"] as? List<String>) ?: emptyList(),
+                        splitType = data["splitType"] as? String ?: "Equal Split"
+                    )
+                } catch (e: Exception) {
+                    Log.e(TAG, "Error parsing expense document", e)
+                    null
                 }
+            }
             emit(expenses)
         } catch (e: Exception) {
-            Log.e(TAG, "Error getting expenses for group $groupId", e)
+            Log.e(TAG, "Error getting expenses", e)
             emit(emptyList())
         }
-    }.flowOn(Dispatchers.IO)
+    }
 
     override suspend fun updateExpense(oldExpense: Expense, newExpense: Expense) {
         val diffAmount = newExpense.amount - oldExpense.amount
@@ -706,4 +860,5 @@ class ExpenseRepositoryImpl @Inject constructor(
             return emptyList()
         }
     }
+
 } 

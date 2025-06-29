@@ -1,8 +1,8 @@
-# Phase 2: High-Level Architecture - Fairr Android Codebase Analysis
+# Fairr Codebase Analysis - Phase 2: High-Level Architecture
 
 ## Architecture Overview
 
-Fairr follows a **Clean Architecture** pattern with **MVVM** presentation layer, organized into distinct layers with clear separation of concerns.
+Fairr follows a **Clean Architecture** pattern with **MVVM** presentation layer, implemented using modern Android development practices. The architecture is organized into distinct layers with clear separation of concerns.
 
 ### Architectural Layers
 
@@ -22,22 +22,69 @@ Fairr follows a **Clean Architecture** pattern with **MVVM** presentation layer,
 ┌─────────────────────────────────────────────────────────────┐
 │                      Data Layer                             │
 │  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐          │
-│  │ Repositories│ │   Services  │ │   Models    │          │
+│  │ Repositories│ │  Services   │ │   Models    │          │
 │  └─────────────┘ └─────────────┘ └─────────────┘          │
 └─────────────────────────────────────────────────────────────┘
 ┌─────────────────────────────────────────────────────────────┐
-│                   Infrastructure                            │
+│                   External Dependencies                     │
 │  ┌─────────────┐ ┌─────────────┐ ┌─────────────┐          │
-│  │   Firebase  │ │   Hilt DI   │ │   DataStore │          │
+│  │   Firebase  │ │   Hilt DI   │ │   Android   │          │
+│  │  (Auth/DB)  │ │             │ │   System    │          │
 │  └─────────────┘ └─────────────┘ └─────────────┘          │
 └─────────────────────────────────────────────────────────────┘
 ```
 
-## Data Layer Analysis
+## Core Modules and Services
 
-### Core Data Models
+### 1. Dependency Injection (Hilt)
 
-#### 1. Expense Model
+#### AppModule.kt
+- **FirebaseFirestore**: Configured with offline persistence and unlimited cache
+- **GroupService**: Group management operations
+- **ActivityService**: Activity tracking and logging
+- **ExpenseRepository**: Core expense data operations
+- **GroupJoinService**: Group joining functionality
+- **NotificationService**: Push notification management
+- **GroupInviteService**: Group invitation handling
+- **SettlementService**: Balance calculation and settlement
+- **RecurringExpenseNotificationService**: Background notification scheduling
+
+#### AuthModule.kt
+- **FirebaseAuth**: Authentication provider
+- **AuthService**: Authentication operations
+- **UserRepository**: User data management
+- **GoogleAuthService**: Google Sign-In integration
+
+### 2. Data Layer Architecture
+
+#### Repository Pattern
+The app uses a repository pattern to abstract data access:
+
+```kotlin
+interface ExpenseRepository {
+    suspend fun addExpense(...)
+    suspend fun getExpensesByGroupId(groupId: String): List<Expense>
+    fun getExpensesByGroupIdFlow(groupId: String): Flow<List<Expense>>
+    suspend fun updateExpense(oldExpense: Expense, newExpense: Expense)
+    suspend fun deleteExpense(expense: Expense)
+    // ... recurring expense methods
+}
+```
+
+#### Service Layer
+Services handle business logic and external integrations:
+
+- **AuthService**: Authentication state management, session validation
+- **GroupService**: Group CRUD operations, real-time updates
+- **ExpenseRepository**: Expense management with complex splitting logic
+- **SettlementService**: Balance calculation algorithms
+- **NotificationService**: Push notification handling
+
+### 3. Data Models
+
+#### Core Entities
+
+**Expense Model**
 ```kotlin
 data class Expense(
     val id: String = "",
@@ -51,17 +98,15 @@ data class Expense(
     val splitBetween: List<ExpenseSplit> = emptyList(),
     val category: ExpenseCategory = ExpenseCategory.OTHER,
     val notes: String = "",
-    val attachments: List<String> = emptyList() // URLs to attachments
+    val attachments: List<String> = emptyList(),
+    val splitType: String = "Equal Split",
+    val isRecurring: Boolean = false,
+    val recurrenceRule: RecurrenceRule? = null,
+    val parentExpenseId: String? = null
 )
 ```
 
-**Key Features:**
-- Flexible splitting with `ExpenseSplit` objects
-- Category-based organization
-- Attachment support for receipts
-- Multi-currency support
-
-#### 2. Group Model
+**Group Model**
 ```kotlin
 data class Group(
     val id: String = "",
@@ -71,296 +116,226 @@ data class Group(
     val createdAt: Timestamp = Timestamp.now(),
     val createdBy: String = "",
     val inviteCode: String = "",
-    val members: List<GroupMember> = emptyList()
+    val members: List<GroupMember> = emptyList(),
+    val avatar: String = "",
+    val avatarType: AvatarType = AvatarType.EMOJI
 )
 ```
 
-**Key Features:**
-- Role-based member management (ADMIN/MEMBER)
-- Invite code system for group joining
-- Currency specification per group
-
-#### 3. Group Management Models
-- `GroupJoinRequest`: Handles join requests with approval workflow
-- `GroupInvite`: Manages direct invitations
-- `Notification`: System-wide notification model
-
-### Repository Pattern Implementation
-
-#### ExpenseRepository
-**Responsibilities:**
-- CRUD operations for expenses
-- Complex expense splitting calculations
-- Group total updates
-- Transaction management
-
-**Key Methods:**
+**ExpenseSplit Model**
 ```kotlin
-interface ExpenseRepository {
-    suspend fun addExpense(groupId: String, description: String, amount: Double, date: Date, paidBy: String, splitType: String)
-    suspend fun getExpensesByGroupId(groupId: String): List<Expense>
-    suspend fun updateExpense(oldExpense: Expense, newExpense: Expense)
-    suspend fun deleteExpense(expense: Expense)
+data class ExpenseSplit(
+    val userId: String,
+    val userName: String,
+    val share: Double,
+    val isPaid: Boolean = false
+)
+```
+
+### 4. Presentation Layer Architecture
+
+#### Navigation Structure
+The app uses **Navigation Compose** with a centralized navigation graph:
+
+- **30+ Screen Routes**: Organized by feature (auth, groups, expenses, etc.)
+- **Parameterized Navigation**: Dynamic routes for group/expense details
+- **Tabbed Interface**: Main screen with 5 tabs (Home, Groups, Friends, Notifications, Settings)
+
+#### ViewModel Pattern
+ViewModels manage UI state and business logic:
+
+- **StartupViewModel**: App initialization and authentication state
+- **Feature-specific ViewModels**: Each major feature has its own ViewModel
+- **State Management**: Uses StateFlow for reactive state updates
+
+#### UI Components
+- **Reusable Components**: Common UI elements in `components/` package
+- **Theme System**: Material 3 theming with custom color schemes
+- **Responsive Design**: Adaptive layouts using Compose modifiers
+
+## Data Flow Architecture
+
+### 1. Authentication Flow
+
+```
+App Startup → StartupViewModel → AuthService → Firebase Auth
+     ↓
+Session Validation → UserPreferencesManager → Navigation Decision
+     ↓
+Main App / Authentication Screens
+```
+
+### 2. Group Management Flow
+
+```
+UI Action → ViewModel → GroupService → Firestore
+     ↓
+Real-time Updates → Flow → UI State Update
+     ↓
+Activity Logging → ActivityService
+```
+
+### 3. Expense Management Flow
+
+```
+Add Expense → ViewModel → ExpenseRepository → Firestore
+     ↓
+Split Calculation → AdvancedSplitCalculator
+     ↓
+Balance Update → SettlementService
+     ↓
+Activity Logging → ActivityService
+     ↓
+Notification → NotificationService
+```
+
+### 4. Real-time Data Synchronization
+
+The app uses **Firebase Firestore** with real-time listeners:
+
+```kotlin
+// Example: Real-time group updates
+fun getUserGroups(): Flow<List<Group>> = callbackFlow {
+    val subscription = groupsCollection
+        .whereArrayContains("memberIds", currentUser.uid)
+        .addSnapshotListener { snapshot, error ->
+            // Process updates and emit new state
+        }
+    awaitClose { subscription.remove() }
 }
 ```
 
-**Splitting Algorithms:**
-1. **Equal Split**: Divides amount equally among all members
-2. **Percentage Split**: Uses custom percentages for each member
-3. **Custom Amount**: Allows specific amounts per member
+## Key Dependencies and Integrations
 
-#### UserRepository
-- Manages user profile data
-- Handles user preferences and settings
-- Integrates with Firebase Auth
+### 1. Firebase Integration
 
-### Service Layer
+**Authentication**
+- Firebase Auth for user authentication
+- Google Sign-In integration
+- Session management and token refresh
 
-#### GroupService
-**Responsibilities:**
-- Group CRUD operations
-- Real-time group updates using Firestore listeners
-- Member management
-- Invite code generation
+**Database**
+- Firestore for real-time data storage
+- Offline persistence enabled
+- Security rules for data access control
 
-**Key Features:**
-- Real-time data synchronization
-- Member role management
-- Group validation and permissions
+**Storage**
+- Firebase Storage for file uploads (receipts, avatars)
+- File provider configuration for camera access
 
-#### SettlementService
-**Core Business Logic:**
-```kotlin
-suspend fun calculateGroupSettlements(groupId: String): List<DebtInfo>
-suspend fun getSettlementSummary(groupId: String): List<SettlementSummary>
-suspend fun recordSettlement(groupId: String, payerId: String, payeeId: String, amount: Double)
-```
+### 2. External Libraries
 
-**Settlement Algorithm:**
-1. **Balance Calculation**: Tracks total paid vs. total owed per user
-2. **Debt Optimization**: Minimizes number of transactions needed
-3. **Settlement Recording**: Updates expense splits and creates settlement records
+**UI & Navigation**
+- Jetpack Compose BOM (2024.02.00)
+- Navigation Compose (2.7.7)
+- Material 3 components
+- Accompanist libraries (system UI, swipe refresh, permissions)
 
-#### Authentication Services
-- `AuthService`: Email/password authentication
-- `GoogleAuthService`: Google Sign-In integration
-- Session management and validation
+**Data & State**
+- Kotlin Coroutines for async operations
+- StateFlow for reactive state management
+- DataStore for preferences
 
-## Presentation Layer Analysis
+**Utilities**
+- Coil for image loading
+- Vico charts for data visualization
+- ML Kit for text recognition (receipt scanning)
 
-### ViewModel Architecture
+### 3. Testing Dependencies
 
-#### StartupViewModel
-**State Management:**
-```kotlin
-sealed class StartupState {
-    object Loading : StartupState()
-    object Onboarding : StartupState()
-    object Authentication : StartupState()
-    object Main : StartupState()
-}
-```
+**Unit Testing**
+- JUnit, Mockito, Turbine
+- Coroutines testing utilities
+- Firebase testing support
 
-**Key Responsibilities:**
-- Session validation on app startup
-- Authentication state management
-- Onboarding flow control
-- Error handling and recovery
-
-#### Feature-Specific ViewModels
-- `GroupListViewModel`: Manages group listing and filtering
-- `AddExpenseViewModel`: Handles expense creation workflow
-- `SettlementViewModel`: Manages settlement calculations and UI state
-
-### UI Component Architecture
-
-#### Screen Organization
-```
-ui/screens/
-├── auth/           # Authentication flows
-├── groups/         # Group management
-├── expenses/       # Expense tracking
-├── settlements/    # Balance settlement
-├── profile/        # User profile
-├── settings/       # App configuration
-└── common/         # Shared screens
-```
-
-#### Component Library
-- `CommonComponents`: Reusable UI elements (chips, dialogs, loaders)
-- `ModernUXComponents`: Branded UI widgets (navigation, FAB, banners)
-- `ImageComponents`: Profile images and media handling
-
-## Dependency Injection (Hilt)
-
-### Module Structure
-
-#### AppModule
-```kotlin
-@Module
-@InstallIn(SingletonComponent::class)
-object AppModule {
-    @Provides @Singleton fun provideFirebaseFirestore(): FirebaseFirestore
-    @Provides @Singleton fun provideGroupService(auth: FirebaseAuth, firestore: FirebaseFirestore): GroupService
-    @Provides @Singleton fun provideExpenseRepository(firestore: FirebaseFirestore, auth: FirebaseAuth): ExpenseRepository
-    // ... other services
-}
-```
-
-#### AuthModule
-```kotlin
-@Module
-@InstallIn(SingletonComponent::class)
-object AuthModule {
-    @Provides @Singleton fun provideFirebaseAuth(): FirebaseAuth
-    @Provides @Singleton fun provideAuthService(auth: FirebaseAuth): AuthService
-    @Provides @Singleton fun provideGoogleAuthService(auth: FirebaseAuth, context: Context, userRepository: UserRepository): GoogleAuthService
-}
-```
-
-### Service Dependencies
-- **Firebase Services**: Auth, Firestore, Storage
-- **Repository Dependencies**: Services depend on repositories for data access
-- **Cross-Service Dependencies**: SettlementService depends on ExpenseRepository
-
-## Data Flow Analysis
-
-### Authentication Flow
-```
-1. App Startup → StartupViewModel.validateSessionOnStartup()
-2. Check Onboarding → UserPreferencesManager.onboardingCompleted
-3. Validate Session → AuthService.validateCurrentSession()
-4. Firebase Auth → Real-time auth state monitoring
-5. Navigation → FairrNavGraph.handleAuthRedirect()
-```
-
-### Expense Creation Flow
-```
-1. UI Input → AddExpenseScreen
-2. Validation → AddExpenseViewModel
-3. Business Logic → ExpenseRepository.addExpense()
-4. Data Persistence → Firebase Firestore
-5. Group Update → Group total calculation
-6. UI Update → Real-time listener updates
-```
-
-### Settlement Calculation Flow
-```
-1. Group Selection → SettlementScreen
-2. Data Fetching → SettlementService.calculateGroupSettlements()
-3. Balance Calculation → Expense aggregation per user
-4. Debt Optimization → Greedy algorithm for minimal transactions
-5. UI Display → Settlement summary and debt relationships
-```
-
-## Key Architectural Patterns
-
-### 1. Repository Pattern
-- **Abstraction**: Interfaces define data access contracts
-- **Implementation**: Concrete classes handle Firebase operations
-- **Benefits**: Testability, flexibility, separation of concerns
-
-### 2. Service Layer Pattern
-- **Business Logic**: Complex operations encapsulated in services
-- **Coordination**: Services orchestrate multiple repositories
-- **Reusability**: Services can be used across different ViewModels
-
-### 3. MVVM with StateFlow
-- **State Management**: StateFlow for reactive UI updates
-- **Lifecycle Awareness**: ViewModels handle configuration changes
-- **Unidirectional Data Flow**: UI → ViewModel → Repository → Service
-
-### 4. Dependency Injection
-- **Loose Coupling**: Services and repositories injected via Hilt
-- **Testability**: Easy to mock dependencies for testing
-- **Singleton Management**: Proper lifecycle management of services
-
-## Data Persistence Strategy
-
-### Firebase Firestore
-- **Real-time Updates**: Snapshot listeners for live data
-- **Offline Support**: Local caching with Firestore settings
-- **Security Rules**: Document-level access control
-- **Collections Structure**:
-  - `users`: User profiles and preferences
-  - `groups`: Group data and member management
-  - `expenses`: Expense records with splits
-  - `settlements`: Settlement transaction records
-  - `notifications`: System notifications
-
-### DataStore Preferences
-- **User Preferences**: Onboarding status, theme settings
-- **Session Management**: Authentication state persistence
-- **Local Configuration**: App settings and user preferences
-
-## Error Handling Strategy
-
-### Repository Level
-- **Try-Catch Blocks**: Comprehensive exception handling
-- **Logging**: Detailed error logging for debugging
-- **Graceful Degradation**: Fallback to default values when possible
-
-### Service Level
-- **Result Types**: Success/Error result patterns
-- **Validation**: Input validation before processing
-- **Transaction Rollback**: Firestore transaction error handling
-
-### Presentation Level
-- **State Management**: Error states in ViewModels
-- **User Feedback**: Error messages and retry mechanisms
-- **Loading States**: Proper loading indicators during operations
-
-## Performance Considerations
-
-### 1. Real-time Data
-- **Efficient Queries**: Indexed Firestore queries
-- **Snapshot Listeners**: Real-time updates with proper cleanup
-- **Pagination**: Lazy loading for large datasets
-
-### 2. Memory Management
-- **ViewModel Scoping**: Proper lifecycle management
-- **Flow Collection**: Automatic cleanup of coroutines
-- **Image Loading**: Coil for efficient image caching
-
-### 3. Network Optimization
-- **Offline Support**: Firestore offline persistence
-- **Batch Operations**: Grouped Firestore operations
-- **Caching Strategy**: Local data caching
+**UI Testing**
+- Compose UI testing
+- Espresso for integration tests
 
 ## Security Architecture
 
-### Firebase Security Rules
-- **Document-level Access**: Users can only access their data
-- **Group Membership**: Validation of group membership
-- **Role-based Permissions**: Admin vs. member permissions
+### 1. Authentication Security
+- Firebase Auth with email/password and Google Sign-In
+- Session validation and token refresh
+- Biometric authentication support
 
-### Authentication
-- **Multi-provider**: Email/password + Google Sign-In
-- **Session Management**: Secure session persistence
-- **Biometric Support**: Additional security layer
+### 2. Data Security
+- Firestore security rules for data access control
+- User-based permissions and group membership validation
+- Input validation and sanitization
+
+### 3. Network Security
+- HTTPS communication with Firebase
+- API key protection
+- Secure file uploads
+
+## Performance Considerations
+
+### 1. Data Optimization
+- Firestore offline persistence for offline support
+- Efficient queries with proper indexing
+- Pagination for large datasets
+
+### 2. UI Performance
+- Compose recomposition optimization
+- Lazy loading for lists and images
+- Background processing for heavy operations
+
+### 3. Memory Management
+- Proper lifecycle management in ViewModels
+- Resource cleanup in coroutines
+- Image caching with Coil
+
+## Error Handling Strategy
+
+### 1. Network Errors
+- Retry mechanisms for failed requests
+- Offline state handling
+- User-friendly error messages
+
+### 2. Data Validation
+- Input validation at multiple layers
+- Graceful handling of malformed data
+- Fallback values for missing data
+
+### 3. Authentication Errors
+- Session expiration handling
+- Automatic token refresh
+- Clear error messages for auth failures
+
+## Areas for Investigation
+
+### 1. Data Consistency
+- How the app handles concurrent updates
+- Conflict resolution strategies
+- Data synchronization across devices
+
+### 2. Scalability
+- Performance with large groups/expense lists
+- Database query optimization
+- Caching strategies
+
+### 3. Testing Coverage
+- Unit test coverage for business logic
+- Integration test coverage
+- UI test automation
 
 ## Summary
 
-The Fairr codebase demonstrates a well-architected Android application with:
+Fairr demonstrates a well-architected Android application with:
 
-**Strengths:**
-1. **Clean Architecture**: Clear separation of concerns
-2. **Modern Patterns**: MVVM, Repository, Service Layer
-3. **Real-time Data**: Efficient Firebase integration
-4. **Complex Business Logic**: Sophisticated settlement algorithms
-5. **Scalable Structure**: Feature-based organization
+- **Clean Architecture** with clear layer separation
+- **Modern Android Development** practices (Compose, Hilt, Coroutines)
+- **Real-time Data Synchronization** with Firebase
+- **Comprehensive Feature Set** for group expense management
+- **Security-First Approach** with proper authentication and data protection
 
-**Areas for Investigation:**
-1. **Testing Strategy**: Unit and integration test coverage
-2. **Performance Optimization**: Query optimization and caching
-3. **Error Recovery**: Offline handling and retry mechanisms
-4. **Security Hardening**: Additional security measures
+The architecture supports scalability and maintainability while providing a smooth user experience with real-time updates and offline capabilities.
 
 ## Next Steps
 
 **Phase 3: Core Features and Flows** will focus on:
-- Detailed analysis of expense splitting algorithms
-- Group management workflows
-- Settlement calculation complexity
-- User interaction patterns
-- Feature integration points 
+- Detailed analysis of user journeys
+- Feature implementation patterns
+- Business logic complexity
+- User experience flows 

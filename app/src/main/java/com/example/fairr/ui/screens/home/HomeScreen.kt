@@ -195,10 +195,11 @@ fun HomeScreen(
 private fun ExpenseCard(
     expense: Expense,
     onClick: () -> Unit = {},
-    viewModel: HomeViewModel = hiltViewModel()
+    viewModel: HomeViewModel = hiltViewModel(),
+    modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable { onClick() },
         shape = RoundedCornerShape(16.dp)
@@ -297,10 +298,11 @@ private fun getRecurrenceDisplayText(rule: RecurrenceRule): String {
 private fun GroupCard(
     group: Group,
     onClick: () -> Unit,
-    onAddExpenseClick: (String) -> Unit
+    onAddExpenseClick: (String) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .clickable(onClick = onClick),
         shape = RoundedCornerShape(16.dp)

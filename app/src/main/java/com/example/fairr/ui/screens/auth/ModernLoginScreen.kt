@@ -38,6 +38,7 @@ fun ModernLoginScreen(
     navController: NavController,
     onLoginSuccess: () -> Unit = {},
     onNavigateToRegister: () -> Unit = {},
+    onNavigateToForgotPassword: () -> Unit = {},
     viewModel: AuthViewModel = viewModel()
 ) {
     var email by remember { mutableStateOf("") }
@@ -64,6 +65,15 @@ fun ModernLoginScreen(
                 }
                 AuthUiEvent.ResetApp -> {
                     // This event is handled at the app level, no action needed here
+                }
+                AuthUiEvent.PasswordResetSent -> {
+                    // This event is not relevant for login screen
+                }
+                AuthUiEvent.EmailVerificationSent -> {
+                    // This event is not relevant for login screen
+                }
+                AuthUiEvent.EmailVerified -> {
+                    // This event is not relevant for login screen
                 }
             }
         }
@@ -144,6 +154,20 @@ fun ModernLoginScreen(
                 isPassword = true,
                 enabled = !state.isLoading
             )
+            
+            // Forgot Password Link
+            TextButton(
+                onClick = onNavigateToForgotPassword,
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Text(
+                    text = "Forgot Password?",
+                    color = Primary,
+                    fontSize = 14.sp,
+                    textAlign = TextAlign.End,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
             
             // Login Button
             Button(

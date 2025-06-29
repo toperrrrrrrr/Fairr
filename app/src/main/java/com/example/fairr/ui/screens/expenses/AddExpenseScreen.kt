@@ -49,6 +49,12 @@ import androidx.compose.material3.rememberDatePickerState
 import com.example.fairr.data.groups.GroupService
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
+import androidx.compose.material.icons.automirrored.filled.CallSplit
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
+import androidx.compose.ui.platform.LocalContext
+import android.net.Uri
+import com.example.fairr.utils.PhotoUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -62,7 +68,6 @@ fun AddExpenseScreen(
     var description by remember { mutableStateOf("") }
     var amount by remember { mutableStateOf("") }
     var selectedSplitType by remember { mutableStateOf("Equal Split") }
-    var showCategoryDropdown by remember { mutableStateOf(false) }
     var receiptPhotos by remember { mutableStateOf<List<ReceiptPhoto>>(emptyList()) }
     var showOcrSuggestion by remember { mutableStateOf(false) }
     var suggestedData by remember { mutableStateOf<com.example.fairr.utils.ExtractedReceiptData?>(null) }
@@ -83,6 +88,91 @@ fun AddExpenseScreen(
     var showPayerSheet by remember { mutableStateOf(false) }
     var showSplitSheet by remember { mutableStateOf(false) }
     var showCategorySheet by remember { mutableStateOf(false) }
+    var showPhotoPickerDialog by remember { mutableStateOf(false) }
+
+    // Photo capture functionality
+    val context = LocalContext.current
+    var currentPhotoFile by remember { mutableStateOf<File?>(null) }
+    
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success && currentPhotoFile != null) {
+            currentPhotoFile?.let { file ->
+                val photo = ReceiptPhoto(filePath = file.absolutePath)
+                receiptPhotos = receiptPhotos + photo
+                
+                // Process OCR in background
+                scope.launch {
+                    try {
+                        val bitmap = PhotoUtils.loadBitmapFromPath(file.absolutePath)
+                        if (bitmap != null) {
+                            PhotoUtils.extractTextFromImage(
+                                bitmap = bitmap,
+                                onSuccess = { extractedData ->
+                                    receiptPhotos = receiptPhotos.map { 
+                                        if (it.filePath == file.absolutePath) {
+                                            it.copy(extractedData = extractedData)
+                                        } else it
+                                    }
+                                },
+                                onFailure = { /* OCR failed, continue without it */ }
+                            )
+                        }
+                    } catch (e: Exception) {
+                        // OCR processing failed, continue without it
+                    }
+                }
+            }
+        }
+    }
+    
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let { selectedUri ->
+            try {
+                val inputStream = context.contentResolver.openInputStream(selectedUri)
+                val file = PhotoUtils.createImageFile(context)
+                val outputStream = java.io.FileOutputStream(file)
+                
+                inputStream?.use { input ->
+                    outputStream.use { output ->
+                        input.copyTo(output)
+                    }
+                }
+                
+                val photo = ReceiptPhoto(filePath = file.absolutePath)
+                receiptPhotos = receiptPhotos + photo
+                
+                // Process OCR in background
+                scope.launch {
+                    try {
+                        val bitmap = PhotoUtils.loadBitmapFromPath(file.absolutePath)
+                        if (bitmap != null) {
+                            PhotoUtils.extractTextFromImage(
+                                bitmap = bitmap,
+                                onSuccess = { extractedData ->
+                                    receiptPhotos = receiptPhotos.map { 
+                                        if (it.filePath == file.absolutePath) {
+                                            it.copy(extractedData = extractedData)
+                                        } else it
+                                    }
+                                },
+                                onFailure = { /* OCR failed, continue without it */ }
+                            )
+                        }
+                    } catch (e: Exception) {
+                        // OCR processing failed, continue without it
+                    }
+                }
+            } catch (e: Exception) {
+                scope.launch {
+                    snackbarHostState.showSnackbar("Failed to load image from gallery")
+                }
+            }
+        }
+    }
 
     // Auto-fill from OCR data when photos are added
     LaunchedEffect(receiptPhotos) {
@@ -180,7 +270,8 @@ fun AddExpenseScreen(
                         isRecurring = recurrenceFrequency != com.example.fairr.data.model.RecurrenceFrequency.NONE,
                         recurrenceRule = if (recurrenceFrequency != com.example.fairr.data.model.RecurrenceFrequency.NONE)
                             buildRecurrenceRule(recurrenceFrequency.displayName, recurrenceInterval, recurrenceEndDate?.time)
-                        else null
+                        else null,
+                        receiptPhotos = receiptPhotos
                     )
                 },
                 modifier = Modifier
@@ -315,7 +406,7 @@ fun AddExpenseScreen(
                                 append(recurrenceFrequency.displayName.lowercase())
                                 if (recurrenceEndDate != null) {
                                     append(" until ")
-                                    append(java.text.SimpleDateFormat("MMM dd, yyyy").format(recurrenceEndDate))
+                                    append(java.text.SimpleDateFormat("MMM dd, yyyy").format(recurrenceEndDate!!))
                                 }
                             }
                             Text(text = summary, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
@@ -396,6 +487,54 @@ fun AddExpenseScreen(
                         modifier = Modifier.fillMaxWidth(),
                         viewModel = viewModel
                     )
+                }
+
+                // Receipt Photos Section
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "Receipt Photos",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = TextPrimary
+                    )
+                    
+                    // Add Receipt Button
+                    OutlinedButton(
+                        onClick = { showPhotoPickerDialog = true },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = Primary
+                        ),
+                        border = BorderStroke(1.dp, Primary.copy(alpha = 0.5f))
+                    ) {
+                        Icon(
+                            Icons.Default.CameraAlt,
+                            contentDescription = null,
+                            modifier = Modifier.size(20.dp)
+                        )
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Add Receipt Photo")
+                    }
+                    
+                    // Display existing receipt photos
+                    if (receiptPhotos.isNotEmpty()) {
+                        LazyRow(
+                            horizontalArrangement = Arrangement.spacedBy(8.dp),
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            items(receiptPhotos) { photo ->
+                                ReceiptPhotoCard(
+                                    photo = photo,
+                                    onRemove = {
+                                        receiptPhotos = receiptPhotos.filter { it.id != photo.id }
+                                    }
+                                )
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -482,7 +621,7 @@ fun AddExpenseScreen(
                 
                 splitTypes.forEach { type ->
                     val isSelected = type == selectedSplitType
-                    val description = when(type) {
+                    val splitDescription = when(type) {
                         "Equal Split" -> "Split the expense equally among all members"
                         "Percentage" -> "Split by percentage (e.g., 50%, 30%, 20%)"
                         "Custom Amount" -> "Set specific amounts for each person"
@@ -523,7 +662,7 @@ fun AddExpenseScreen(
                                         "Equal Split" -> Icons.Default.Group
                                         "Percentage" -> Icons.Default.Percent
                                         "Custom Amount" -> Icons.Default.Calculate
-                                        else -> Icons.Default.CallSplit
+                                        else -> Icons.AutoMirrored.Filled.CallSplit
                                     },
                                     contentDescription = null,
                                     tint = if (isSelected) Primary else MaterialTheme.colorScheme.onSurfaceVariant,
@@ -544,7 +683,7 @@ fun AddExpenseScreen(
                                     color = if (isSelected) Primary else MaterialTheme.colorScheme.onSurface
                                 )
                                 Text(
-                                    text = description,
+                                    text = splitDescription,
                                     style = MaterialTheme.typography.bodySmall,
                                     color = MaterialTheme.colorScheme.onSurfaceVariant,
                                     modifier = Modifier.padding(top = 2.dp)
@@ -594,6 +733,45 @@ fun AddExpenseScreen(
                 Spacer(modifier = Modifier.height(16.dp))
             }
         }
+    }
+
+    // Photo picker dialog
+    if (showPhotoPickerDialog) {
+        AlertDialog(
+            onDismissRequest = { showPhotoPickerDialog = false },
+            title = { Text("Add Receipt Photo") },
+            text = { Text("Choose how you want to add a receipt photo") },
+            confirmButton = {
+                Column {
+                    TextButton(
+                        onClick = {
+                            currentPhotoFile = PhotoUtils.createImageFile(context)
+                            cameraLauncher.launch(PhotoUtils.getImageUri(context, currentPhotoFile!!))
+                            showPhotoPickerDialog = false
+                        }
+                    ) {
+                        Icon(Icons.Default.CameraAlt, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Take Photo")
+                    }
+                    TextButton(
+                        onClick = {
+                            galleryLauncher.launch("image/*")
+                            showPhotoPickerDialog = false
+                        }
+                    ) {
+                        Icon(Icons.Default.PhotoLibrary, contentDescription = null)
+                        Spacer(modifier = Modifier.width(8.dp))
+                        Text("Choose from Gallery")
+                    }
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showPhotoPickerDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 
     // Date picker for recurrence end date
@@ -877,13 +1055,13 @@ fun ReceiptPhotoCard(
 fun validateSplitData(splitType: String, amount: Double): String? {
     return when (splitType) {
         "Percentage" -> {
-            // For now, return null since percentage input UI is not yet implemented
-            // When percentage input is added, validate that percentages sum to 100%
+            // TODO: Validate that percentages sum to 100% when percentage input UI is implemented
+            // amount parameter will be used to calculate total percentage validation
             null
         }
         "Custom Amount" -> {
-            // For now, return null since custom amount input UI is not yet implemented
-            // When custom amount input is added, validate that amounts sum to the total expense amount
+            // TODO: Validate that amounts sum to the total expense amount when custom amount input UI is implemented
+            // amount parameter will be used to validate total custom amounts
             null
         }
         else -> null

@@ -10,7 +10,9 @@ data class Group(
     val createdAt: Timestamp = Timestamp.now(),
     val createdBy: String = "",
     val inviteCode: String = "",
-    val members: List<GroupMember> = emptyList()
+    val members: List<GroupMember> = emptyList(),
+    val avatar: String = "",
+    val avatarType: AvatarType = AvatarType.EMOJI
 ) {
     val isUserAdmin: Boolean
         get() = members.any { it.role == GroupRole.ADMIN }
@@ -27,4 +29,9 @@ data class GroupMember(
 enum class GroupRole {
     ADMIN,
     MEMBER
+}
+
+enum class AvatarType {
+    EMOJI,    // Single emoji character
+    IMAGE     // Image URL
 } 

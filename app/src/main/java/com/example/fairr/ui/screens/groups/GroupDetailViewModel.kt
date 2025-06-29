@@ -76,9 +76,7 @@ class GroupDetailViewModel @Inject constructor(
             uiState = GroupDetailUiState.Loading
             try {
                 groupService.getGroupById(groupId)
-                    .combine(kotlinx.coroutines.flow.flow { 
-                        emit(expenseRepository.getExpensesByGroupId(groupId))
-                    }) { group, expenses ->
+                    .combine(expenseRepository.getExpensesByGroupIdFlow(groupId)) { group, expenses ->
                         val uiMembers = group.members.map { convertToUiMember(it) }
                         val totalExpenses = expenses.sumOf { it.amount }
 

@@ -270,11 +270,54 @@ class AuthService @Inject constructor(
 
         return try {
             auth.sendPasswordResetEmail(email).await()
-            Log.d(TAG, "Password reset email sent to: $email")
-            AuthResult.Success(auth.currentUser!!)
+            Log.d(TAG, "Password reset email sent successfully to: $email")
+            AuthResult.Success(auth.currentUser ?: throw Exception("No current user"))
         } catch (e: Exception) {
             if (e is CancellationException) throw e
             Log.e(TAG, "Password reset failed", e)
+            AuthResult.Error(getFirebaseAuthErrorMessage(e))
+        }
+    }
+
+    suspend fun sendEmailVerification(): AuthResult {
+        val currentUser = auth.currentUser
+        if (currentUser == null) {
+            return AuthResult.Error("No user is currently signed in")
+        }
+
+        return try {
+            currentUser.sendEmailVerification().await()
+            Log.d(TAG, "Email verification sent successfully to: ${currentUser.email}")
+            AuthResult.Success(currentUser)
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Log.e(TAG, "Email verification failed", e)
+            AuthResult.Error(getFirebaseAuthErrorMessage(e))
+        }
+    }
+
+    suspend fun verifyEmailWithCode(code: String): AuthResult {
+        // Note: Firebase doesn't support custom verification codes
+        // This is a placeholder for future implementation
+        // For now, we'll just check if the user's email is verified
+        val currentUser = auth.currentUser
+        if (currentUser == null) {
+            return AuthResult.Error("No user is currently signed in")
+        }
+
+        return try {
+            // Reload user to get latest verification status
+            currentUser.reload().await()
+            
+            if (currentUser.isEmailVerified) {
+                Log.d(TAG, "Email verified successfully")
+                AuthResult.Success(currentUser)
+            } else {
+                AuthResult.Error("Email not verified. Please check your email and click the verification link.")
+            }
+        } catch (e: Exception) {
+            if (e is CancellationException) throw e
+            Log.e(TAG, "Email verification check failed", e)
             AuthResult.Error(getFirebaseAuthErrorMessage(e))
         }
     }

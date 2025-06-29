@@ -25,6 +25,7 @@ import com.example.fairr.data.model.ExpenseSplit
 import com.example.fairr.ui.theme.*
 import com.example.fairr.util.CurrencyFormatter
 import androidx.compose.ui.draw.shadow
+import androidx.compose.material.icons.automirrored.filled.CallSplit
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable

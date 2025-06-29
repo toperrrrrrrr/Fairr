@@ -23,15 +23,36 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.fairr.ui.theme.*
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun AccountVerificationScreen(
     navController: NavController,
     onNavigateBack: () -> Unit,
-    onVerificationComplete: () -> Unit
+    onVerificationComplete: () -> Unit,
+    viewModel: AuthViewModel = viewModel()
 ) {
     var verificationCode by remember { mutableStateOf("") }
-    var isLoading by remember { mutableStateOf(false) }
+    val state = viewModel.state.collectAsState().value
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Collect UI events
+    LaunchedEffect(key1 = true) {
+        viewModel.uiEvent.collect { event ->
+            when (event) {
+                is AuthUiEvent.ShowMessage -> {
+                    snackbarHostState.showSnackbar(event.message)
+                }
+                AuthUiEvent.EmailVerified -> {
+                    onVerificationComplete()
+                }
+                AuthUiEvent.EmailVerificationSent -> {
+                    snackbarHostState.showSnackbar("Verification email sent successfully")
+                }
+                else -> {} // Handle other events if needed
+            }
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -206,9 +227,7 @@ fun AccountVerificationScreen(
                 Button(
                     onClick = {
                         if (verificationCode.length == 6) {
-                            isLoading = true
-                            // Simulate verification
-                            onVerificationComplete()
+                            viewModel.verifyEmailWithCode(verificationCode)
                         }
                     },
                     modifier = Modifier
@@ -219,10 +238,10 @@ fun AccountVerificationScreen(
                         contentColor = Primary
                     ),
                     shape = RoundedCornerShape(28.dp),
-                    enabled = !isLoading && verificationCode.length == 6
+                    enabled = !state.isLoading && verificationCode.length == 6
                 ) {
                     Text(
-                        text = if (isLoading) "Verifying..." else "Verify Account",
+                        text = if (state.isLoading) "Verifying..." else "Verify Account",
                         fontSize = 16.sp,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -232,6 +251,13 @@ fun AccountVerificationScreen(
             }
         }
     }
+    
+    // Snackbar host
+    SnackbarHost(
+        hostState = snackbarHostState,
+        modifier = Modifier
+            .padding(16.dp)
+    )
 }
 
 @Preview(showBackground = true)

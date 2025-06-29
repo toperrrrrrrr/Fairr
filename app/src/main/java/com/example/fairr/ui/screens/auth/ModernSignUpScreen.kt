@@ -69,6 +69,15 @@ fun ModernSignUpScreen(
                 AuthUiEvent.ResetApp -> {
                     // This event is handled at the app level, no action needed here
                 }
+                AuthUiEvent.PasswordResetSent -> {
+                    // This event is not relevant for sign up screen
+                }
+                AuthUiEvent.EmailVerificationSent -> {
+                    // This event is not relevant for sign up screen
+                }
+                AuthUiEvent.EmailVerified -> {
+                    // This event is not relevant for sign up screen
+                }
             }
         }
     }

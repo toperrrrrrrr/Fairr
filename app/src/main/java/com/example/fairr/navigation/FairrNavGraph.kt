@@ -1,5 +1,8 @@
 package com.example.fairr.navigation
 
+import androidx.compose.animation.AnimatedContentTransitionScope
+import androidx.compose.animation.core.EaseInOut
+import androidx.compose.animation.core.tween
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.runtime.Composable
 import androidx.compose.runtime.collectAsState
@@ -38,6 +41,8 @@ import com.example.fairr.ui.viewmodels.StartupViewModel
 import com.example.fairr.ui.viewmodels.StartupState
 import com.example.fairr.ui.screens.auth.AuthViewModel
 import com.example.fairr.ui.screens.auth.WelcomeScreen
+import com.example.fairr.ui.screens.auth.ForgotPasswordScreen
+import com.example.fairr.ui.screens.auth.AccountVerificationScreen
 import androidx.navigation.NavHostController
 
 sealed class Screen(val route: String) {
@@ -46,6 +51,8 @@ sealed class Screen(val route: String) {
     object Welcome : Screen("welcome")
     object Login : Screen("login")
     object SignUp : Screen("signup")
+    object ForgotPassword : Screen("forgot_password")
+    object AccountVerification : Screen("account_verification")
     object Main : Screen("main?tab={tab}") {
         fun createRoute(tab: Int = 0) = "main?tab=$tab"
     }
@@ -111,7 +118,21 @@ fun FairrNavGraph(
             // This route is kept for compatibility but not used
         }
 
-        composable(Screen.Onboarding.route) {
+        composable(
+            route = Screen.Onboarding.route,
+            enterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                    animationSpec = tween(300, easing = EaseInOut)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                    animationSpec = tween(300, easing = EaseInOut)
+                )
+            }
+        ) {
             OnboardingScreen(
                 onGetStarted = {
                     startupViewModel.setOnboardingCompleted()
@@ -122,7 +143,21 @@ fun FairrNavGraph(
             )
         }
 
-        composable(Screen.Welcome.route) {
+        composable(
+            route = Screen.Welcome.route,
+            enterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Up,
+                    animationSpec = tween(400, easing = EaseInOut)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Up,
+                    animationSpec = tween(400, easing = EaseInOut)
+                )
+            }
+        ) {
             val authViewModel: AuthViewModel = hiltViewModel()
             WelcomeScreen(
                 onNavigateToLogin = {
@@ -135,7 +170,21 @@ fun FairrNavGraph(
             )
         }
 
-        composable(Screen.Login.route) {
+        composable(
+            route = Screen.Login.route,
+            enterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                    animationSpec = tween(350, easing = EaseInOut)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                    animationSpec = tween(350, easing = EaseInOut)
+                )
+            }
+        ) {
             val authViewModel: AuthViewModel = hiltViewModel()
             ModernLoginScreen(
                 navController = navController,
@@ -149,11 +198,28 @@ fun FairrNavGraph(
                         popUpTo(Screen.Login.route) { inclusive = true }
                     }
                 },
+                onNavigateToForgotPassword = {
+                    navController.navigate(Screen.ForgotPassword.route)
+                },
                 viewModel = authViewModel
             )
         }
 
-        composable(Screen.SignUp.route) {
+        composable(
+            route = Screen.SignUp.route,
+            enterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                    animationSpec = tween(350, easing = EaseInOut)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                    animationSpec = tween(350, easing = EaseInOut)
+                )
+            }
+        ) {
             val authViewModel: AuthViewModel = hiltViewModel()
             ModernSignUpScreen(
                 navController = navController,
@@ -171,6 +237,32 @@ fun FairrNavGraph(
                     }
                 },
                 viewModel = authViewModel
+            )
+        }
+
+        composable(Screen.ForgotPassword.route) {
+            ForgotPasswordScreen(
+                navController = navController,
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onResetSent = {
+                    navController.popBackStack()
+                }
+            )
+        }
+
+        composable(Screen.AccountVerification.route) {
+            AccountVerificationScreen(
+                navController = navController,
+                onNavigateBack = {
+                    navController.popBackStack()
+                },
+                onVerificationComplete = {
+                    navController.navigate(Screen.Main.route) {
+                        popUpTo(Screen.Welcome.route) { inclusive = true }
+                    }
+                }
             )
         }
 
@@ -235,7 +327,19 @@ fun FairrNavGraph(
             route = Screen.GroupDetail.route,
             arguments = listOf(
                 navArgument("groupId") { type = NavType.StringType }
-            )
+            ),
+            enterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                    animationSpec = tween(300, easing = EaseInOut)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                    animationSpec = tween(300, easing = EaseInOut)
+                )
+            }
         ) { backStackEntry ->
             val groupId = backStackEntry.arguments?.getString("groupId")
                 ?: return@composable
@@ -276,7 +380,19 @@ fun FairrNavGraph(
             route = Screen.AddExpense.route,
             arguments = listOf(
                 navArgument("groupId") { type = NavType.StringType }
-            )
+            ),
+            enterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Up,
+                    animationSpec = tween(400, easing = EaseInOut)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Down,
+                    animationSpec = tween(400, easing = EaseInOut)
+                )
+            }
         ) { backStackEntry ->
             val groupId = backStackEntry.arguments?.getString("groupId")
                 ?: return@composable
@@ -374,7 +490,19 @@ fun FairrNavGraph(
             route = Screen.ExpenseDetail.route,
             arguments = listOf(
                 navArgument("expenseId") { type = NavType.StringType }
-            )
+            ),
+            enterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                    animationSpec = tween(300, easing = EaseInOut)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                    animationSpec = tween(300, easing = EaseInOut)
+                )
+            }
         ) { backStackEntry ->
             val expenseId = backStackEntry.arguments?.getString("expenseId")
                 ?: return@composable
@@ -392,7 +520,19 @@ fun FairrNavGraph(
             route = Screen.EditExpense.route,
             arguments = listOf(
                 navArgument("expenseId") { type = NavType.StringType }
-            )
+            ),
+            enterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                    animationSpec = tween(300, easing = EaseInOut)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                    animationSpec = tween(300, easing = EaseInOut)
+                )
+            }
         ) { backStackEntry ->
             val expenseId = backStackEntry.arguments?.getString("expenseId")
                 ?: return@composable

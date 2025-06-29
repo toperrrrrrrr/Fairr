@@ -20,6 +20,11 @@ import javax.inject.Inject
 import kotlinx.coroutines.flow.collectLatest
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.first
+import com.example.fairr.utils.ReceiptPhoto
+import com.google.firebase.storage.FirebaseStorage
+import kotlinx.coroutines.tasks.await
+import java.io.File
+import com.example.fairr.ui.screens.expenses.ValidationResult
 
 sealed class AddExpenseEvent {
     data class ShowError(val message: String) : AddExpenseEvent()
@@ -37,11 +42,6 @@ data class AddExpenseState(
     val groupMembers: List<MemberInfo> = emptyList(),
     val userCurrency: String = "PHP"
 )
-
-sealed class ValidationResult {
-    object Success : ValidationResult()
-    data class Error(val message: String) : ValidationResult()
-}
 
 @HiltViewModel
 class AddExpenseViewModel @Inject constructor(
@@ -102,6 +102,36 @@ class AddExpenseViewModel @Inject constructor(
         }
     }
 
+    /**
+     * Upload receipt photos to Firebase Storage
+     */
+    private suspend fun uploadReceiptPhotos(
+        groupId: String,
+        expenseId: String,
+        receiptPhotos: List<ReceiptPhoto>
+    ): List<String> {
+        val storage = FirebaseStorage.getInstance()
+        val storageRef = storage.reference
+        val uploadedUrls = mutableListOf<String>()
+        
+        receiptPhotos.forEach { photo ->
+            try {
+                val photoFile = File(photo.filePath)
+                if (photoFile.exists()) {
+                    val photoRef = storageRef.child("receipts/$groupId/$expenseId/${photoFile.name}")
+                    val uploadTask = photoRef.putFile(android.net.Uri.fromFile(photoFile))
+                    val downloadUrl = uploadTask.await().storage.downloadUrl.await()
+                    uploadedUrls.add(downloadUrl.toString())
+                }
+            } catch (e: Exception) {
+                // Log error but continue with other photos
+                _events.emit(AddExpenseEvent.ShowError("Failed to upload photo: ${e.message}"))
+            }
+        }
+        
+        return uploadedUrls
+    }
+
     fun addExpense(
         groupId: String,
         description: String,
@@ -111,7 +141,8 @@ class AddExpenseViewModel @Inject constructor(
         splitType: String,
         category: com.example.fairr.data.model.ExpenseCategory = com.example.fairr.data.model.ExpenseCategory.OTHER,
         isRecurring: Boolean = false,
-        recurrenceRule: com.example.fairr.data.model.RecurrenceRule? = null
+        recurrenceRule: com.example.fairr.data.model.RecurrenceRule? = null,
+        receiptPhotos: List<ReceiptPhoto> = emptyList()
     ) {
         viewModelScope.launch {
             try {
@@ -128,20 +159,31 @@ class AddExpenseViewModel @Inject constructor(
 
                 state = state.copy(isLoading = true)
                 
-                // Add the expense
+                // Add the expense first to get the expense ID
                 expenseRepository.addExpense(groupId, description, amount, date, paidBy, splitType, category, isRecurring, recurrenceRule)
+                
+                // Get the created expense to upload photos
+                val expenses = expenseRepository.getExpensesByGroupId(groupId)
+                val createdExpense = expenses.find { 
+                    it.description == description && 
+                    it.amount == amount && 
+                    it.date.toDate() == date &&
+                    it.paidBy == paidBy
+                }
+                
+                // Upload receipt photos if any
+                if (receiptPhotos.isNotEmpty() && createdExpense != null) {
+                    val uploadedUrls = uploadReceiptPhotos(groupId, createdExpense.id, receiptPhotos)
+                    
+                    // Update the expense with attachment URLs
+                    if (uploadedUrls.isNotEmpty()) {
+                        val updatedExpense = createdExpense.copy(attachments = uploadedUrls)
+                        expenseRepository.updateExpense(createdExpense, updatedExpense)
+                    }
+                }
                 
                 // If it's a recurring expense, generate instances
                 if (isRecurring && recurrenceRule != null) {
-                    // Get the expense we just created to generate instances
-                    val expenses = expenseRepository.getExpensesByGroupId(groupId)
-                    val createdExpense = expenses.find { 
-                        it.description == description && 
-                        it.amount == amount && 
-                        it.isRecurring && 
-                        it.recurrenceRule == recurrenceRule 
-                    }
-                    
                     createdExpense?.let { expense ->
                         expenseRepository.generateRecurringInstances(expense, monthsAhead = 3)
                     }

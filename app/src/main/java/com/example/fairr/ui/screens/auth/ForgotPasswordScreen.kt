@@ -22,16 +22,35 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.fairr.ui.theme.*
+import androidx.lifecycle.viewmodel.compose.viewModel
 
 @Composable
 fun ForgotPasswordScreen(
     navController: NavController,
     onNavigateBack: () -> Unit,
-    onResetSent: () -> Unit = {}
+    onResetSent: () -> Unit = {},
+    viewModel: AuthViewModel = viewModel()
 ) {
     var email by remember { mutableStateOf("") }
-    var isLoading by remember { mutableStateOf(false) }
     var showSuccess by remember { mutableStateOf(false) }
+    val state = viewModel.state.collectAsState().value
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Collect UI events
+    LaunchedEffect(key1 = true) {
+        viewModel.uiEvent.collect { event ->
+            when (event) {
+                is AuthUiEvent.ShowMessage -> {
+                    snackbarHostState.showSnackbar(event.message)
+                }
+                AuthUiEvent.PasswordResetSent -> {
+                    showSuccess = true
+                    onResetSent()
+                }
+                else -> {} // Handle other events if needed
+            }
+        }
+    }
 
     Box(
         modifier = Modifier
@@ -129,11 +148,7 @@ fun ForgotPasswordScreen(
                     Button(
                         onClick = {
                             if (email.isNotBlank()) {
-                                isLoading = true
-                                // Simulate sending reset email
-                                showSuccess = true
-                                isLoading = false
-                                onResetSent()
+                                viewModel.resetPassword(email)
                             }
                         },
                         modifier = Modifier
@@ -144,10 +159,10 @@ fun ForgotPasswordScreen(
                             contentColor = Primary
                         ),
                         shape = RoundedCornerShape(28.dp),
-                        enabled = !isLoading && email.isNotBlank()
+                        enabled = !state.isLoading && email.isNotBlank()
                     ) {
                         Text(
-                            text = if (isLoading) "Sending..." else "Send Reset Link",
+                            text = if (state.isLoading) "Sending..." else "Send Reset Link",
                             fontSize = 16.sp,
                             fontWeight = FontWeight.SemiBold
                         )
@@ -213,6 +228,13 @@ fun ForgotPasswordScreen(
             }
         }
     }
+    
+    // Snackbar host
+    SnackbarHost(
+        hostState = snackbarHostState,
+        modifier = Modifier
+            .padding(16.dp)
+    )
 }
 
 @Preview(showBackground = true)

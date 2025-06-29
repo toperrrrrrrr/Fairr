@@ -24,6 +24,8 @@ import java.text.SimpleDateFormat
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
+import android.content.pm.PackageManager
+import androidx.core.content.ContextCompat
 
 @Singleton
 class RecurringExpenseNotificationService @Inject constructor(
@@ -162,12 +164,24 @@ class RecurringExpenseNotificationService @Inject constructor(
         }
     }
     
+    private fun hasNotificationPermission(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ContextCompat.checkSelfPermission(context, "android.permission.POST_NOTIFICATIONS") == PackageManager.PERMISSION_GRANTED
+        } else {
+            true
+        }
+    }
+    
     /**
      * Send notification for upcoming recurring expenses
      */
     private fun sendUpcomingExpensesNotification(expenses: List<Expense>) {
         if (!shouldShowNotification()) {
             Log.d(TAG, "Skipping notification due to spam prevention")
+            return
+        }
+        if (!hasNotificationPermission()) {
+            Log.w(TAG, "POST_NOTIFICATIONS permission not granted. Skipping notification.")
             return
         }
 
@@ -206,6 +220,10 @@ class RecurringExpenseNotificationService @Inject constructor(
     private fun sendDueTodayNotification(expense: Expense) {
         if (!shouldShowNotification()) {
             Log.d(TAG, "Skipping due today notification due to spam prevention")
+            return
+        }
+        if (!hasNotificationPermission()) {
+            Log.w(TAG, "POST_NOTIFICATIONS permission not granted. Skipping notification.")
             return
         }
 

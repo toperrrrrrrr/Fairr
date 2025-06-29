@@ -5,7 +5,9 @@ import com.example.fairr.data.groups.GroupJoinService
 import com.example.fairr.data.groups.GroupInviteService
 import com.example.fairr.data.notifications.NotificationService
 import com.example.fairr.data.notifications.RecurringExpenseNotificationService
+import com.example.fairr.data.activity.ActivityService
 import com.example.fairr.data.repository.*
+import com.example.fairr.data.settings.SettingsDataStore
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreSettings
@@ -15,6 +17,7 @@ import dagger.hilt.InstallIn
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 import android.content.Context
+import dagger.hilt.android.qualifiers.ApplicationContext
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -41,10 +44,18 @@ object AppModule {
 
     @Provides
     @Singleton
-    fun provideExpenseRepository(
+    fun provideActivityService(
         firestore: FirebaseFirestore,
         auth: FirebaseAuth
-    ): ExpenseRepository = ExpenseRepositoryImpl(firestore, auth)
+    ): ActivityService = ActivityService(firestore, auth)
+
+    @Provides
+    @Singleton
+    fun provideExpenseRepository(
+        firestore: FirebaseFirestore,
+        auth: FirebaseAuth,
+        activityService: ActivityService
+    ): ExpenseRepository = ExpenseRepositoryImpl(firestore, auth, activityService)
 
     @Provides
     @Singleton
@@ -82,4 +93,19 @@ object AppModule {
         groupService: GroupService,
         auth: FirebaseAuth
     ): RecurringExpenseNotificationService = RecurringExpenseNotificationService(context, expenseRepository, groupService, auth)
+
+    @Provides
+    @Singleton
+    fun provideSettingsDataStore(
+        @ApplicationContext context: Context
+    ): SettingsDataStore = SettingsDataStore(context)
+
+    /*
+    @Provides
+    @Singleton
+    fun provideCommentService(
+        auth: FirebaseAuth,
+        firestore: FirebaseFirestore
+    ): CommentService = CommentService(auth, firestore)
+    */
 } 

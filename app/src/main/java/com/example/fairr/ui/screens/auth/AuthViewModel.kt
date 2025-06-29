@@ -115,17 +115,49 @@ class AuthViewModel @Inject constructor(
 
     fun resetPassword(email: String) {
         viewModelScope.launch {
-            if (email.isBlank()) {
-                setError("Please enter your email address")
-                _uiEvent.emit(AuthUiEvent.ShowMessage("Please enter your email address"))
-                return@launch
-            }
-            
             _state.value = _state.value.copy(isLoading = true, error = null)
             when (val result = authService.resetPassword(email)) {
                 is AuthResult.Success -> {
                     _state.value = _state.value.copy(isLoading = false)
-                    _uiEvent.emit(AuthUiEvent.ShowMessage("Password reset email sent"))
+                    _uiEvent.emit(AuthUiEvent.PasswordResetSent)
+                }
+                is AuthResult.Error -> {
+                    _state.value = _state.value.copy(
+                        isLoading = false,
+                        error = result.message
+                    )
+                    _uiEvent.emit(AuthUiEvent.ShowMessage(result.message))
+                }
+            }
+        }
+    }
+
+    fun sendEmailVerification() {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(isLoading = true, error = null)
+            when (val result = authService.sendEmailVerification()) {
+                is AuthResult.Success -> {
+                    _state.value = _state.value.copy(isLoading = false)
+                    _uiEvent.emit(AuthUiEvent.EmailVerificationSent)
+                }
+                is AuthResult.Error -> {
+                    _state.value = _state.value.copy(
+                        isLoading = false,
+                        error = result.message
+                    )
+                    _uiEvent.emit(AuthUiEvent.ShowMessage(result.message))
+                }
+            }
+        }
+    }
+
+    fun verifyEmailWithCode(code: String) {
+        viewModelScope.launch {
+            _state.value = _state.value.copy(isLoading = true, error = null)
+            when (val result = authService.verifyEmailWithCode(code)) {
+                is AuthResult.Success -> {
+                    _state.value = _state.value.copy(isLoading = false)
+                    _uiEvent.emit(AuthUiEvent.EmailVerified)
                 }
                 is AuthResult.Error -> {
                     _state.value = _state.value.copy(
@@ -219,4 +251,7 @@ sealed class AuthUiEvent {
     data object NavigateToHome : AuthUiEvent()
     data class LaunchGoogleSignIn(val intent: Intent) : AuthUiEvent()
     data object ResetApp : AuthUiEvent()
+    data object PasswordResetSent : AuthUiEvent()
+    data object EmailVerificationSent : AuthUiEvent()
+    data object EmailVerified : AuthUiEvent()
 } 

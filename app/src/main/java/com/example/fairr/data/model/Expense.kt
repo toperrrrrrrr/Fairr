@@ -37,6 +37,16 @@ data class RecurrenceRule(
     val endDate: Timestamp? = null // null = no end
 )
 
+data class Comment(
+    val id: String = "",
+    val expenseId: String = "",
+    val authorId: String = "",
+    val authorName: String = "",
+    val text: String = "",
+    val timestamp: Timestamp = Timestamp.now(),
+    val editedAt: Timestamp? = null
+)
+
 enum class ExpenseCategory(val displayName: String, val icon: String, val color: String) {
     FOOD("Food & Dining", "🍽️", "#FF6B6B"),
     TRANSPORTATION("Transportation", "🚗", "#4ECDC4"),

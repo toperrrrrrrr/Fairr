@@ -5,9 +5,20 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
+import com.example.fairr.data.repository.ExpenseRepository
+import com.example.fairr.data.groups.GroupService
+import com.example.fairr.data.model.Expense
+import com.example.fairr.data.model.Group
+import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.first
+import java.text.SimpleDateFormat
+import java.util.*
 import javax.inject.Inject
+import com.example.fairr.ui.screens.search.SearchResult
+import com.example.fairr.ui.screens.search.SearchFilter
+import com.example.fairr.ui.screens.search.SortOption
 
 data class SearchUiState(
     val isLoading: Boolean = false,
@@ -17,7 +28,11 @@ data class SearchUiState(
 )
 
 @HiltViewModel
-class SearchViewModel @Inject constructor() : ViewModel() {
+class SearchViewModel @Inject constructor(
+    private val expenseRepository: ExpenseRepository,
+    private val groupService: GroupService,
+    private val auth: FirebaseAuth
+) : ViewModel() {
     
     var uiState by mutableStateOf(SearchUiState())
         private set
@@ -38,8 +53,22 @@ class SearchViewModel @Inject constructor() : ViewModel() {
             try {
                 uiState = uiState.copy(isLoading = true, error = null)
                 
-                // For now, return empty results. This will be implemented with real data later
-                val results = emptyList<SearchResult>()
+                val results = mutableListOf<SearchResult>()
+                val searchQuery = query.lowercase().trim()
+                
+                when (filter) {
+                    SearchFilter.ALL -> {
+                        // Search both expenses and groups
+                        results.addAll(searchExpenses(searchQuery, category, dateRange, sortBy))
+                        results.addAll(searchGroups(searchQuery))
+                    }
+                    SearchFilter.EXPENSES -> {
+                        results.addAll(searchExpenses(searchQuery, category, dateRange, sortBy))
+                    }
+                    SearchFilter.GROUPS -> {
+                        results.addAll(searchGroups(searchQuery))
+                    }
+                }
                 
                 uiState = uiState.copy(
                     isLoading = false,
@@ -52,6 +81,122 @@ class SearchViewModel @Inject constructor() : ViewModel() {
                 )
             }
         }
+    }
+
+    private suspend fun searchExpenses(
+        query: String,
+        category: String,
+        dateRange: String,
+        sortBy: SortOption
+    ): List<SearchResult> {
+        val results = mutableListOf<SearchResult>()
+        
+        try {
+            // Get user's groups first
+            val userGroups = groupService.getUserGroups().first()
+            
+            // Search expenses in each group
+            userGroups.forEach { group ->
+                val expenses = expenseRepository.getExpensesByGroupId(group.id)
+                
+                expenses.forEach { expense ->
+                    // Apply search filters
+                    if (matchesExpenseSearch(expense, query, category, dateRange)) {
+                        results.add(SearchResult.ExpenseResult(
+                            id = expense.id,
+                            description = expense.description,
+                            amount = expense.amount,
+                            date = formatDate(expense.date.toDate()),
+                            category = expense.category.name,
+                            groupName = group.name
+                        ))
+                    }
+                }
+            }
+            
+            // return results.sortedBy { it.name }
+            return results
+        } catch (e: Exception) {
+            // Return empty list if search fails
+            return emptyList()
+        }
+    }
+
+    private suspend fun searchGroups(query: String): List<SearchResult> {
+        val results = mutableListOf<SearchResult>()
+        
+        try {
+            val userGroups = groupService.getUserGroups().first()
+            
+            userGroups.forEach { group ->
+                if (group.name.lowercase().contains(query) || 
+                    group.description.lowercase().contains(query)) {
+                    results.add(SearchResult.GroupResult(
+                        id = group.id,
+                        name = group.name,
+                        memberCount = group.members.size,
+                        expenseCount = 0, // TODO: Calculate actual expense count
+                        balance = 0.0 // TODO: Calculate actual balance
+                    ))
+                }
+            }
+            
+            return results
+        } catch (e: Exception) {
+            return emptyList()
+        }
+    }
+
+    private fun matchesExpenseSearch(
+        expense: Expense,
+        query: String,
+        category: String,
+        dateRange: String
+    ): Boolean {
+        // Text search
+        val matchesText = expense.description.lowercase().contains(query) ||
+                         expense.notes.lowercase().contains(query)
+        
+        if (!matchesText) return false
+        
+        // Category filter
+        if (category != "All Categories") {
+            val expenseCategory = expense.category.name.replace("_", " ").capitalize()
+            if (expenseCategory != category) return false
+        }
+        
+        // Date range filter
+        if (dateRange != "All Time") {
+            val expenseDate = expense.date.toDate()
+            val currentDate = Date()
+            val calendar = Calendar.getInstance()
+            
+            when (dateRange) {
+                "Last 7 Days" -> {
+                    calendar.add(Calendar.DAY_OF_YEAR, -7)
+                    if (expenseDate.before(calendar.time)) return false
+                }
+                "Last 30 Days" -> {
+                    calendar.add(Calendar.DAY_OF_YEAR, -30)
+                    if (expenseDate.before(calendar.time)) return false
+                }
+                "Last 3 Months" -> {
+                    calendar.add(Calendar.MONTH, -3)
+                    if (expenseDate.before(calendar.time)) return false
+                }
+                "This Year" -> {
+                    calendar.set(Calendar.DAY_OF_YEAR, 1)
+                    if (expenseDate.before(calendar.time)) return false
+                }
+            }
+        }
+        
+        return true
+    }
+
+    private fun formatDate(date: Date): String {
+        val formatter = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+        return formatter.format(date)
     }
 
     fun clearSearch() {

@@ -1,32 +1,35 @@
-# Phase 1: Initial Survey - Fairr Android Codebase Analysis
+# Fairr Codebase Analysis - Phase 1: Initial Survey
 
 ## Project Overview
 
-**Fairr** is a modern Android group expense management application built with Kotlin and Jetpack Compose. The app helps users track shared expenses and automatically calculate balances between group members.
+**Fairr** is a modern Android group expense management application built with Kotlin and Jetpack Compose. The app enables users to track shared expenses, manage groups, and automatically calculate balances between members.
 
-### Key Project Information
+### Key Project Details
 - **Language**: Kotlin
 - **UI Framework**: Jetpack Compose with Material 3
-- **Architecture**: MVVM with Clean Architecture
+- **Architecture**: MVVM with Clean Architecture principles
 - **Backend**: Firebase (Authentication, Firestore, Storage)
-- **Version**: 0.2.0 (Beta)
-- **Target SDK**: 34 (Android 14)
+- **Dependency Injection**: Hilt
 - **Minimum SDK**: 24 (Android 7.0)
+- **Target SDK**: 34 (Android 14)
+- **Version**: 1.0 (versionCode: 1)
 
-## Project Structure Overview
+## Project Structure
 
-### Root Level Structure
+### Root Directory Layout
 ```
 Fairr/
 ├── app/                    # Main Android application module
-├── Docu/                   # Documentation folder
-├── build.gradle.kts        # Root build configuration
+├── Docu/                   # Project documentation
+├── Fairr/                  # Additional project files
+├── gradle/                 # Gradle wrapper and configuration
+├── build.gradle.kts        # Root project build configuration
+├── settings.gradle.kts     # Project settings
 ├── firebase.json           # Firebase configuration
 ├── firestore.indexes.json  # Firestore database indexes
-├── gradle/                 # Gradle wrapper and version catalog
-├── gradle.properties       # Gradle properties
-├── local.properties        # Local development properties
-└── README.md              # Project documentation
+├── README.md               # Project documentation
+├── Notes.txt               # Development notes and TODO items
+└── Android logcat.text     # Debug logs
 ```
 
 ### Main Application Structure (`app/`)
@@ -34,135 +37,133 @@ Fairr/
 app/
 ├── build.gradle.kts        # App-level build configuration
 ├── google-services.json    # Firebase configuration
-├── proguard-rules.pro      # ProGuard rules
+├── proguard-rules.pro      # Code obfuscation rules
 └── src/main/
-    ├── AndroidManifest.xml # App manifest
-    ├── assets/             # Static assets (SVG files)
+    ├── AndroidManifest.xml # App manifest and permissions
     ├── firestore.rules     # Firestore security rules
-    └── java/com/example/fairr/
-        ├── data/           # Data layer
-        ├── di/             # Dependency injection
-        ├── FairrApplication.kt  # Application class
-        ├── MainActivity.kt      # Main activity
-        ├── models/         # UI models
-        ├── navigation/     # Navigation components
-        ├── ui/            # UI layer
-        ├── util/          # Utility classes
-        └── utils/         # Additional utilities
+    ├── assets/             # Static assets
+    ├── java/com/example/fairr/
+    │   ├── data/           # Data layer (repositories, services)
+    │   ├── di/             # Dependency injection modules
+    │   ├── navigation/     # Navigation configuration
+    │   ├── ui/             # UI layer (screens, components, themes)
+    │   ├── util/           # Utility classes
+    │   ├── utils/          # Additional utilities
+    │   ├── models/         # UI models
+    │   ├── MainActivity.kt # Main entry point
+    │   └── FairrApplication.kt # Application class
+    └── res/                # Android resources
 ```
 
-## Key Entry Points
+## Primary Entry Points
 
 ### 1. Application Entry Point
-- **`FairrApplication.kt`**: Hilt-enabled application class that initializes Firebase
+- **`FairrApplication.kt`**: Hilt-enabled Application class that initializes Firebase
 - **`MainActivity.kt`**: Main activity that sets up Compose content and navigation
 
 ### 2. Navigation Structure
-- **`FairrNavGraph.kt`**: Central navigation definition with 30+ routes
-- **`Screen.kt`**: Sealed class defining all navigation routes
-- **Main navigation flows**:
-  - Authentication: Welcome → Login/SignUp → Main
-  - Onboarding: Splash → Onboarding → Welcome
-  - Main App: Main (with tabs) → Feature screens
+- **`FairrNavGraph.kt`**: Central navigation definition with 30+ screen routes
+- **Navigation Pattern**: Uses Navigation Compose with parameterized routes for dynamic navigation
 
-### 3. Core Feature Areas
-Based on the navigation structure, the app has these main feature areas:
+### 3. Key Screen Categories
+- **Authentication**: Welcome, Login, SignUp, ForgotPassword, AccountVerification
+- **Onboarding**: OnboardingScreen
+- **Main App**: MainScreen (tabbed interface)
+- **Groups**: CreateGroup, JoinGroup, GroupDetail, GroupSettings, GroupActivity
+- **Expenses**: AddExpense, EditExpense, ExpenseDetail
+- **Settlements**: Settlement, SettlementsOverview
+- **Profile & Settings**: Settings, EditProfile, UserProfile, CurrencySelection
+- **Support**: HelpSupport, PrivacyPolicy, ContactSupport
 
-#### Authentication & Onboarding
-- Welcome screen
-- Login/SignUp screens
-- Onboarding flow
-- Account verification
+## Architectural Patterns
 
-#### Main Application Features
-- **Home**: Dashboard with recent activity
-- **Groups**: Group management (create, join, detail, settings)
-- **Expenses**: Expense tracking (add, edit, detail)
-- **Analytics**: Data visualization and insights
-- **Profile**: User profile management
-- **Settings**: App configuration
+### 1. Clean Architecture Implementation
+The project follows Clean Architecture with clear separation of concerns:
 
-#### Supporting Features
-- **Friends**: Friend management
-- **Settlements**: Balance settlement
-- **Search**: Global search functionality
-- **Notifications**: Push notification management
-- **Support**: Help and support screens
+- **Data Layer** (`data/`): Handles data operations, repositories, and external services
+- **Domain Layer**: Business logic and use cases (implied by structure)
+- **Presentation Layer** (`ui/`): UI components, screens, and ViewModels
 
-## Technology Stack Analysis
+### 2. MVVM Pattern
+- ViewModels are used for state management
+- UI state is observed through Compose state collection
+- Clear separation between UI logic and business logic
 
-### Core Dependencies
-- **UI**: Jetpack Compose BOM (2024.02.00), Material 3
-- **Navigation**: Navigation Compose (2.7.7)
-- **Dependency Injection**: Hilt (2.50)
-- **Firebase**: Firebase BOM (32.7.4) with Auth, Firestore, Analytics
-- **Google Services**: Google Sign-In (20.7.0)
-- **Data Storage**: DataStore Preferences (1.0.0)
-- **Image Loading**: Coil (2.5.0)
-- **Charts**: Vico Charts (1.13.1)
-- **ML Kit**: Text recognition (16.0.0)
+### 3. Dependency Injection
+- **Hilt** is used for dependency injection
+- Modules are organized in `di/` directory
+- ViewModels are injected using `@HiltViewModel`
 
-### Architecture Components
-- **MVVM**: ViewModels with Compose integration
-- **Clean Architecture**: Separated data, domain, and presentation layers
-- **Repository Pattern**: Abstracted data access
-- **Dependency Injection**: Hilt for service management
+## Key Dependencies
 
-## Data Layer Structure
+### Core Android & Compose
+- Jetpack Compose BOM (2024.02.00)
+- Material 3 components
+- Navigation Compose
+- Lifecycle ViewModel Compose
+- Coroutines for async operations
 
-The data layer is organized by feature domains:
-```
-data/
-├── auth/           # Authentication services
-├── expenses/       # Expense management
-├── friends/        # Friend management
-├── groups/         # Group management
-├── model/          # Data models
-├── notifications/  # Notification services
-├── preferences/    # User preferences
-├── repository/     # Repository implementations
-└── settlements/    # Settlement calculations
-```
+### Firebase Integration
+- Firebase BOM (32.7.4)
+- Authentication, Firestore, Storage, Analytics
+- Google Sign-In integration
 
-## UI Layer Structure
+### UI & UX Libraries
+- Accompanist (system UI controller, swipe refresh, permissions)
+- Vico charts for data visualization
+- Coil for image loading
+- ML Kit for text recognition
 
-The UI layer follows a feature-based organization:
-```
-ui/
-├── components/     # Reusable UI components
-├── model/          # UI-specific models
-├── screen/         # Screen-specific ViewModels
-├── screens/        # Screen implementations (by feature)
-├── theme/          # Theme and styling
-└── viewmodels/     # Shared ViewModels
-```
+### Testing
+- JUnit, Mockito, Turbine for unit testing
+- Compose UI testing
+- Coroutines testing utilities
 
-## Key Observations
+## Documentation & Notes
 
-### Strengths
-1. **Modern Architecture**: Uses latest Android development practices
-2. **Feature Organization**: Clear separation of concerns by feature
-3. **Comprehensive Navigation**: Well-structured navigation with parameterized routes
-4. **Rich Feature Set**: Covers all aspects of group expense management
-5. **Security Focus**: Firebase security rules and authentication
+### Existing Documentation
+- **`README.md`**: Comprehensive project overview with setup instructions
+- **`Docu/`**: Organized documentation structure with analysis steps
+- **`Notes.txt`**: Development notes with TODO items and known issues
 
-### Areas for Investigation
-1. **Data Models**: Need to examine the data models and their relationships
-2. **Business Logic**: Understand the expense splitting and settlement algorithms
-3. **State Management**: How ViewModels handle complex state
-4. **Error Handling**: Error handling patterns across the app
-5. **Testing**: Current testing strategy and coverage
+### Key Issues Identified (from Notes.txt)
+1. Session persistence issues (auto-login after sign out)
+2. UI/UX improvements needed (navigation bar spacing, transitions)
+3. Data flow validation required (group creation → expense recording → settlement)
+4. Feature completeness review needed
+5. Currency handling inconsistencies (PHP vs USD defaults)
 
-## Next Steps
+## Development Environment
 
-**Phase 2: High-Level Architecture** will focus on:
-- Detailed examination of the architectural layers
-- Data flow analysis
-- Key dependencies and integrations
-- Service layer organization
+### Build Configuration
+- **Kotlin Version**: 1.9.22
+- **Compose Compiler**: 1.5.8
+- **Java Version**: 17
+- **Gradle**: Kotlin DSL
+
+### Permissions & Features
+- Camera access for receipt scanning
+- Storage permissions for file handling
+- Notification permissions
+- Biometric authentication support
+
+## Next Steps for Analysis
+
+Based on this initial survey, the following phases will focus on:
+
+1. **High-Level Architecture**: Deep dive into data flow, service interactions, and module relationships
+2. **Core Features and Flows**: Analysis of user journeys and feature implementations
+3. **Detailed Component Analysis**: Examination of individual modules and their responsibilities
+4. **Data Models and Persistence**: Understanding data structures and storage mechanisms
+5. **Testing and Quality**: Review of testing strategy and code quality
+6. **Build and Deployment**: Analysis of build process and configuration
 
 ## Summary
 
-Fairr is a well-structured, modern Android application with a comprehensive feature set for group expense management. The codebase follows current best practices with Jetpack Compose, Clean Architecture, and Firebase backend. The navigation structure suggests a mature application with 30+ screens covering authentication, core features, and supporting functionality.
+Fairr is a well-structured Android application following modern development practices. The codebase demonstrates:
+- Clear architectural separation with Clean Architecture principles
+- Comprehensive feature set for group expense management
+- Modern Android development stack (Compose, Hilt, Firebase)
+- Organized documentation and development notes
 
-The project appears to be in active development (Beta version 0.2.0) with a clear roadmap for future features like receipt management. 
+The project shows signs of active development with identified areas for improvement, particularly around session management, UI/UX refinements, and data flow validation. 
