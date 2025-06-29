@@ -25,6 +25,27 @@ import javax.inject.Inject
 
 private const val TAG = "GroupDetailViewModel"
 
+// Activity types for group feed
+enum class ActivityType {
+    EXPENSE_ADDED,
+    MEMBER_JOINED,
+    MEMBER_LEFT,
+    EXPENSE_SETTLED,
+    GROUP_CREATED
+}
+
+data class GroupActivity(
+    val id: String,
+    val type: ActivityType,
+    val title: String,
+    val description: String,
+    val timestamp: com.google.firebase.Timestamp,
+    val userId: String? = null,
+    val userName: String? = null,
+    val expenseId: String? = null,
+    val amount: Double? = null
+)
+
 sealed interface GroupDetailUiState {
     object Loading : GroupDetailUiState
     data class Success(
@@ -32,7 +53,8 @@ sealed interface GroupDetailUiState {
         val members: List<UiGroupMember>,
         val currentUserBalance: Double = 0.0,
         val totalExpenses: Double = 0.0,
-        val expenses: List<Expense> = emptyList()
+        val expenses: List<Expense> = emptyList(),
+        val activities: List<GroupActivity> = emptyList()
     ) : GroupDetailUiState
     data class Error(val message: String) : GroupDetailUiState
 }
@@ -67,6 +89,60 @@ class GroupDetailViewModel @Inject constructor(
         )
     }
 
+    private fun generateActivities(group: Group, expenses: List<Expense>): List<GroupActivity> {
+        val activities = mutableListOf<GroupActivity>()
+        
+        // Add group creation activity
+        activities.add(
+            GroupActivity(
+                id = "group_created_${group.id}",
+                type = ActivityType.GROUP_CREATED,
+                title = "Group Created",
+                description = "${group.name} was created",
+                timestamp = group.createdAt,
+                userId = group.createdBy,
+                userName = group.members.find { it.userId == group.createdBy }?.name ?: "Unknown"
+            )
+        )
+        
+        // Add member join activities (based on joinedAt timestamps)
+        group.members.forEach { member ->
+            if (member.joinedAt != group.createdAt) { // Don't duplicate creation activity
+                activities.add(
+                    GroupActivity(
+                        id = "member_joined_${member.userId}_${member.joinedAt.seconds}",
+                        type = ActivityType.MEMBER_JOINED,
+                        title = "Member Joined",
+                        description = "${member.name} joined the group",
+                        timestamp = member.joinedAt,
+                        userId = member.userId,
+                        userName = member.name
+                    )
+                )
+            }
+        }
+        
+        // Add expense activities
+        expenses.forEach { expense ->
+            activities.add(
+                GroupActivity(
+                    id = "expense_added_${expense.id}",
+                    type = ActivityType.EXPENSE_ADDED,
+                    title = "Expense Added",
+                    description = "${expense.description} - ${expense.paidByName} paid ${expense.amount}",
+                    timestamp = expense.date,
+                    userId = expense.paidBy,
+                    userName = expense.paidByName,
+                    expenseId = expense.id,
+                    amount = expense.amount
+                )
+            )
+        }
+        
+        // Sort by timestamp (newest first) and limit to recent activities
+        return activities.sortedByDescending { it.timestamp.seconds }.take(20)
+    }
+
     fun refresh() {
         loadGroupDetails()
     }
@@ -79,6 +155,7 @@ class GroupDetailViewModel @Inject constructor(
                     .combine(expenseRepository.getExpensesByGroupIdFlow(groupId)) { group, expenses ->
                         val uiMembers = group.members.map { convertToUiMember(it) }
                         val totalExpenses = expenses.sumOf { it.amount }
+                        val activities = generateActivities(group, expenses)
 
                         val summary = settlementService.getSettlementSummary(groupId)
                         val currentUserId = auth.currentUser?.uid
@@ -89,7 +166,8 @@ class GroupDetailViewModel @Inject constructor(
                             members = uiMembers,
                             currentUserBalance = currentUserBalance,
                             totalExpenses = totalExpenses,
-                            expenses = expenses
+                            expenses = expenses,
+                            activities = activities
                         )
                     }
                     .catch { e ->
@@ -108,5 +186,18 @@ class GroupDetailViewModel @Inject constructor(
 
     fun formatDate(timestamp: com.google.firebase.Timestamp): String {
         return dateFormat.format(Date(timestamp.seconds * 1000))
+    }
+    
+    fun formatActivityDate(timestamp: com.google.firebase.Timestamp): String {
+        val now = System.currentTimeMillis() / 1000
+        val diff = now - timestamp.seconds
+        
+        return when {
+            diff < 60 -> "Just now"
+            diff < 3600 -> "${diff / 60}m ago"
+            diff < 86400 -> "${diff / 3600}h ago"
+            diff < 604800 -> "${diff / 86400}d ago"
+            else -> dateFormat.format(Date(timestamp.seconds * 1000))
+        }
     }
 } 

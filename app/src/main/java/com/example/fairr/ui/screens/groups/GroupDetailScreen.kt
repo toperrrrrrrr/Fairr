@@ -167,6 +167,31 @@ fun GroupDetailScreen(
                             )
                         }
                     }
+                    
+                    // Activity Feed Section
+                    if (uiState.activities.isNotEmpty()) {
+                        item {
+                            Text(
+                                text = "Recent Activity",
+                                style = MaterialTheme.typography.titleLarge,
+                                fontWeight = FontWeight.Bold,
+                                modifier = Modifier.padding(vertical = 8.dp)
+                            )
+                        }
+                        
+                        items(uiState.activities.take(10)) { activity ->
+                            ActivityCard(
+                                activity = activity,
+                                viewModel = viewModel,
+                                onClick = {
+                                    // Navigate to expense detail if it's an expense activity
+                                    activity.expenseId?.let { expenseId ->
+                                        navController.navigate(Screen.ExpenseDetail.createRoute(expenseId))
+                                    }
+                                }
+                            )
+                        }
+                    }
                 }
             }
         }
@@ -539,6 +564,96 @@ private fun QuickActionsSection(
                 },
                 modifier = Modifier.weight(1f)
             )
+        }
+    }
+}
+
+@Composable
+private fun ActivityCard(
+    activity: GroupActivity,
+    viewModel: GroupDetailViewModel,
+    onClick: () -> Unit = {},
+    modifier: Modifier = Modifier
+) {
+    ModernCard(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable(enabled = activity.expenseId != null) { onClick() }
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(12.dp),
+            horizontalArrangement = Arrangement.spacedBy(12.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Activity icon
+            Box(
+                modifier = Modifier
+                    .size(32.dp)
+                    .background(
+                        color = when (activity.type) {
+                            ActivityType.EXPENSE_ADDED -> Color(0xFF4CAF50)
+                            ActivityType.MEMBER_JOINED -> Color(0xFF2196F3)
+                            ActivityType.MEMBER_LEFT -> Color(0xFFFF5722)
+                            ActivityType.EXPENSE_SETTLED -> Color(0xFF9C27B0)
+                            ActivityType.GROUP_CREATED -> Color(0xFF607D8B)
+                        }.copy(alpha = 0.1f),
+                        shape = CircleShape
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = when (activity.type) {
+                        ActivityType.EXPENSE_ADDED -> Icons.Default.Receipt
+                        ActivityType.MEMBER_JOINED -> Icons.Default.PersonAdd
+                        ActivityType.MEMBER_LEFT -> Icons.Default.PersonRemove
+                        ActivityType.EXPENSE_SETTLED -> Icons.Default.CheckCircle
+                        ActivityType.GROUP_CREATED -> Icons.Default.Group
+                    },
+                    contentDescription = activity.title,
+                    tint = when (activity.type) {
+                        ActivityType.EXPENSE_ADDED -> Color(0xFF4CAF50)
+                        ActivityType.MEMBER_JOINED -> Color(0xFF2196F3)
+                        ActivityType.MEMBER_LEFT -> Color(0xFFFF5722)
+                        ActivityType.EXPENSE_SETTLED -> Color(0xFF9C27B0)
+                        ActivityType.GROUP_CREATED -> Color(0xFF607D8B)
+                    },
+                    modifier = Modifier.size(16.dp)
+                )
+            }
+            
+            // Activity content
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Text(
+                    text = activity.title,
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold
+                )
+                Text(
+                    text = activity.description,
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                Text(
+                    text = viewModel.formatActivityDate(activity.timestamp),
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    modifier = Modifier.padding(top = 2.dp)
+                )
+            }
+            
+            // Amount (if applicable)
+            activity.amount?.let { amount ->
+                Text(
+                    text = CurrencyFormatter.format("PHP", amount),
+                    style = MaterialTheme.typography.bodyMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.primary
+                )
+            }
         }
     }
 }

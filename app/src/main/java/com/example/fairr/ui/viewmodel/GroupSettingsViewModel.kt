@@ -18,7 +18,11 @@ data class GroupSettingsUiState(
     val error: String? = null,
     val showRemoveMemberDialog: Boolean = false,
     val memberToRemove: GroupMember? = null,
-    val showEditGroupDialog: Boolean = false
+    val showEditGroupDialog: Boolean = false,
+    val showPromoteMemberDialog: Boolean = false,
+    val memberToPromote: GroupMember? = null,
+    val showDemoteMemberDialog: Boolean = false,
+    val memberToDemote: GroupMember? = null
 )
 
 sealed class GroupSettingsEvent {
@@ -204,5 +208,67 @@ class GroupSettingsViewModel @Inject constructor(
 
     fun clearError() {
         _uiState.update { it.copy(error = null) }
+    }
+
+    fun showPromoteMemberDialog(member: GroupMember) {
+        _uiState.update {
+            it.copy(showPromoteMemberDialog = true, memberToPromote = member)
+        }
+    }
+
+    fun hidePromoteMemberDialog() {
+        _uiState.update {
+            it.copy(showPromoteMemberDialog = false, memberToPromote = null)
+        }
+    }
+
+    fun showDemoteMemberDialog(member: GroupMember) {
+        _uiState.update {
+            it.copy(showDemoteMemberDialog = true, memberToDemote = member)
+        }
+    }
+
+    fun hideDemoteMemberDialog() {
+        _uiState.update {
+            it.copy(showDemoteMemberDialog = false, memberToDemote = null)
+        }
+    }
+
+    fun promoteMember(member: GroupMember) {
+        viewModelScope.launch {
+            currentGroupId?.let { groupId ->
+                _uiState.update { it.copy(isLoading = true, showPromoteMemberDialog = false) }
+                when (val result = groupService.promoteToAdmin(groupId, member.userId)) {
+                    is GroupResult.Success -> {
+                        _uiState.update { it.copy(isLoading = false, memberToPromote = null) }
+                        _uiEvents.emit(GroupSettingsEvent.ShowSuccess("${member.name} is now an admin"))
+                        loadGroup(groupId)
+                    }
+                    is GroupResult.Error -> {
+                        _uiState.update { it.copy(isLoading = false, showPromoteMemberDialog = false, memberToPromote = null) }
+                        _uiEvents.emit(GroupSettingsEvent.ShowError(result.message))
+                    }
+                }
+            }
+        }
+    }
+
+    fun demoteMember(member: GroupMember) {
+        viewModelScope.launch {
+            currentGroupId?.let { groupId ->
+                _uiState.update { it.copy(isLoading = true, showDemoteMemberDialog = false) }
+                when (val result = groupService.demoteFromAdmin(groupId, member.userId)) {
+                    is GroupResult.Success -> {
+                        _uiState.update { it.copy(isLoading = false, memberToDemote = null) }
+                        _uiEvents.emit(GroupSettingsEvent.ShowSuccess("${member.name} is no longer an admin"))
+                        loadGroup(groupId)
+                    }
+                    is GroupResult.Error -> {
+                        _uiState.update { it.copy(isLoading = false, showDemoteMemberDialog = false, memberToDemote = null) }
+                        _uiEvents.emit(GroupSettingsEvent.ShowError(result.message))
+                    }
+                }
+            }
+        }
     }
 } 

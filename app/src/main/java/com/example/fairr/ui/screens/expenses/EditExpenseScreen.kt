@@ -1,10 +1,14 @@
 package com.example.fairr.ui.screens.expenses
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -30,8 +34,14 @@ import com.example.fairr.ui.theme.FairrTheme
 import com.example.fairr.ui.theme.Primary
 import com.example.fairr.ui.theme.Secondary
 import com.example.fairr.ui.theme.Surface
+import com.example.fairr.utils.PhotoUtils
+import java.io.File
 import java.text.SimpleDateFormat
 import java.util.*
+import android.app.Activity
+import android.content.Intent
+import android.provider.MediaStore
+import com.google.firebase.auth.FirebaseAuth
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -149,6 +159,7 @@ private fun EditExpenseContent(
     currencySymbol: String,
     modifier: Modifier = Modifier
 ) {
+    val context = LocalContext.current
     var description by remember { mutableStateOf(expense.description) }
     var amount by remember { mutableStateOf(expense.amount.toString()) }
     var selectedDate by remember { mutableStateOf(expense.date.toDate()) }
@@ -164,7 +175,8 @@ private fun EditExpenseContent(
     var showCategoryPicker by remember { mutableStateOf(false) }
     var showSplitTypePicker by remember { mutableStateOf(false) }
     var showPaidByPicker by remember { mutableStateOf(false) }
-
+    var showSplitManagementDialog by remember { mutableStateOf(false) }
+    
     LazyColumn(
         modifier = modifier.fillMaxSize(),
         contentPadding = PaddingValues(16.dp),
@@ -301,12 +313,21 @@ private fun EditExpenseContent(
 
         // Split Details
         item {
-            Text(
-                text = "Split Details",
-                fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
-                modifier = Modifier.padding(vertical = 8.dp)
-            )
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Split Details",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+                
+                TextButton(onClick = { showSplitManagementDialog = true }) {
+                    Text("Manage Splits")
+                }
+            }
         }
 
         items(splits) { split ->
@@ -457,6 +478,24 @@ private fun EditExpenseContent(
             }
         )
     }
+
+    // Split Management Dialog
+    if (showSplitManagementDialog) {
+        SplitManagementDialog(
+            splits = splits,
+            groupMembers = groupMembers,
+            splitType = selectedSplitType,
+            totalAmount = amount.toDoubleOrNull() ?: 0.0,
+            currencySymbol = currencySymbol,
+            onSplitsChanged = { updatedSplits ->
+                splits = updatedSplits
+            },
+            onSplitTypeChanged = { newSplitType ->
+                selectedSplitType = newSplitType
+            },
+            onDismiss = { showSplitManagementDialog = false }
+        )
+    }
 }
 
 @Composable
@@ -466,6 +505,7 @@ private fun SplitItem(
     onSplitChanged: (ExpenseSplit) -> Unit
 ) {
     val member = groupMembers.find { it.userId == split.userId }
+    var showEditDialog by remember { mutableStateOf(false) }
     
     Card(
         modifier = Modifier.fillMaxWidth(),
@@ -478,7 +518,7 @@ private fun SplitItem(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
+            Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = member?.name ?: "Unknown",
                     fontWeight = FontWeight.Medium
@@ -490,9 +530,97 @@ private fun SplitItem(
                 )
             }
             
-            // Add more split editing controls here if needed
+            // Edit button
+            IconButton(onClick = { showEditDialog = true }) {
+                Icon(
+                    Icons.Default.Edit,
+                    contentDescription = "Edit split",
+                    tint = Primary
+                )
+            }
         }
     }
+    
+    // Split Edit Dialog
+    if (showEditDialog) {
+        SplitEditDialog(
+            split = split,
+            member = member,
+            onSplitChanged = { updatedSplit ->
+                onSplitChanged(updatedSplit)
+                showEditDialog = false
+            },
+            onDismiss = { showEditDialog = false }
+        )
+    }
+}
+
+@Composable
+private fun SplitEditDialog(
+    split: ExpenseSplit,
+    member: GroupMember?,
+    onSplitChanged: (ExpenseSplit) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var amountText by remember { mutableStateOf(split.share.toString()) }
+    var isPaid by remember { mutableStateOf(split.isPaid) }
+    
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Edit Split for ${member?.name ?: "Unknown"}") },
+        text = {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Amount input
+                OutlinedTextField(
+                    value = amountText,
+                    onValueChange = { amountText = it },
+                    label = { Text("Amount") },
+                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth()
+                )
+                
+                // Paid status toggle
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Mark as paid",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Switch(
+                        checked = isPaid,
+                        onCheckedChange = { isPaid = it }
+                    )
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    val amount = amountText.toDoubleOrNull() ?: split.share
+                    onSplitChanged(
+                        split.copy(
+                            share = amount,
+                            isPaid = isPaid
+                        )
+                    )
+                }
+            ) {
+                Text("Save")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
 }
 
 @Composable
@@ -548,4 +676,299 @@ private fun RecurrenceRuleSelector(
             singleLine = true
         )
     }
-} 
+}
+
+@Composable
+private fun SplitManagementDialog(
+    splits: List<ExpenseSplit>,
+    groupMembers: List<GroupMember>,
+    splitType: String,
+    totalAmount: Double,
+    currencySymbol: String,
+    onSplitsChanged: (List<ExpenseSplit>) -> Unit,
+    onSplitTypeChanged: (String) -> Unit,
+    onDismiss: () -> Unit
+) {
+    var currentSplitType by remember { mutableStateOf(splitType) }
+    var currentSplits by remember { mutableStateOf(splits) }
+    var errorMessage by remember { mutableStateOf<String?>(null) }
+    
+    val splitTypes = listOf("Equal Split", "Percentage", "Custom Amount")
+    
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Manage Splits") },
+        text = {
+            Column(
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Split Type Selection
+                Text(
+                    text = "Split Type",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                )
+                
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    splitTypes.forEach { type ->
+                        FilterChip(
+                            selected = currentSplitType == type,
+                            onClick = { 
+                                currentSplitType = type
+                                onSplitTypeChanged(type)
+                                // Recalculate splits based on new type
+                                currentSplits = recalculateSplits(
+                                    groupMembers = groupMembers,
+                                    splitType = type,
+                                    totalAmount = totalAmount,
+                                    currentSplits = currentSplits
+                                )
+                                onSplitsChanged(currentSplits)
+                            },
+                            label = { Text(type) }
+                        )
+                    }
+                }
+                
+                // Error message
+                errorMessage?.let { error ->
+                    Text(
+                        text = error,
+                        color = Color.Red,
+                        fontSize = 14.sp
+                    )
+                }
+                
+                // Split Details
+                Text(
+                    text = "Split Details",
+                    fontWeight = FontWeight.Bold,
+                    fontSize = 16.sp
+                )
+                
+                LazyColumn(
+                    modifier = Modifier.height(200.dp)
+                ) {
+                    items(currentSplits) { split ->
+                        val member = groupMembers.find { it.userId == split.userId }
+                        SplitEditRow(
+                            split = split,
+                            member = member,
+                            splitType = currentSplitType,
+                            totalAmount = totalAmount,
+                            currencySymbol = currencySymbol,
+                            onSplitChanged = { updatedSplit ->
+                                val updatedSplits = currentSplits.map { 
+                                    if (it.userId == updatedSplit.userId) updatedSplit else it 
+                                }
+                                currentSplits = updatedSplits
+                                
+                                // Validate splits
+                                val validationError = validateSplits(
+                                    splits = updatedSplits,
+                                    splitType = currentSplitType,
+                                    totalAmount = totalAmount
+                                )
+                                errorMessage = validationError
+                                
+                                if (validationError == null) {
+                                    onSplitsChanged(updatedSplits)
+                                }
+                            }
+                        )
+                    }
+                }
+                
+                // Summary
+                val totalSplit = currentSplits.sumOf { it.share }
+                val difference = totalAmount - totalSplit
+                
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = if (kotlin.math.abs(difference) < 0.01) 
+                            Color.Green.copy(alpha = 0.1f) else Color.Red.copy(alpha = 0.1f)
+                    )
+                ) {
+                    Column(
+                        modifier = Modifier.padding(16.dp)
+                    ) {
+                        Text(
+                            text = "Summary",
+                            fontWeight = FontWeight.Bold
+                        )
+                        Text("Total Split: $currencySymbol${String.format("%.2f", totalSplit)}")
+                        Text("Difference: $currencySymbol${String.format("%.2f", difference)}")
+                    }
+                }
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    if (errorMessage == null) {
+                        onSplitsChanged(currentSplits)
+                        onDismiss()
+                    }
+                },
+                enabled = errorMessage == null
+            ) {
+                Text("Save")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+@Composable
+private fun SplitEditRow(
+    split: ExpenseSplit,
+    member: GroupMember?,
+    splitType: String,
+    totalAmount: Double,
+    currencySymbol: String,
+    onSplitChanged: (ExpenseSplit) -> Unit
+) {
+    var amountText by remember { mutableStateOf(split.share.toString()) }
+    var isPaid by remember { mutableStateOf(split.isPaid) }
+    
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(vertical = 4.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Member name
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = member?.name ?: "Unknown",
+                    fontWeight = FontWeight.Medium
+                )
+                if (splitType == "Percentage") {
+                    val percentage = if (totalAmount > 0) (split.share / totalAmount) * 100 else 0.0
+                    Text(
+                        text = "${String.format("%.1f", percentage)}%",
+                        fontSize = 12.sp,
+                        color = Color.Gray
+                    )
+                }
+            }
+            
+            // Amount input
+            OutlinedTextField(
+                value = amountText,
+                onValueChange = { 
+                    amountText = it
+                    val newAmount = it.toDoubleOrNull() ?: split.share
+                    onSplitChanged(split.copy(share = newAmount))
+                },
+                label = { Text("Amount") },
+                keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                singleLine = true,
+                modifier = Modifier.width(120.dp),
+                prefix = { Text(currencySymbol) }
+            )
+            
+            Spacer(modifier = Modifier.width(8.dp))
+            
+            // Paid toggle
+            Switch(
+                checked = isPaid,
+                onCheckedChange = { 
+                    isPaid = it
+                    onSplitChanged(split.copy(isPaid = it))
+                }
+            )
+        }
+    }
+}
+
+private fun recalculateSplits(
+    groupMembers: List<GroupMember>,
+    splitType: String,
+    totalAmount: Double,
+    currentSplits: List<ExpenseSplit>
+): List<ExpenseSplit> {
+    return when (splitType) {
+        "Equal Split" -> {
+            val equalAmount = if (groupMembers.isNotEmpty()) totalAmount / groupMembers.size else 0.0
+            groupMembers.map { member ->
+                currentSplits.find { it.userId == member.userId }?.copy(share = equalAmount)
+                    ?: ExpenseSplit(
+                        userId = member.userId,
+                        userName = member.name,
+                        share = equalAmount,
+                        isPaid = false
+                    )
+            }
+        }
+        "Percentage" -> {
+            // Keep current amounts but ensure they sum to total
+            val totalCurrent = currentSplits.sumOf { it.share }
+            if (totalCurrent > 0) {
+                currentSplits.map { split ->
+                    val percentage = split.share / totalCurrent
+                    split.copy(share = percentage * totalAmount)
+                }
+            } else {
+                // Equal split if no current amounts
+                val equalAmount = if (groupMembers.isNotEmpty()) totalAmount / groupMembers.size else 0.0
+                groupMembers.map { member ->
+                    currentSplits.find { it.userId == member.userId }?.copy(share = equalAmount)
+                        ?: ExpenseSplit(
+                            userId = member.userId,
+                            userName = member.name,
+                            share = equalAmount,
+                            isPaid = false
+                        )
+                }
+            }
+        }
+        "Custom Amount" -> {
+            // Keep current amounts as custom amounts
+            currentSplits
+        }
+        else -> currentSplits
+    }
+}
+
+private fun validateSplits(
+    splits: List<ExpenseSplit>,
+    splitType: String,
+    totalAmount: Double
+): String? {
+    val totalSplit = splits.sumOf { it.share }
+    
+    return when (splitType) {
+        "Equal Split" -> {
+            if (splits.isEmpty()) "No members to split between"
+            else null
+        }
+        "Percentage" -> {
+            val totalPercentage = if (totalAmount > 0) (totalSplit / totalAmount) * 100 else 0.0
+            when {
+                totalPercentage < 99.9 -> "Total percentage must be 100% (currently ${String.format("%.1f", totalPercentage)}%)"
+                totalPercentage > 100.1 -> "Total percentage cannot exceed 100% (currently ${String.format("%.1f", totalPercentage)}%)"
+                else -> null
+            }
+        }
+        "Custom Amount" -> {
+            when {
+                totalSplit < totalAmount * 0.99 -> "Total custom amounts must equal the expense amount (currently ${String.format("%.2f", totalSplit)} vs ${String.format("%.2f", totalAmount)})"
+                totalSplit > totalAmount * 1.01 -> "Total custom amounts cannot exceed the expense amount (currently ${String.format("%.2f", totalSplit)} vs ${String.format("%.2f", totalAmount)})"
+                else -> null
+            }
+        }
+        else -> null
+    }
+}

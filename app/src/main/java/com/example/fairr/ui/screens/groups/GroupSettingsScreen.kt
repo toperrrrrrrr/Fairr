@@ -34,6 +34,7 @@ import com.example.fairr.data.model.GroupRole
 import com.example.fairr.ui.viewmodel.GroupSettingsEvent
 import com.example.fairr.ui.viewmodel.GroupSettingsViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
+import com.google.firebase.auth.FirebaseAuth
 
 @Composable
 private fun DetailItem(
@@ -193,6 +194,8 @@ fun GroupSettingsScreen(
                     member = member,
                     isUserAdmin = group.isUserAdmin,
                     onRemoveMember = { viewModel.showRemoveMemberDialog(it) },
+                    onPromote = { viewModel.showPromoteMemberDialog(it) },
+                    onDemote = { viewModel.showDemoteMemberDialog(it) },
                     modifier = Modifier.padding(horizontal = 16.dp)
                 )
             }
@@ -353,6 +356,62 @@ fun GroupSettingsScreen(
             }
         )
     }
+
+    // Promote Member Dialog
+    if (uiState.showPromoteMemberDialog && uiState.memberToPromote != null) {
+        AlertDialog(
+            onDismissRequest = { viewModel.hidePromoteMemberDialog() },
+            title = { Text("Promote to Admin") },
+            text = {
+                Text(
+                    "Are you sure you want to promote ${uiState.memberToPromote?.name} to admin?",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        uiState.memberToPromote?.let { viewModel.promoteMember(it) }
+                    }
+                ) {
+                    Text("Promote")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.hidePromoteMemberDialog() }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
+
+    // Demote Member Dialog
+    if (uiState.showDemoteMemberDialog && uiState.memberToDemote != null) {
+        AlertDialog(
+            onDismissRequest = { viewModel.hideDemoteMemberDialog() },
+            title = { Text("Demote from Admin") },
+            text = {
+                Text(
+                    "Are you sure you want to demote ${uiState.memberToDemote?.name} from admin?",
+                    style = MaterialTheme.typography.bodyMedium
+                )
+            },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        uiState.memberToDemote?.let { viewModel.demoteMember(it) }
+                    }
+                ) {
+                    Text("Demote")
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { viewModel.hideDemoteMemberDialog() }) {
+                    Text("Cancel")
+                }
+            }
+        )
+    }
 }
 
 @Composable
@@ -360,8 +419,12 @@ fun MemberCard(
     member: GroupMember,
     isUserAdmin: Boolean,
     onRemoveMember: (GroupMember) -> Unit,
+    onPromote: (GroupMember) -> Unit = {},
+    onDemote: (GroupMember) -> Unit = {},
     modifier: Modifier = Modifier
 ) {
+    val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
+    
     Card(
         modifier = modifier.fillMaxWidth(),
         colors = CardDefaults.cardColors(
@@ -376,23 +439,59 @@ fun MemberCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Column {
-                Text(
-                    text = member.name,
-                    style = MaterialTheme.typography.titleMedium
-                )
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = member.name,
+                        style = MaterialTheme.typography.titleMedium
+                    )
+                    if (member.role == GroupRole.ADMIN) {
+                        Spacer(modifier = Modifier.width(6.dp))
+                        Text(
+                            text = "Admin",
+                            color = MaterialTheme.colorScheme.primary,
+                            style = MaterialTheme.typography.labelMedium,
+                            modifier = Modifier
+                                .background(
+                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                    shape = RoundedCornerShape(6.dp)
+                                )
+                                .padding(horizontal = 6.dp, vertical = 2.dp)
+                        )
+                    }
+                }
                 Text(
                     text = member.email,
                     style = MaterialTheme.typography.bodyMedium,
                     color = MaterialTheme.colorScheme.onSurfaceVariant
                 )
             }
-            if (isUserAdmin && member.role != GroupRole.ADMIN) {
-                IconButton(onClick = { onRemoveMember(member) }) {
-                    Icon(
-                        Icons.Default.PersonRemove,
-                        contentDescription = "Remove Member",
-                        tint = MaterialTheme.colorScheme.error
-                    )
+            Row {
+                if (isUserAdmin && member.role != GroupRole.ADMIN) {
+                    IconButton(onClick = { onPromote(member) }) {
+                        Icon(
+                            Icons.Default.Star,
+                            contentDescription = "Promote to Admin",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+                if (isUserAdmin && member.role == GroupRole.ADMIN && member.userId != currentUserId) {
+                    IconButton(onClick = { onDemote(member) }) {
+                        Icon(
+                            Icons.Default.StarOutline,
+                            contentDescription = "Demote from Admin",
+                            tint = MaterialTheme.colorScheme.primary
+                        )
+                    }
+                }
+                if (isUserAdmin && member.role != GroupRole.ADMIN) {
+                    IconButton(onClick = { onRemoveMember(member) }) {
+                        Icon(
+                            Icons.Default.PersonRemove,
+                            contentDescription = "Remove Member",
+                            tint = MaterialTheme.colorScheme.error
+                        )
+                    }
                 }
             }
         }

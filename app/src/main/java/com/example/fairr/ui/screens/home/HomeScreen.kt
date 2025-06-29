@@ -37,6 +37,9 @@ import com.example.fairr.util.CurrencyFormatter
 import androidx.compose.material.ExperimentalMaterialApi
 import com.example.fairr.navigation.Screen
 import com.example.fairr.data.model.RecurrenceRule
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -520,5 +523,7 @@ private fun QuickActionCard(
         }
     }
 }
+
+
 
 

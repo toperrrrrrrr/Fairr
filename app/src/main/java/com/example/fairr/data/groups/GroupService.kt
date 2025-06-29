@@ -495,4 +495,28 @@ class GroupService @Inject constructor(
             GroupResult.Error(e.message ?: "Failed to update group")
         }
     }
+
+    suspend fun promoteToAdmin(groupId: String, userId: String): GroupResult {
+        return try {
+            val groupDoc = groupsCollection.document(groupId)
+            val memberField = "members.$userId.isAdmin"
+            groupDoc.update(memberField, true).await()
+            GroupResult.Success(groupId)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error promoting member to admin", e)
+            GroupResult.Error(e.message ?: "Failed to promote member to admin")
+        }
+    }
+
+    suspend fun demoteFromAdmin(groupId: String, userId: String): GroupResult {
+        return try {
+            val groupDoc = groupsCollection.document(groupId)
+            val memberField = "members.$userId.isAdmin"
+            groupDoc.update(memberField, false).await()
+            GroupResult.Success(groupId)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error demoting member from admin", e)
+            GroupResult.Error(e.message ?: "Failed to demote member from admin")
+        }
+    }
 } 
