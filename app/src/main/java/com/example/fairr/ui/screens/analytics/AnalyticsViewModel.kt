@@ -260,7 +260,7 @@ class AnalyticsViewModel @Inject constructor(
         val insights = mutableListOf<String>()
         
         if (overallStats.totalExpenses == 0) {
-            insights.add("No expenses found. Start adding expenses to see your spending patterns.")
+            insights.add("Start your expense tracking journey! Add your first expense to unlock powerful insights about your spending patterns and habits.")
             return insights
         }
         

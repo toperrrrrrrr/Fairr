@@ -252,7 +252,7 @@ fun AddExpenseScreen(
                     }
 
                     // Validate split-specific data
-                    val splitValidationError = validateSplitData(selectedSplitType, amountValue)
+                    val splitValidationError = validateSplitData(selectedSplitType, amountValue, state.groupMembers.map { it.toMap() })
                     if (splitValidationError != null) {
                         scope.launch {
                             snackbarHostState.showSnackbar(splitValidationError)
@@ -1120,28 +1120,17 @@ fun ReceiptPhotoCard(
     }
 }
 
-fun validateSplitData(splitType: String, amount: Double): String? {
-    return when (splitType) {
-        "Percentage" -> {
-            // TODO: Validate that percentages sum to 100% when percentage input UI is implemented
-            // amount parameter will be used to calculate total percentage validation
-            null
-        }
-        "Custom Amount" -> {
-            // TODO: Validate that amounts sum to the total expense amount when custom amount input UI is implemented
-            // amount parameter will be used to validate total custom amounts
-            null
-        }
-        else -> null
-    }
+// Extension function to convert MemberInfo to Map for validation
+fun MemberInfo.toMap(): Map<String, Any> {
+    return mapOf(
+        "userId" to userId,
+        "displayName" to displayName,
+        "percentage" to 0.0, // Default percentage for validation
+        "customAmount" to 0.0 // Default custom amount for validation
+    )
 }
 
-// Enhanced validation function for when split input UI is implemented
-fun validateSplitInputs(
-    splitType: String,
-    amount: Double,
-    memberSplits: List<Map<String, Any>>
-): String? {
+fun validateSplitData(splitType: String, amount: Double, memberSplits: List<Map<String, Any>>): String? {
     return when (splitType) {
         "Percentage" -> {
             val totalPercentage = memberSplits.sumOf { (it["percentage"] as? Number)?.toDouble() ?: 0.0 }

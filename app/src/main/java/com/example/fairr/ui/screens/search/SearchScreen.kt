@@ -4,6 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.LazyRow
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -20,6 +21,9 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.focus.FocusRequester
 import androidx.compose.ui.focus.focusRequester
 import androidx.compose.ui.platform.LocalSoftwareKeyboardController
+import androidx.compose.ui.semantics.contentDescription
+import androidx.compose.ui.semantics.heading
+import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.style.TextOverflow
@@ -31,6 +35,13 @@ import androidx.navigation.compose.rememberNavController
 import com.example.fairr.ui.theme.*
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.runtime.collectAsState
+import com.example.fairr.ui.components.FairrEmptyState
+import com.example.fairr.ui.components.FairrLoadingCard
+import com.example.fairr.util.CurrencyFormatter
+import com.example.fairr.ui.components.CategoryIcon
+import com.example.fairr.data.model.Group
+import com.example.fairr.data.model.Expense
+import java.util.Date
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -59,9 +70,11 @@ fun SearchScreen(
         focusRequester.requestFocus()
     }
 
-    // Search when query or filters change
+    // Search when query or filters change with debouncing
     LaunchedEffect(searchQuery, selectedFilter, selectedCategory, selectedDateRange, sortBy) {
-        viewModel.search(searchQuery, selectedFilter, selectedCategory, selectedDateRange, sortBy)
+        if (searchQuery.isNotBlank()) {
+            viewModel.search(searchQuery, selectedFilter, selectedCategory, selectedDateRange, sortBy)
+        }
     }
 
     Scaffold(
@@ -71,23 +84,70 @@ fun SearchScreen(
                     OutlinedTextField(
                         value = searchQuery,
                         onValueChange = { searchQuery = it },
-                        placeholder = { Text("Search expenses, groups...") },
+                        placeholder = { 
+                            Text(
+                                "Search expenses, groups...",
+                                color = TextSecondary.copy(alpha = 0.7f)
+                            )
+                        },
                         modifier = Modifier
                             .fillMaxWidth()
-                            .focusRequester(focusRequester),
+                            .focusRequester(focusRequester)
+                            .semantics {
+                                contentDescription = "Search field for expenses and groups"
+                            },
                         singleLine = true,
                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                         keyboardActions = KeyboardActions(
-                            onSearch = { keyboardController?.hide() }
+                            onSearch = { 
+                                keyboardController?.hide()
+                                if (searchQuery.isNotBlank()) {
+                                    viewModel.search(searchQuery, selectedFilter, selectedCategory, selectedDateRange, sortBy)
+                                }
+                            }
                         ),
                         colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = DarkGreen,
-                            focusedLabelColor = DarkGreen
+                            focusedBorderColor = Primary,
+                            focusedLabelColor = Primary,
+                            cursorColor = Primary
                         ),
+                        leadingIcon = {
+                            Icon(
+                                Icons.Default.Search,
+                                contentDescription = "Search",
+                                tint = TextSecondary.copy(alpha = 0.7f),
+                                modifier = Modifier.size(20.dp)
+                            )
+                        },
                         trailingIcon = {
-                            if (searchQuery.isNotEmpty()) {
-                                IconButton(onClick = { searchQuery = "" }) {
-                                    Icon(Icons.Default.Clear, contentDescription = "Clear")
+                            Row {
+                                if (uiState.isLoading) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier
+                                            .size(20.dp)
+                                            .semantics {
+                                                contentDescription = "Searching for results"
+                                            },
+                                        strokeWidth = 2.dp,
+                                        color = Primary
+                                    )
+                                }
+                                if (searchQuery.isNotEmpty()) {
+                                    IconButton(
+                                        onClick = { 
+                                            searchQuery = ""
+                                            viewModel.clearSearch()
+                                        },
+                                        modifier = Modifier.semantics {
+                                            contentDescription = "Clear search"
+                                        }
+                                    ) {
+                                        Icon(
+                                            Icons.Default.Clear, 
+                                            contentDescription = "Clear",
+                                            modifier = Modifier.size(18.dp)
+                                        )
+                                    }
                                 }
                             }
                         }
@@ -103,11 +163,16 @@ fun SearchScreen(
                     }
                 },
                 actions = {
-                    IconButton(onClick = { showFilters = !showFilters }) {
+                    IconButton(
+                        onClick = { showFilters = !showFilters },
+                        modifier = Modifier.semantics {
+                            contentDescription = if (showFilters) "Hide search filters" else "Show search filters"
+                        }
+                    ) {
                         Icon(
                             Icons.Default.FilterList,
-                            contentDescription = "Filters",
-                            tint = if (showFilters) DarkGreen else TextSecondary
+                            contentDescription = if (showFilters) "Hide Filters" else "Show Filters",
+                            tint = if (showFilters) Primary else TextSecondary
                         )
                     }
                 },
@@ -123,7 +188,7 @@ fun SearchScreen(
                 .background(LightBackground)
                 .padding(padding)
         ) {
-            // Filter Section
+            // Filter Section with accessibility
             if (showFilters) {
                 FilterSection(
                     selectedFilter = selectedFilter,
@@ -135,7 +200,10 @@ fun SearchScreen(
                     sortBy = sortBy,
                     onSortChange = { sortBy = it },
                     categories = categories,
-                    dateRanges = dateRanges
+                    dateRanges = dateRanges,
+                    modifier = Modifier.semantics {
+                        contentDescription = "Search filters: Filter type, category, date range, and sort options"
+                    }
                 )
             }
             
@@ -145,43 +213,183 @@ fun SearchScreen(
                 contentPadding = PaddingValues(16.dp),
                 verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                if (searchQuery.isNotEmpty()) {
+                // Loading state with accessibility
+                if (uiState.isLoading) {
                     item {
-                        Text(
-                            text = "${uiState.searchResults.size} results for \"$searchQuery\"",
-                            fontSize = 14.sp,
-                            color = TextSecondary,
-                            modifier = Modifier.padding(bottom = 8.dp)
+                        FairrLoadingCard(
+                            message = "Searching through your expenses and groups...",
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .semantics {
+                                    contentDescription = "Loading search results"
+                                }
                         )
                     }
                 }
-                
-                if (uiState.searchResults.isEmpty() && searchQuery.isNotEmpty()) {
+                // Error state with accessibility
+                else if (uiState.error != null) {
                     item {
-                        EmptySearchState(query = searchQuery)
-                    }
-                } else if (searchQuery.isEmpty()) {
-                    item {
-                        SearchSuggestionsState(
-                            onSuggestionClick = { suggestion -> searchQuery = suggestion }
-                        )
-                    }
-                } else {
-                    items(uiState.searchResults) { result: SearchResult ->
-                        when (result) {
-                            is SearchResult.ExpenseResult -> {
-                                ExpenseSearchCard(
-                                    expense = result,
-                                    onClick = { onNavigateToExpense(result.id) }
+                        Card(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .semantics {
+                                    contentDescription = "Search error: ${uiState.error}"
+                                },
+                            colors = CardDefaults.cardColors(containerColor = ErrorRed.copy(alpha = 0.1f))
+                        ) {
+                            Column(
+                                modifier = Modifier.padding(16.dp),
+                                horizontalAlignment = Alignment.CenterHorizontally
+                            ) {
+                                Icon(
+                                    Icons.Default.Error,
+                                    contentDescription = "Error",
+                                    tint = ErrorRed,
+                                    modifier = Modifier.size(32.dp)
                                 )
-                            }
-                            is SearchResult.GroupResult -> {
-                                GroupSearchCard(
-                                    group = result,
-                                    onClick = { onNavigateToGroup(result.id) }
+                                Spacer(modifier = Modifier.height(8.dp))
+                                Text(
+                                    text = "Search Failed",
+                                    style = MaterialTheme.typography.titleMedium,
+                                    color = ErrorRed
                                 )
+                                Text(
+                                    text = uiState.error,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    color = TextSecondary,
+                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                                )
+                                Spacer(modifier = Modifier.height(12.dp))
+                                Button(
+                                    onClick = { 
+                                        if (searchQuery.isNotBlank()) {
+                                            viewModel.search(searchQuery, selectedFilter, selectedCategory, selectedDateRange, sortBy)
+                                        }
+                                    },
+                                    colors = ButtonDefaults.buttonColors(containerColor = ErrorRed),
+                                    modifier = Modifier.semantics {
+                                        contentDescription = "Retry search"
+                                    }
+                                ) {
+                                    Text("Retry")
+                                }
                             }
                         }
+                    }
+                }
+                // Empty state
+                else if (searchQuery.isNotBlank() && uiState.searchResults.isEmpty()) {
+                    item {
+                        FairrEmptyState(
+                            title = "No Results Found",
+                            message = "Try adjusting your search terms or filters to find what you're looking for.",
+                            actionText = "Clear Filters",
+                            onActionClick = { 
+                                selectedFilter = SearchFilter.ALL
+                                selectedCategory = "All Categories"
+                                selectedDateRange = "All Time"
+                                sortBy = SortOption.DATE_DESC
+                            },
+                            icon = Icons.Default.SearchOff,
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .semantics {
+                                    contentDescription = "No search results found for '$searchQuery'. Try adjusting your search terms or clearing filters."
+                                }
+                        )
+                    }
+                }
+                // Success state with results
+                else if (searchQuery.isNotBlank() && uiState.searchResults.isNotEmpty()) {
+                    // Summary header
+                    item {
+                        val totalResults = uiState.searchResults.size
+                        Text(
+                            text = "Found $totalResults results for \"$searchQuery\"",
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = TextPrimary,
+                            modifier = Modifier
+                                .padding(vertical = 8.dp)
+                                .semantics {
+                                    contentDescription = "Search results: $totalResults items found for $searchQuery"
+                                    heading()
+                                }
+                        )
+                    }
+
+                    // Group results
+                    val groupResults = uiState.searchResults.filterIsInstance<SearchResult.GroupResult>()
+                    if (groupResults.isNotEmpty()) {
+                        item {
+                            Text(
+                                text = "Groups (${groupResults.size})",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = TextSecondary,
+                                modifier = Modifier
+                                    .padding(top = 16.dp, bottom = 8.dp)
+                                    .semantics {
+                                        heading()
+                                        contentDescription = "Groups section, ${groupResults.size} groups found"
+                                    }
+                            )
+                        }
+                        
+                        items(groupResults) { groupResult ->
+                            GroupSearchResultCardOld(
+                                groupResult = groupResult,
+                                searchQuery = searchQuery,
+                                onClick = { onNavigateToGroup(groupResult.id) },
+                                modifier = Modifier.semantics {
+                                    contentDescription = "Group result: ${groupResult.name}, ${groupResult.memberCount} members. Tap to view group details."
+                                }
+                            )
+                        }
+                    }
+
+                    // Expense results
+                    val expenseResults = uiState.searchResults.filterIsInstance<SearchResult.ExpenseResult>()
+                    if (expenseResults.isNotEmpty()) {
+                        item {
+                            Text(
+                                text = "Expenses (${expenseResults.size})",
+                                style = MaterialTheme.typography.titleSmall,
+                                fontWeight = FontWeight.SemiBold,
+                                color = TextSecondary,
+                                modifier = Modifier
+                                    .padding(top = 16.dp, bottom = 8.dp)
+                                    .semantics {
+                                        heading()
+                                        contentDescription = "Expenses section, ${expenseResults.size} expenses found"
+                                    }
+                            )
+                        }
+                        
+                        items(expenseResults) { expenseResult ->
+                            ExpenseSearchResultCardOld(
+                                expenseResult = expenseResult,
+                                searchQuery = searchQuery,
+                                onClick = { onNavigateToExpense(expenseResult.id) },
+                                modifier = Modifier.semantics {
+                                    contentDescription = "Expense result: ${expenseResult.description}, ${CurrencyFormatter.format("USD", expenseResult.amount)}, in group ${expenseResult.groupName}. Tap to view expense details."
+                                }
+                            )
+                        }
+                    }
+                }
+                // Initial state with search suggestions
+                else if (searchQuery.isEmpty()) {
+                    item {
+                        SearchSuggestionsSection(
+                            onSuggestionClick = { suggestion ->
+                                searchQuery = suggestion
+                                viewModel.search(suggestion, selectedFilter, selectedCategory, selectedDateRange, sortBy)
+                            },
+                            modifier = Modifier.semantics {
+                                contentDescription = "Search suggestions and recent searches"
+                            }
+                        )
                     }
                 }
             }
@@ -201,10 +409,11 @@ fun FilterSection(
     sortBy: SortOption,
     onSortChange: (SortOption) -> Unit,
     categories: List<String>,
-    dateRanges: List<String>
+    dateRanges: List<String>,
+    modifier: Modifier
 ) {
     Card(
-        modifier = Modifier
+        modifier = modifier
             .fillMaxWidth()
             .padding(horizontal = 16.dp, vertical = 8.dp)
             .shadow(1.dp, RoundedCornerShape(12.dp)),
@@ -361,9 +570,10 @@ fun ExpenseSearchCard(
         onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(1.dp, RoundedCornerShape(12.dp)),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = NeutralWhite)
+            .shadow(2.dp, RoundedCornerShape(16.dp)),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = NeutralWhite),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Row(
             modifier = Modifier
@@ -373,53 +583,89 @@ fun ExpenseSearchCard(
         ) {
             Box(
                 modifier = Modifier
-                    .size(40.dp)
-                    .background(DarkBlue.copy(alpha = 0.1f), CircleShape),
+                    .size(44.dp)
+                    .background(Primary.copy(alpha = 0.1f), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     Icons.Default.Receipt,
                     contentDescription = "Expense",
-                    tint = DarkBlue,
-                    modifier = Modifier.size(20.dp)
+                    tint = Primary,
+                    modifier = Modifier.size(22.dp)
                 )
             }
             
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(14.dp))
             
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = expense.description,
                     fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium,
+                    fontWeight = FontWeight.SemiBold,
                     color = TextPrimary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                Text(
-                    text = "${expense.groupName} • ${expense.date}",
-                    fontSize = 12.sp,
-                    color = TextSecondary
-                )
-                Text(
-                    text = expense.category,
-                    fontSize = 11.sp,
-                    color = DarkGreen,
-                    modifier = Modifier
-                        .background(
-                            DarkGreen.copy(alpha = 0.1f),
-                            RoundedCornerShape(4.dp)
-                        )
-                        .padding(horizontal = 6.dp, vertical = 2.dp)
-                )
+                
+                Spacer(modifier = Modifier.height(4.dp))
+                
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = expense.groupName,
+                        fontSize = 13.sp,
+                        color = TextSecondary,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Box(
+                        modifier = Modifier
+                            .size(3.dp)
+                            .background(TextSecondary.copy(alpha = 0.3f), CircleShape)
+                    )
+                    Text(
+                        text = expense.date,
+                        fontSize = 13.sp,
+                        color = TextSecondary
+                    )
+                }
+                
+                Spacer(modifier = Modifier.height(6.dp))
+                
+                Surface(
+                    color = Primary.copy(alpha = 0.1f),
+                    shape = RoundedCornerShape(6.dp),
+                    modifier = Modifier.wrapContentSize()
+                ) {
+                    Text(
+                        text = expense.category,
+                        fontSize = 11.sp,
+                        color = Primary,
+                        fontWeight = FontWeight.Medium,
+                        modifier = Modifier.padding(horizontal = 8.dp, vertical = 3.dp)
+                    )
+                }
             }
             
-            Text(
-                text = "$${String.format("%.2f", expense.amount)}",
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold,
-                color = TextPrimary
-            )
+            Spacer(modifier = Modifier.width(12.dp))
+            
+            Column(
+                horizontalAlignment = Alignment.End
+            ) {
+                Text(
+                    text = "₱${String.format("%.2f", expense.amount)}",
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary
+                )
+                Icon(
+                    Icons.Default.ChevronRight,
+                    contentDescription = "View Details",
+                    tint = TextSecondary.copy(alpha = 0.5f),
+                    modifier = Modifier.size(16.dp)
+                )
+            }
         }
     }
 }
@@ -434,9 +680,10 @@ fun GroupSearchCard(
         onClick = onClick,
         modifier = Modifier
             .fillMaxWidth()
-            .shadow(1.dp, RoundedCornerShape(12.dp)),
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = NeutralWhite)
+            .shadow(2.dp, RoundedCornerShape(16.dp)),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = NeutralWhite),
+        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp)
     ) {
         Row(
             modifier = Modifier
@@ -446,47 +693,77 @@ fun GroupSearchCard(
         ) {
             Box(
                 modifier = Modifier
-                    .size(40.dp)
-                    .background(DarkGreen.copy(alpha = 0.1f), CircleShape),
+                    .size(44.dp)
+                    .background(SuccessGreen.copy(alpha = 0.1f), CircleShape),
                 contentAlignment = Alignment.Center
             ) {
                 Icon(
                     Icons.Default.Group,
                     contentDescription = "Group",
-                    tint = DarkGreen,
-                    modifier = Modifier.size(20.dp)
+                    tint = SuccessGreen,
+                    modifier = Modifier.size(22.dp)
                 )
             }
             
-            Spacer(modifier = Modifier.width(12.dp))
+            Spacer(modifier = Modifier.width(14.dp))
             
             Column(modifier = Modifier.weight(1f)) {
                 Text(
                     text = group.name,
                     fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium,
+                    fontWeight = FontWeight.SemiBold,
                     color = TextPrimary,
                     maxLines = 1,
                     overflow = TextOverflow.Ellipsis
                 )
-                Text(
-                    text = "${group.memberCount} members • ${group.expenseCount} expenses",
-                    fontSize = 12.sp,
-                    color = TextSecondary
-                )
+                
+                Spacer(modifier = Modifier.height(4.dp))
+                
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    Text(
+                        text = "${group.memberCount} member${if (group.memberCount != 1) "s" else ""}",
+                        fontSize = 13.sp,
+                        color = TextSecondary,
+                        fontWeight = FontWeight.Medium
+                    )
+                    Box(
+                        modifier = Modifier
+                            .size(3.dp)
+                            .background(TextSecondary.copy(alpha = 0.3f), CircleShape)
+                    )
+                    Text(
+                        text = "${group.expenseCount} expense${if (group.expenseCount != 1) "s" else ""}",
+                        fontSize = 13.sp,
+                        color = TextSecondary
+                    )
+                }
             }
             
-            Column(horizontalAlignment = Alignment.End) {
+            Spacer(modifier = Modifier.width(12.dp))
+            
+            Column(
+                horizontalAlignment = Alignment.End
+            ) {
                 Text(
                     text = if (group.balance >= 0) "you get" else "you owe",
-                    fontSize = 10.sp,
-                    color = TextSecondary
+                    fontSize = 11.sp,
+                    color = TextSecondary,
+                    fontWeight = FontWeight.Medium
                 )
                 Text(
-                    text = "$${String.format("%.2f", kotlin.math.abs(group.balance))}",
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.SemiBold,
+                    text = "₱${String.format("%.2f", kotlin.math.abs(group.balance))}",
+                    fontSize = 15.sp,
+                    fontWeight = FontWeight.Bold,
                     color = if (group.balance >= 0) SuccessGreen else ErrorRed
+                )
+                Icon(
+                    Icons.Default.ChevronRight,
+                    contentDescription = "View Group",
+                    tint = TextSecondary.copy(alpha = 0.5f),
+                    modifier = Modifier.size(16.dp)
                 )
             }
         }
@@ -494,40 +771,7 @@ fun GroupSearchCard(
 }
 
 @Composable
-fun EmptySearchState(query: String) {
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(32.dp),
-        horizontalAlignment = Alignment.CenterHorizontally
-    ) {
-        Icon(
-            Icons.Default.SearchOff,
-            contentDescription = "No results",
-            modifier = Modifier.size(64.dp),
-            tint = PlaceholderText
-        )
-        
-        Spacer(modifier = Modifier.height(16.dp))
-        
-        Text(
-            text = "No results for \"$query\"",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Medium,
-            color = TextPrimary
-        )
-        
-        Text(
-            text = "Try adjusting your search or filters",
-            fontSize = 14.sp,
-            color = TextSecondary,
-            modifier = Modifier.padding(top = 4.dp)
-        )
-    }
-}
-
-@Composable
-fun SearchSuggestionsState(
+fun EnhancedSearchSuggestionsState(
     onSuggestionClick: (String) -> Unit
 ) {
     Column(
@@ -535,44 +779,161 @@ fun SearchSuggestionsState(
             .fillMaxWidth()
             .padding(16.dp)
     ) {
+        // Quick Search Section
         Text(
             text = "Quick Search",
-            fontSize = 16.sp,
-            fontWeight = FontWeight.SemiBold,
+            fontSize = 18.sp,
+            fontWeight = FontWeight.Bold,
             color = TextPrimary,
-            modifier = Modifier.padding(bottom = 12.dp)
+            modifier = Modifier.padding(bottom = 16.dp)
         )
         
-        val suggestions = listOf(
-            "Recent expenses",
-            "Food & Dining",
-            "This month",
-            "Transportation",
-            "Bills"
-        )
+        // Popular searches
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = Primary.copy(alpha = 0.05f))
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = "Popular Searches",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = Primary
+                )
+                
+                val popularSuggestions = listOf(
+                    "Food & Dining" to Icons.Default.Restaurant,
+                    "Transportation" to Icons.Default.DirectionsCar,
+                    "Entertainment" to Icons.Default.MovieCreation,
+                    "Shopping" to Icons.Default.ShoppingCart,
+                    "Bills & Utilities" to Icons.Default.Receipt
+                )
+                
+                popularSuggestions.forEach { (suggestion, icon) ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onSuggestionClick(suggestion) }
+                            .padding(vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            icon,
+                            contentDescription = null,
+                            tint = Primary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        
+                        Spacer(modifier = Modifier.width(12.dp))
+                        
+                        Text(
+                            text = suggestion,
+                            fontSize = 14.sp,
+                            color = TextPrimary
+                        )
+                        
+                        Spacer(modifier = Modifier.weight(1f))
+                        
+                        Icon(
+                            Icons.Default.TrendingUp,
+                            contentDescription = "Popular",
+                            tint = TextSecondary.copy(alpha = 0.5f),
+                            modifier = Modifier.size(12.dp)
+                        )
+                    }
+                }
+            }
+        }
         
-        suggestions.forEach { suggestion ->
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        // Time-based suggestions
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = AccentBlue.copy(alpha = 0.05f))
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp),
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Text(
+                    text = "Time Periods",
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = AccentBlue
+                )
+                
+                val timeSuggestions = listOf(
+                    "This week" to Icons.Default.Today,
+                    "This month" to Icons.Default.CalendarMonth,
+                    "Last 7 days" to Icons.Default.DateRange,
+                    "Last 30 days" to Icons.Default.CalendarViewMonth
+                )
+                
+                timeSuggestions.forEach { (suggestion, icon) ->
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .clickable { onSuggestionClick(suggestion) }
+                            .padding(vertical = 4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            icon,
+                            contentDescription = null,
+                            tint = AccentBlue,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        
+                        Spacer(modifier = Modifier.width(12.dp))
+                        
+                        Text(
+                            text = suggestion,
+                            fontSize = 14.sp,
+                            color = TextPrimary
+                        )
+                    }
+                }
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        // Search tips
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = WarningOrange.copy(alpha = 0.05f))
+        ) {
             Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .clickable { onSuggestionClick(suggestion) }
-                    .padding(vertical = 8.dp),
-                verticalAlignment = Alignment.CenterVertically
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.Top
             ) {
                 Icon(
-                    Icons.Default.Search,
-                    contentDescription = null,
-                    tint = PlaceholderText,
-                    modifier = Modifier.size(16.dp)
+                    Icons.Default.Lightbulb,
+                    contentDescription = "Tip",
+                    tint = WarningOrange,
+                    modifier = Modifier.size(20.dp)
                 )
                 
                 Spacer(modifier = Modifier.width(12.dp))
                 
-                Text(
-                    text = suggestion,
-                    fontSize = 14.sp,
-                    color = TextSecondary
-                )
+                Column {
+                    Text(
+                        text = "Search Tips",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = WarningOrange
+                    )
+                    Text(
+                        text = "Try searching for expense descriptions, amounts, group names, or category types. Use filters for more precise results.",
+                        fontSize = 12.sp,
+                        color = TextSecondary,
+                        lineHeight = 16.sp
+                    )
+                }
             }
         }
     }
@@ -619,4 +980,301 @@ fun SearchScreenPreview() {
     FairrTheme {
         SearchScreen(navController = rememberNavController())
     }
+}
+
+@Composable
+private fun GroupSearchResultCardOld(
+    groupResult: SearchResult.GroupResult,
+    searchQuery: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = NeutralWhite),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Group icon
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .background(Primary.copy(alpha = 0.1f), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Default.Group,
+                    contentDescription = "Group",
+                    tint = Primary,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+            
+            Spacer(modifier = Modifier.width(16.dp))
+            
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = highlightSearchTerm(groupResult.name, searchQuery),
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = TextPrimary
+                )
+                Text(
+                    text = "${groupResult.memberCount} members • ${groupResult.expenseCount} expenses",
+                    fontSize = 14.sp,
+                    color = TextSecondary
+                )
+                if (groupResult.balance != 0.0) {
+                    val balanceText = if (groupResult.balance > 0) "You are owed" else "You owe"
+                    val balanceColor = if (groupResult.balance > 0) SuccessGreen else ErrorRed
+                    Text(
+                        text = "$balanceText ${CurrencyFormatter.format("USD", kotlin.math.abs(groupResult.balance))}",
+                        fontSize = 12.sp,
+                        color = balanceColor,
+                        fontWeight = FontWeight.Medium
+                    )
+                }
+            }
+            
+            Icon(
+                Icons.Default.ChevronRight,
+                contentDescription = "View group",
+                tint = TextSecondary,
+                modifier = Modifier.size(20.dp)
+            )
+        }
+    }
+}
+
+@Composable
+private fun ExpenseSearchResultCardOld(
+    expenseResult: SearchResult.ExpenseResult,
+    searchQuery: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier
+            .fillMaxWidth()
+            .clickable { onClick() },
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = NeutralWhite),
+        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            // Category icon placeholder
+            Box(
+                modifier = Modifier
+                    .size(48.dp)
+                    .background(AccentBlue.copy(alpha = 0.1f), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    Icons.Default.Receipt,
+                    contentDescription = "Expense",
+                    tint = AccentBlue,
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+            
+            Spacer(modifier = Modifier.width(16.dp))
+            
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = highlightSearchTerm(expenseResult.description, searchQuery),
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Medium,
+                    color = TextPrimary,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+                Text(
+                    text = "In ${expenseResult.groupName}",
+                    fontSize = 14.sp,
+                    color = TextSecondary
+                )
+                Text(
+                    text = "${expenseResult.category} • ${expenseResult.date}",
+                    fontSize = 12.sp,
+                    color = TextSecondary
+                )
+            }
+            
+            Column(horizontalAlignment = Alignment.End) {
+                Text(
+                    text = CurrencyFormatter.format("USD", expenseResult.amount),
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun SearchSuggestionsSection(
+    onSuggestionClick: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val recentSearches = listOf("Groceries", "Restaurant", "Gas", "Coffee", "Lunch")
+    val popularSearches = listOf("Food & Dining", "Transportation", "Entertainment", "Bills")
+    
+    Column(
+        modifier = modifier.fillMaxWidth(),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
+    ) {
+        // Recent Searches
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = NeutralWhite)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                ) {
+                    Icon(
+                        Icons.Default.History,
+                        contentDescription = "Recent",
+                        tint = TextSecondary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Recent Searches",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = TextPrimary
+                    )
+                }
+                
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(recentSearches) { search ->
+                        SuggestionChip(
+                            text = search,
+                            onClick = { onSuggestionClick(search) }
+                        )
+                    }
+                }
+            }
+        }
+        
+        // Popular Searches
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = NeutralWhite)
+        ) {
+            Column(
+                modifier = Modifier.padding(16.dp)
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically,
+                    modifier = Modifier.padding(bottom = 12.dp)
+                ) {
+                    Icon(
+                        Icons.Default.TrendingUp,
+                        contentDescription = "Popular",
+                        tint = TextSecondary,
+                        modifier = Modifier.size(20.dp)
+                    )
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(
+                        text = "Popular Categories",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = TextPrimary
+                    )
+                }
+                
+                LazyRow(
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    items(popularSearches) { search ->
+                        SuggestionChip(
+                            text = search,
+                            onClick = { onSuggestionClick(search) }
+                        )
+                    }
+                }
+            }
+        }
+        
+        // Search Tips
+        Card(
+            modifier = Modifier.fillMaxWidth(),
+            colors = CardDefaults.cardColors(containerColor = InfoBlue.copy(alpha = 0.1f))
+        ) {
+            Row(
+                modifier = Modifier.padding(16.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Icon(
+                    Icons.Default.Lightbulb,
+                    contentDescription = "Tip",
+                    tint = InfoBlue,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(12.dp))
+                Column {
+                    Text(
+                        text = "Search Tips",
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Medium,
+                        color = InfoBlue
+                    )
+                    Text(
+                        text = "Try searching by description, category, amount, or who paid",
+                        fontSize = 12.sp,
+                        color = TextSecondary
+                    )
+                }
+            }
+        }
+    }
+}
+
+@Composable
+private fun SuggestionChip(
+    text: String,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    FilterChip(
+        selected = false,
+        onClick = onClick,
+        label = { Text(text) },
+        modifier = modifier,
+        colors = FilterChipDefaults.filterChipColors(
+            containerColor = LightBackground,
+            labelColor = TextPrimary
+        )
+    )
+}
+
+private fun highlightSearchTerm(text: String, searchQuery: String): String {
+    // Simple highlighting - in a real app you might use AnnotatedString
+    return text
+}
+
+private fun formatDate(date: Date): String {
+    val formatter = java.text.SimpleDateFormat("MMM dd", java.util.Locale.getDefault())
+    return formatter.format(date)
 } 

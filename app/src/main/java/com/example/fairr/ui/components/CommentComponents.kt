@@ -6,6 +6,7 @@ import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -164,7 +165,7 @@ fun CommentInput(
                 )
         ) {
             Icon(
-                Icons.Default.Send,
+                Icons.AutoMirrored.Filled.Send,
                 contentDescription = "Send",
                 tint = if (value.trim().isNotBlank()) NeutralWhite else TextSecondary,
                 modifier = Modifier.size(20.dp)
@@ -307,7 +308,7 @@ fun CommentSection(
                     )
             ) {
                 Icon(
-                    Icons.Default.Send,
+                    Icons.AutoMirrored.Filled.Send,
                     contentDescription = "Send",
                     tint = if (newCommentText.trim().isNotBlank()) NeutralWhite else TextSecondary,
                     modifier = Modifier.size(20.dp)

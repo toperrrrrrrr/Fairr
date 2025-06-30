@@ -13,9 +13,11 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import coil.compose.AsyncImage
 import com.example.fairr.ui.theme.*
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -122,13 +124,24 @@ fun GroupAvatar(
                 }
             }
             com.example.fairr.data.model.AvatarType.IMAGE -> {
-                // TODO: Implement image loading with Coil or similar
-                Text(
-                    text = groupName.firstOrNull()?.uppercase() ?: "G",
-                    fontSize = (size * 0.3).sp,
-                    fontWeight = FontWeight.Bold,
-                    color = Primary
-                )
+                if (avatar.isNotEmpty()) {
+                    AsyncImage(
+                        model = avatar,
+                        contentDescription = "Group Avatar",
+                        modifier = Modifier
+                            .size(size.dp)
+                            .clip(CircleShape),
+                        contentScale = ContentScale.Crop
+                    )
+                } else {
+                    // Fallback to first letter if no image URL
+                    Text(
+                        text = groupName.firstOrNull()?.uppercase() ?: "G",
+                        fontSize = (size * 0.3).sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Primary
+                    )
+                }
             }
         }
     }

@@ -10,6 +10,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -486,7 +487,7 @@ private fun SettlementSuggestionsCard(
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Icon(
-                    Icons.Default.TrendingUp,
+                    Icons.AutoMirrored.Filled.TrendingUp,
                     contentDescription = "Settlement Suggestions",
                     tint = InfoBlue,
                     modifier = Modifier.size(24.dp)

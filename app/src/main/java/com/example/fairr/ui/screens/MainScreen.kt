@@ -319,22 +319,12 @@ private fun GroupCard(
 
 @Composable
 private fun EmptyGroupsMessage() {
-    Column(
-        modifier = Modifier.fillMaxWidth(),
-        horizontalAlignment = Alignment.CenterHorizontally,
-        verticalArrangement = Arrangement.spacedBy(8.dp)
-    ) {
-        Text(
-            text = "No groups yet",
-            style = MaterialTheme.typography.titleMedium,
-            fontWeight = FontWeight.SemiBold
-        )
-        Text(
-            text = "Create or join a group to get started",
-            style = MaterialTheme.typography.bodyMedium,
-            color = MaterialTheme.colorScheme.onSurfaceVariant
-        )
-    }
+    FairrEmptyState(
+        title = "No Groups Yet",
+        message = "Create your first group to start tracking shared expenses with friends, family, or colleagues.",
+        icon = Icons.Default.Group,
+        modifier = Modifier.padding(horizontal = 24.dp)
+    )
 }
 
 /**

@@ -17,6 +17,10 @@ val AccentBlue = Color(0xFF0066CC)  // Adjusted for better contrast
 val AccentRed = Color(0xFFE53935)   // Adjusted for better contrast
 val AccentOrange = Color(0xFFE65100) // Adjusted for better contrast
 
+// Additional accent colors for notifications and components
+val Orange = Color(0xFFFF9800)
+val Purple = Color(0xFF9C27B0)
+
 // Primary Theme Colors
 val Primary = PureBlack
 val PrimaryVariant = SoftBlack

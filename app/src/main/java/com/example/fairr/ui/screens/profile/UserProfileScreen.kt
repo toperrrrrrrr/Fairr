@@ -158,7 +158,7 @@ fun UserProfileScreen(
                     AccountSettingsSection(
                         onChangePassword = { showChangePasswordDialog = true },
                         onNotificationSettings = { /* Navigate to notification settings */ },
-                        onPrivacySettings = { /* Navigate to privacy settings */ },
+                        onPrivacySettings = { navController.navigate("privacy_policy") },
                         onDeleteAccount = { showDeleteAccountDialog = true }
                     )
                     
@@ -168,18 +168,18 @@ fun UserProfileScreen(
                     AppSettingsSection(
                         onThemeSettings = { /* Navigate to theme settings */ },
                         onLanguageSettings = { /* Navigate to language settings */ },
-                        onCurrencySettings = { /* Navigate to currency settings */ },
-                        onExportData = { /* Export user data */ }
+                        onCurrencySettings = { navController.navigate("currency_selection") },
+                        onExportData = { navController.navigate("export_data") }
                     )
                     
                     Spacer(modifier = Modifier.height(16.dp))
                     
                     // About & Support
                     AboutSection(
-                        onHelpSupport = { /* Navigate to help */ },
+                        onHelpSupport = { navController.navigate("help_support") },
                         onAboutApp = { /* Navigate to about */ },
-                        onTermsPrivacy = { /* Navigate to terms */ },
-                        onContactUs = { /* Navigate to contact */ }
+                        onTermsPrivacy = { navController.navigate("privacy_policy") },
+                        onContactUs = { navController.navigate("contact_support") }
                     )
                     
                     Spacer(modifier = Modifier.height(24.dp))

@@ -42,9 +42,12 @@ data class Comment(
     val expenseId: String = "",
     val authorId: String = "",
     val authorName: String = "",
+    val authorPhotoUrl: String = "",
     val text: String = "",
     val timestamp: Timestamp = Timestamp.now(),
-    val editedAt: Timestamp? = null
+    val isEdited: Boolean = false,
+    val editedAt: Timestamp? = null,
+    val groupId: String = "" // For security rules
 )
 
 enum class ExpenseCategory(val displayName: String, val icon: String, val color: String) {

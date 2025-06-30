@@ -48,7 +48,13 @@ class CommentViewModel @Inject constructor(
         }
     }
 
-    fun addComment(expenseId: String, text: String) {
+    fun addComment(
+        expenseId: String, 
+        groupId: String, 
+        text: String, 
+        authorName: String, 
+        authorPhotoUrl: String = ""
+    ) {
         if (text.trim().isBlank()) {
             _events.value = CommentEvent.ShowError("Comment cannot be empty")
             return
@@ -56,7 +62,13 @@ class CommentViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                val result = commentService.addComment(expenseId, text.trim())
+                val result = commentService.addComment(
+                    expenseId = expenseId,
+                    groupId = groupId,
+                    text = text.trim(),
+                    authorName = authorName,
+                    authorPhotoUrl = authorPhotoUrl
+                )
                 if (result.isSuccess) {
                     _events.value = CommentEvent.CommentAdded
                 } else {
@@ -76,7 +88,7 @@ class CommentViewModel @Inject constructor(
 
         viewModelScope.launch {
             try {
-                val result = commentService.updateComment(expenseId, commentId, newText.trim())
+                val result = commentService.editComment(expenseId, commentId, newText.trim())
                 if (result.isSuccess) {
                     _events.value = CommentEvent.CommentUpdated
                 } else {

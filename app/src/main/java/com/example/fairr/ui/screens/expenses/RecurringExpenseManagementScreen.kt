@@ -26,6 +26,7 @@ import com.example.fairr.data.model.Expense
 import com.example.fairr.data.model.RecurrenceRule
 import com.example.fairr.data.model.RecurrenceFrequency
 import com.example.fairr.ui.components.CategoryIcon
+import com.example.fairr.ui.components.FairrEmptyState
 import com.example.fairr.util.CurrencyFormatter
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat

@@ -151,7 +151,7 @@ fun SettingsScreen(
                             supportingContent = { Text(viewModel.selectedCurrency) },
                             leadingContent = { 
                                 Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.Label,
+                                    Icons.AutoMirrored.Filled.Label,
                                     contentDescription = "Currency",
                                     tint = MaterialTheme.colorScheme.primary
                                 )
@@ -185,7 +185,7 @@ fun SettingsScreen(
                             headlineContent = { Text("Category Management") },
                             supportingContent = { Text("Manage expense categories") },
                             leadingContent = {
-                                Icon(Icons.Default.Label, contentDescription = null, tint = Primary)
+                                Icon(Icons.AutoMirrored.Filled.Label, contentDescription = null, tint = Primary)
                             },
                             modifier = Modifier.clickable {
                                 navController.navigate(Screen.CategoryManagement.route)

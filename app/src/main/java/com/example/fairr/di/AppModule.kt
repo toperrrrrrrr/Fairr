@@ -10,6 +10,7 @@ import com.example.fairr.data.repository.*
 import com.example.fairr.data.settings.SettingsDataStore
 import com.example.fairr.data.user.UserModerationService
 import com.example.fairr.data.friends.FriendGroupService
+import com.example.fairr.data.comments.CommentService
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreSettings
@@ -20,6 +21,7 @@ import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
+import com.example.fairr.data.notifications.SimpleNotificationService
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -115,4 +117,17 @@ object AppModule {
         auth: FirebaseAuth,
         firestore: FirebaseFirestore
     ): FriendGroupService = FriendGroupService(auth, firestore)
+
+    @Provides
+    @Singleton
+    fun provideCommentService(
+        firestore: FirebaseFirestore,
+        auth: FirebaseAuth
+    ): CommentService = CommentService(firestore, auth)
+
+    @Provides
+    @Singleton
+    fun provideSimpleNotificationService(
+        @ApplicationContext context: Context
+    ): SimpleNotificationService = SimpleNotificationService(context)
 } 

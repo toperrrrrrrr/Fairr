@@ -93,6 +93,9 @@ fun HomeScreen(
                 .fillMaxSize()
                 .pullRefresh(pullRefreshState)
                 .padding(paddingValues)
+                .semantics { 
+                    contentDescription = "Home screen showing your groups, recent expenses, and financial overview"
+                }
         ) {
             LazyColumn(
                 modifier = Modifier
@@ -106,7 +109,10 @@ fun HomeScreen(
                         totalBalance = state.totalBalance,
                         totalExpenses = state.totalExpenses,
                         activeGroups = state.activeGroups,
-                        viewModel = viewModel
+                        viewModel = viewModel,
+                        modifier = Modifier.semantics {
+                            contentDescription = "Financial overview: Balance ${CurrencyFormatter.format("USD", state.totalBalance)}, ${state.totalExpenses} total expenses, ${state.activeGroups} active groups"
+                        }
                     )
                 }
 

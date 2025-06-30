@@ -1,6 +1,7 @@
 package com.example.fairr.ui.screens.support
 
 import androidx.compose.foundation.background
+import androidx.compose.foundation.BorderStroke
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.lazy.LazyColumn
@@ -20,6 +21,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
@@ -216,11 +218,70 @@ fun HelpSupportScreen(
             // Help Articles
             if (filteredArticles.isEmpty()) {
                 item {
-                    FairrEmptyState(
-                        title = "No Articles Found",
-                        message = "Try adjusting your search or browse other categories",
-                        icon = Icons.Default.SearchOff
-                    )
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(vertical = 16.dp),
+                        shape = RoundedCornerShape(16.dp),
+                        colors = CardDefaults.cardColors(containerColor = Color.White),
+                        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                    ) {
+                        Column(
+                            modifier = Modifier
+                                .padding(24.dp)
+                                .fillMaxWidth(),
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Icon(
+                                Icons.Default.SearchOff,
+                                contentDescription = "No articles found",
+                                tint = TextSecondary,
+                                modifier = Modifier.size(48.dp)
+                            )
+                            
+                            Spacer(modifier = Modifier.height(16.dp))
+                            
+                            Text(
+                                text = if (searchQuery.isNotBlank()) "No Articles Found" else "Explore Help Topics",
+                                fontSize = 18.sp,
+                                fontWeight = FontWeight.SemiBold,
+                                color = TextPrimary,
+                                textAlign = TextAlign.Center
+                            )
+                            
+                            Text(
+                                text = if (searchQuery.isNotBlank()) 
+                                    "Try a different search term or browse categories below" 
+                                else 
+                                    "Browse our help categories or search for specific topics",
+                                fontSize = 14.sp,
+                                color = TextSecondary,
+                                textAlign = TextAlign.Center,
+                                modifier = Modifier.padding(top = 8.dp)
+                            )
+                            
+                            if (searchQuery.isNotBlank()) {
+                                Spacer(modifier = Modifier.height(16.dp))
+                                
+                                OutlinedButton(
+                                    onClick = { searchQuery = "" },
+                                    modifier = Modifier.fillMaxWidth(),
+                                    colors = ButtonDefaults.outlinedButtonColors(
+                                        contentColor = Primary
+                                    ),
+                                    border = BorderStroke(1.dp, Primary)
+                                ) {
+                                    Icon(
+                                        Icons.Default.Clear,
+                                        contentDescription = null,
+                                        modifier = Modifier.size(16.dp)
+                                    )
+                                    Spacer(modifier = Modifier.width(8.dp))
+                                    Text("Clear Search")
+                                }
+                            }
+                        }
+                    }
                 }
             } else {
                 items(filteredArticles) { article ->

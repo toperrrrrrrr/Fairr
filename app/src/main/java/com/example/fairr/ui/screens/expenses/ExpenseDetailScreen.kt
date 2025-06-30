@@ -26,6 +26,11 @@ import com.example.fairr.ui.theme.*
 import com.example.fairr.util.CurrencyFormatter
 import androidx.compose.ui.draw.shadow
 import androidx.compose.material.icons.automirrored.filled.CallSplit
+import com.example.fairr.ui.screens.expenses.CommentViewModel
+import com.example.fairr.data.model.Comment
+import androidx.compose.foundation.text.KeyboardActions
+import androidx.compose.foundation.text.KeyboardOptions
+import androidx.compose.ui.text.input.ImeAction
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -187,6 +192,14 @@ fun ExpenseDetailScreen(
                             currentUserId = currentUserId,
                             viewModel = viewModel,
                             modifier = Modifier.padding(horizontal = 16.dp)
+                        )
+                    }
+                    
+                    // Comments Section
+                    item {
+                        CommentsSection(
+                            expense = expense,
+                            modifier = Modifier.fillMaxWidth()
                         )
                     }
                     
@@ -484,6 +497,344 @@ fun String.capitalize(): String {
         this[0].uppercase() + substring(1).lowercase()
     } else {
         this
+    }
+}
+
+@Composable
+fun CommentsSection(
+    expense: Expense,
+    modifier: Modifier = Modifier,
+    commentViewModel: CommentViewModel = hiltViewModel()
+) {
+    val commentState by commentViewModel.state.collectAsState()
+    val events by commentViewModel.events.collectAsState()
+    var newCommentText by remember { mutableStateOf("") }
+    var editingCommentId by remember { mutableStateOf<String?>(null) }
+    var editingText by remember { mutableStateOf("") }
+    
+    // Load comments when expense changes
+    LaunchedEffect(expense.id) {
+        commentViewModel.loadComments(expense.id)
+    }
+    
+    // Handle comment events
+    LaunchedEffect(events) {
+        events?.let { event ->
+            when (event) {
+                is CommentEvent.CommentAdded -> {
+                    newCommentText = ""
+                    commentViewModel.clearEvents()
+                }
+                is CommentEvent.CommentUpdated -> {
+                    editingCommentId = null
+                    editingText = ""
+                    commentViewModel.clearEvents()
+                }
+                is CommentEvent.CommentDeleted -> {
+                    commentViewModel.clearEvents()
+                }
+                else -> {}
+            }
+        }
+    }
+    
+    Card(
+        modifier = modifier.padding(horizontal = 16.dp),
+        shape = RoundedCornerShape(16.dp),
+        colors = CardDefaults.cardColors(containerColor = NeutralWhite)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            // Comments Header
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Text(
+                    text = "Comments",
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    color = TextPrimary
+                )
+                Text(
+                    text = "${commentState.comments.size}",
+                    fontSize = 14.sp,
+                    color = TextSecondary,
+                    fontWeight = FontWeight.Medium
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Add Comment Section
+            OutlinedTextField(
+                value = newCommentText,
+                onValueChange = { newCommentText = it },
+                placeholder = { 
+                    Text(
+                        "Add a comment...",
+                        color = PlaceholderText
+                    ) 
+                },
+                modifier = Modifier.fillMaxWidth(),
+                minLines = 1,
+                maxLines = 3,
+                trailingIcon = {
+                    if (newCommentText.isNotBlank()) {
+                        IconButton(
+                            onClick = {
+                                commentViewModel.addComment(
+                                    expenseId = expense.id,
+                                    groupId = expense.groupId,
+                                    text = newCommentText,
+                                    authorName = "Current User", // This should come from user profile
+                                    authorPhotoUrl = ""
+                                )
+                            }
+                        ) {
+                            Icon(
+                                Icons.Default.Send,
+                                contentDescription = "Send comment",
+                                tint = Primary
+                            )
+                        }
+                    }
+                },
+                keyboardOptions = KeyboardOptions(imeAction = ImeAction.Send),
+                keyboardActions = KeyboardActions(
+                    onSend = {
+                        if (newCommentText.isNotBlank()) {
+                            commentViewModel.addComment(
+                                expenseId = expense.id,
+                                groupId = expense.groupId,
+                                text = newCommentText,
+                                authorName = "Current User",
+                                authorPhotoUrl = ""
+                            )
+                        }
+                    }
+                )
+            )
+            
+            Spacer(modifier = Modifier.height(16.dp))
+            
+            // Comments List
+            when {
+                commentState.isLoading -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(100.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+                commentState.comments.isEmpty() -> {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .height(100.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Column(
+                            horizontalAlignment = Alignment.CenterHorizontally
+                        ) {
+                            Icon(
+                                Icons.Default.ChatBubbleOutline,
+                                contentDescription = null,
+                                tint = PlaceholderText,
+                                modifier = Modifier.size(32.dp)
+                            )
+                            Spacer(modifier = Modifier.height(8.dp))
+                            Text(
+                                text = "No comments yet",
+                                color = PlaceholderText,
+                                fontSize = 14.sp
+                            )
+                            Text(
+                                text = "Be the first to comment!",
+                                color = PlaceholderText,
+                                fontSize = 12.sp
+                            )
+                        }
+                    }
+                }
+                else -> {
+                    Column(
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        commentState.comments.forEach { comment ->
+                            CommentItem(
+                                comment = comment,
+                                isEditing = editingCommentId == comment.id,
+                                editingText = editingText,
+                                onEditingTextChange = { editingText = it },
+                                onStartEdit = { 
+                                    editingCommentId = comment.id
+                                    editingText = comment.text
+                                },
+                                onCancelEdit = {
+                                    editingCommentId = null
+                                    editingText = ""
+                                },
+                                onSaveEdit = {
+                                    commentViewModel.updateComment(
+                                        expenseId = expense.id,
+                                        commentId = comment.id,
+                                        newText = editingText
+                                    )
+                                },
+                                onDelete = {
+                                    commentViewModel.deleteComment(
+                                        expenseId = expense.id,
+                                        commentId = comment.id
+                                    )
+                                }
+                            )
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+@Composable
+fun CommentItem(
+    comment: Comment,
+    isEditing: Boolean,
+    editingText: String,
+    onEditingTextChange: (String) -> Unit,
+    onStartEdit: () -> Unit,
+    onCancelEdit: () -> Unit,
+    onSaveEdit: () -> Unit,
+    onDelete: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    Card(
+        modifier = modifier.fillMaxWidth(),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = Surface.copy(alpha = 0.5f))
+    ) {
+        Column(
+            modifier = Modifier.padding(12.dp)
+        ) {
+            // Comment Header
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Row(
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    // Avatar
+                    Box(
+                        modifier = Modifier
+                            .size(32.dp)
+                            .background(Primary.copy(alpha = 0.2f), CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Icon(
+                            Icons.Default.Person,
+                            contentDescription = null,
+                            tint = Primary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                    
+                    Spacer(modifier = Modifier.width(8.dp))
+                    
+                    Column {
+                        Text(
+                            text = comment.authorName,
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.Medium,
+                            color = TextPrimary
+                        )
+                        Text(
+                            text = "2 hours ago", // This should be calculated from comment.timestamp
+                            fontSize = 12.sp,
+                            color = TextSecondary
+                        )
+                    }
+                }
+                
+                // Actions menu for comment author
+                Row {
+                    IconButton(
+                        onClick = onStartEdit,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Edit,
+                            contentDescription = "Edit comment",
+                            tint = TextSecondary,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                    IconButton(
+                        onClick = onDelete,
+                        modifier = Modifier.size(32.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Delete,
+                            contentDescription = "Delete comment",
+                            tint = ErrorRed,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(8.dp))
+            
+            // Comment Content
+            if (isEditing) {
+                OutlinedTextField(
+                    value = editingText,
+                    onValueChange = onEditingTextChange,
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 1,
+                    maxLines = 3
+                )
+                
+                Spacer(modifier = Modifier.height(8.dp))
+                
+                Row(
+                    horizontalArrangement = Arrangement.End,
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    TextButton(onClick = onCancelEdit) {
+                        Text("Cancel")
+                    }
+                    Spacer(modifier = Modifier.width(8.dp))
+                    TextButton(onClick = onSaveEdit) {
+                        Text("Save")
+                    }
+                }
+            } else {
+                Text(
+                    text = comment.text,
+                    fontSize = 14.sp,
+                    color = TextPrimary,
+                    lineHeight = 20.sp
+                )
+                
+                if (comment.isEdited) {
+                    Spacer(modifier = Modifier.height(4.dp))
+                    Text(
+                        text = "(edited)",
+                        fontSize = 12.sp,
+                        color = TextSecondary,
+                        fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+                    )
+                }
+            }
+        }
     }
 }
 
