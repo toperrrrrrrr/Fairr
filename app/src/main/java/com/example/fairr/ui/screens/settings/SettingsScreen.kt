@@ -162,7 +162,7 @@ fun SettingsScreen(
                         )
                         ListItem(
                             headlineContent = { Text("Notifications") },
-                            supportingContent = { Text("Enable push notifications") },
+                            supportingContent = { Text("Manage notification preferences") },
                             leadingContent = { 
                                 Icon(
                                     Icons.Default.Notifications,
@@ -171,10 +171,14 @@ fun SettingsScreen(
                                 )
                             },
                             trailingContent = {
-                                Switch(
-                                    checked = notificationsEnabled,
-                                    onCheckedChange = { notificationsEnabled = it }
+                                Icon(
+                                    Icons.Default.ChevronRight,
+                                    contentDescription = null,
+                                    tint = MaterialTheme.colorScheme.onSurfaceVariant
                                 )
+                            },
+                            modifier = Modifier.clickable {
+                                navController.navigate("notification_settings")
                             }
                         )
                         ListItem(
@@ -252,6 +256,20 @@ fun SettingsScreen(
                             },
                             modifier = Modifier.clickable { 
                                 navController.navigate(Screen.ContactSupport.route)
+                            }
+                        )
+                        ListItem(
+                            headlineContent = { Text("Blocked Users") },
+                            supportingContent = { Text("Manage blocked users") },
+                            leadingContent = { 
+                                Icon(
+                                    Icons.Default.Block,
+                                    contentDescription = null,
+                                    tint = Primary
+                                )
+                            },
+                            modifier = Modifier.clickable { 
+                                navController.navigate("blocked_users")
                             }
                         )
                         ListItem(

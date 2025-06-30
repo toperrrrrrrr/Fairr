@@ -227,6 +227,8 @@ class GroupService @Inject constructor(
             "name" to data.name,
             "description" to data.description,
             "currency" to data.currency,
+            "avatar" to data.avatar,
+            "avatarType" to data.avatarType,
             "createdAt" to timestamp,
             "createdBy" to currentUser.uid,
             "inviteCode" to inviteCode,
@@ -517,6 +519,80 @@ class GroupService @Inject constructor(
         } catch (e: Exception) {
             Log.e(TAG, "Error demoting member from admin", e)
             GroupResult.Error(e.message ?: "Failed to demote member from admin")
+        }
+    }
+
+    /**
+     * Archive a group (admin only)
+     */
+    suspend fun archiveGroup(groupId: String): GroupResult {
+        return try {
+            val currentUser = auth.currentUser
+                ?: return GroupResult.Error("User not authenticated")
+
+            // Check if current user is admin
+            val groupDoc = groupsCollection.document(groupId).get().await()
+            if (!groupDoc.exists()) {
+                return GroupResult.Error("Group not found")
+            }
+
+            val data = groupDoc.data
+                ?: return GroupResult.Error("Group data not found")
+
+            val membersMap = parseGroupData(data)
+            val currentUserData = membersMap[currentUser.uid]
+                ?: return GroupResult.Error("You are not a member of this group")
+
+            if (!(currentUserData["isAdmin"] as? Boolean ?: false)) {
+                return GroupResult.Error("Only admins can archive the group")
+            }
+
+            // Update the group to be archived
+            groupsCollection.document(groupId)
+                .update("isArchived", true)
+                .await()
+
+            GroupResult.Success(groupId)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error archiving group", e)
+            GroupResult.Error(e.message ?: "Failed to archive group")
+        }
+    }
+
+    /**
+     * Unarchive a group (admin only)
+     */
+    suspend fun unarchiveGroup(groupId: String): GroupResult {
+        return try {
+            val currentUser = auth.currentUser
+                ?: return GroupResult.Error("User not authenticated")
+
+            // Check if current user is admin
+            val groupDoc = groupsCollection.document(groupId).get().await()
+            if (!groupDoc.exists()) {
+                return GroupResult.Error("Group not found")
+            }
+
+            val data = groupDoc.data
+                ?: return GroupResult.Error("Group data not found")
+
+            val membersMap = parseGroupData(data)
+            val currentUserData = membersMap[currentUser.uid]
+                ?: return GroupResult.Error("You are not a member of this group")
+
+            if (!(currentUserData["isAdmin"] as? Boolean ?: false)) {
+                return GroupResult.Error("Only admins can unarchive the group")
+            }
+
+            // Update the group to be unarchived
+            groupsCollection.document(groupId)
+                .update("isArchived", false)
+                .await()
+
+            GroupResult.Success(groupId)
+        } catch (e: Exception) {
+            Log.e(TAG, "Error unarchiving group", e)
+            GroupResult.Error(e.message ?: "Failed to unarchive group")
         }
     }
 } 

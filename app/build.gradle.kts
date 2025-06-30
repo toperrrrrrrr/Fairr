@@ -71,6 +71,7 @@ dependencies {
     implementation("com.google.firebase:firebase-auth")
     implementation("com.google.firebase:firebase-database")
     implementation("com.google.firebase:firebase-firestore-ktx")
+    implementation("com.google.firebase:firebase-messaging-ktx")
 
     // Google Sign In
     implementation("com.google.android.gms:play-services-auth:20.7.0")
@@ -151,4 +152,9 @@ dependencies {
 
     // Firebase Storage
     implementation("com.google.firebase:firebase-storage-ktx")
+
+    // WorkManager for local reminders
+    implementation("androidx.work:work-runtime-ktx:2.9.0")
+    implementation("androidx.hilt:hilt-work:1.1.0")
+    ksp("androidx.hilt:hilt-compiler:1.1.0")
 }

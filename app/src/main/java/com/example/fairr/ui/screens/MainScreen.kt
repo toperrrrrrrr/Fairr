@@ -89,6 +89,7 @@ fun MainScreen(
                 2 -> {
                     val friendsViewModel: FriendsViewModel = hiltViewModel()
                     FriendsScreen(
+                        navController = navController,
                         viewModel = friendsViewModel,
                         onNavigateBack = { selectedTab = 0 }
                     )
@@ -217,7 +218,8 @@ private fun GroupsTabContent(
                 } else {
                     GroupList(
                         groups = state.groups,
-                        onGroupClick = onNavigateToGroupDetail
+                        onGroupClick = onNavigateToGroupDetail,
+                        viewModel = viewModel
                     )
                 }
             }
@@ -235,7 +237,8 @@ private fun GroupsTabContent(
 @Composable
 private fun GroupList(
     groups: List<Group>,
-    onGroupClick: (String) -> Unit
+    onGroupClick: (String) -> Unit,
+    viewModel: GroupListViewModel = hiltViewModel()
 ) {
     LazyColumn(
         verticalArrangement = Arrangement.spacedBy(12.dp)
@@ -244,7 +247,7 @@ private fun GroupList(
             GroupCard(
                 name = group.name,
                 memberCount = group.members.size,
-                balance = 0.0, // TODO: Implement balance calculation
+                balance = viewModel.getBalanceForGroup(group.id),
                 currency = group.currency,
                 onClick = { onGroupClick(group.id) }
             )

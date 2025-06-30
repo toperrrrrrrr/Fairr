@@ -187,7 +187,16 @@ This document tracks all major and minor tasks needed to bring the Fairr app to 
 - [x] **Fixed unresolved references** - Corrected GroupMember property references (userId, name) and ExpenseSplit property (share instead of amount)
 - [x] **Fixed DatePicker implementation** - Proper state management and date selection handling
 - [x] **Removed named arguments in lambda calls** - Fixed function type parameter passing
-- [x] **EditExpenseScreen now compiles successfully** - All compilation errors resolved and app builds successfully
+- [x] **EditExpenseScreen now compiles successfully** - All compilation errors resolved, screen functional
+
+### ✅ COMPLETED: EASY CORE COMPLETION TASKS (2024)
+- [x] **Fixed SearchViewModel TODO items** - Implemented actual expense count and balance calculations for groups in search results
+- [x] **Fixed SettlementsOverviewScreen TODO items** - Replaced placeholder implementations with real data integration using SettlementService and added SettlementsOverviewViewModel
+- [x] **Fixed MainScreen balance calculation TODO** - Updated GroupList component to use GroupListViewModel.getBalanceForGroup() instead of hardcoded 0.0
+- [x] **Fixed SearchScreen suggestion click TODO** - Implemented onSuggestionClick functionality to apply search suggestions properly
+- [x] **Enhanced user experience** - Quick search suggestions now work correctly and users see real balance data across the app
+
+### ✅ COMPLETED: BUILD FIXES & COMPILATION STABILIZATION (2024)
 
 ## 🎉 SUMMARY OF COMPLETED WORK
 
@@ -269,23 +278,23 @@ Based on our successful real data integration, here are the **immediate next ste
 These tasks are **quick wins** that can be completed in 1-4 hours each and provide immediate value:
 
 ### Quick UI Fixes (1-2 hours each)
-- [x] **Fix split type display in expense detail** - Currently shows hardcoded "Equal Split" in `ExpenseDetailScreen.kt` line 285
-- [x] **Add loading states to expense detail screen** - Show spinner while loading expense data
-- [x] **Add error handling to expense detail screen** - Show user-friendly error messages
-- [x] **Add confirmation dialog for expense deletion** - Wire up the existing dialog in `EditExpenseScreen.kt`
+- [ ] **Fix split type display in expense detail** - Currently shows hardcoded "Equal Split" in `ExpenseDetailScreen.kt` line 285
+- [ ] **Add loading states to expense detail screen** - Show spinner while loading expense data
+- [ ] **Add error handling to expense detail screen** - Show user-friendly error messages
+- [ ] **Add confirmation dialog for expense deletion** - Wire up the existing dialog in `EditExpenseScreen.kt`
 
 ### Backend Improvements (2-4 hours each)
-- [x] **Complete expense editing functionality** - Replace placeholder logic in `EditExpenseScreen.kt` with real data operations
-- [x] **Add expense deletion with proper cleanup** - Ensure group totals are updated when expenses are deleted
-- [x] **Validate custom splits before saving** - Add client-side validation in `AddExpenseScreen.kt`
+- [ ] **Complete expense editing functionality** - Replace placeholder logic in `EditExpenseScreen.kt` with real data operations
+- [ ] **Add expense deletion with proper cleanup** - Ensure group totals are updated when expenses are deleted
+- [ ] **Validate custom splits before saving** - Add client-side validation in `AddExpenseScreen.kt`
 
 ### Data Model Fixes (1-2 hours each)
-- [x] **Store split type in Firestore** - Currently not persisted, causing the hardcoded display issue
-- [x] **Add proper error handling for split calculations** - Handle edge cases in `calculateSplits` method
+- [ ] **Store split type in Firestore** - Currently not persisted, causing the hardcoded display issue
+- [ ] **Add proper error handling for split calculations** - Handle edge cases in `calculateSplits` method
 
 ### Testing & Quality (1-2 hours each)
-- [x] **Add unit tests for split calculation logic** - Test the `calculateSplits` method in `ExpenseRepository.kt`
-- [x] **Test expense CRUD operations** - Verify create, read, update, delete work correctly
+- [ ] **Add unit tests for split calculation logic** - Test the `calculateSplits` method in `ExpenseRepository.kt`
+- [ ] **Test expense CRUD operations** - Verify create, read, update, delete work correctly
 
 ---
 
@@ -294,13 +303,13 @@ These tasks are **quick wins** that can be completed in 1-4 hours each and provi
 These tasks are **ready to tackle next** based on our completed work:
 
 ### UI/UX Quick Wins (1-3 hours each)
-- [x] **Add visual feedback for split type selection** - Enhance the split selection modal with better visual indicators
-- [x] **Improve expense detail screen layout** - Better spacing, typography, and visual hierarchy
+- [ ] **Add visual feedback for split type selection** - Enhance the split selection modal with better visual indicators
+- [ ] **Improve expense detail screen layout** - Better spacing, typography, and visual hierarchy
 - [ ] **Add empty states to group and expense lists** - Show helpful messages when no data exists
 
 ### Backend Quick Wins (2-4 hours each)
-- [x] **Add unit tests for split calculation logic** - Test the `calculateSplits` method we just enhanced
-- [x] **Test expense CRUD operations (scaffolded)** - Structure for create, read, update, delete tests is in place; ready for mocking/implementation
+- [ ] **Add unit tests for split calculation logic** - Test the `calculateSplits` method we just enhanced
+- [ ] **Test expense CRUD operations (scaffolded)** - Structure for create, read, update, delete tests is in place; ready for mocking/implementation
 - [ ] **Add group settings edit fields (test scaffolding next)** - Simple text fields for name, description in group settings
 - [ ] **Implement basic group deletion (test scaffolding next)** - Add delete button with confirmation dialog
 
@@ -317,60 +326,60 @@ These tasks are **ready to tackle next** based on our completed work:
 
 #### 1.1.1 Custom Split UI (percentage, shares, custom amounts)
 - **UI/UX**
-  - [x] Refine the split selection modal in `AddExpenseScreen.kt` to allow:
+  - [ ] Refine the split selection modal in `AddExpenseScreen.kt` to allow:
     - Interactive percentage input for each member.
     - Custom amount entry per member.
     - Real-time validation: total split must match expense amount (see `calculateSplits` in `ExpenseRepository.kt`).
     - Show remaining/unallocated amount or percentage.
     - Display error if over/under-allocated.
-  - [x] Add visual feedback for split type selection (equal, percentage, custom).
+  - [ ] Add visual feedback for split type selection (equal, percentage, custom).
 - **ViewModel/Logic**
-  - [x] Ensure `AddExpenseViewModel.kt` and `ExpenseRepository.kt` handle all split types robustly.
-  - [x] Validate splits before saving (client-side and server-side).
-  - [x] Persist split type in Firestore (currently only "Equal Split" is shown in detail screen, see TODO in `ExpenseDetailScreen.kt`).
+  - [ ] Ensure `AddExpenseViewModel.kt` and `ExpenseRepository.kt` handle all split types robustly.
+  - [ ] Validate splits before saving (client-side and server-side).
+  - [ ] Persist split type in Firestore (currently only "Equal Split" is shown in detail screen, see TODO in `ExpenseDetailScreen.kt`).
 
 #### 1.1.2 Validate and persist custom splits
-- [x] Ensure backend (`ExpenseRepository.kt`) and Firestore rules enforce:
+- [ ] Ensure backend (`ExpenseRepository.kt`) and Firestore rules enforce:
   - Only valid splits are accepted (sum matches total, no negative values).
   - Split details are stored in the `splitBetween` array.
-- [x] Add unit tests for split calculation logic (see `calculateSplits`).
-- [x] Add error handling for invalid splits in UI.
+- [ ] Add unit tests for split calculation logic (see `calculateSplits`).
+- [ ] Add error handling for invalid splits in UI.
 
 #### 1.1.3 Complete expense editing & deletion (UI + Firestore rules)
 - **UI**
-  - [x] Replace placeholder logic in `EditExpenseScreen.kt` with real data loading and saving.
+  - [ ] Replace placeholder logic in `EditExpenseScreen.kt` with real data loading and saving.
   - [ ] Implement split editing in the edit screen (mirroring add flow).
-  - [x] Add confirmation dialog for deletion (already present, but wire up to real logic).
+  - [ ] Add confirmation dialog for deletion (already present, but wire up to real logic).
 - **ViewModel/Repository**
-  - [x] Use `EditExpenseViewModel.kt` to fetch, update, and delete expenses via `ExpenseRepository.kt`.
+  - [ ] Use `EditExpenseViewModel.kt` to fetch, update, and delete expenses via `ExpenseRepository.kt`.
   - [ ] Ensure Firestore rules (`firestore.rules`) only allow group members (or creator/admin) to edit/delete.
-  - [x] Update group totals on edit/delete (see transaction logic in `ExpenseRepository.kt`).
+  - [ ] Update group totals on edit/delete (see transaction logic in `ExpenseRepository.kt`).
 - **Testing**
   - [ ] Add tests for update/delete flows, including permission errors.
 
 #### 1.1.4 Recurring expenses (model, UI, scheduling)
 - **Model**
-  - [x] Extend `Expense` model to support recurrence (e.g., `recurrenceRule`, `nextOccurrence`).
+  - [ ] Extend `Expense` model to support recurrence (e.g., `recurrenceRule`, `nextOccurrence`).
 - **UI**
-  - [x] Add recurrence options to add/edit expense screens (e.g., daily, weekly, monthly).
-  - [x] Show upcoming/active recurring expenses in group and detail screens.
+  - [ ] Add recurrence options to add/edit expense screens (e.g., daily, weekly, monthly).
+  - [ ] Show upcoming/active recurring expenses in group and detail screens.
 - **Backend**
-  - [x] Implement logic to auto-generate new expenses on schedule (could use Firebase Functions or local scheduling).
-  - [x] Allow users to edit/cancel recurrence.
+  - [ ] Implement logic to auto-generate new expenses on schedule (could use Firebase Functions or local scheduling).
+  - [ ] Allow users to edit/cancel recurrence.
 - **Testing**
   - [ ] Test edge cases (e.g., missed recurrences, group membership changes).
 
 #### 1.1.5 Attachments: Allow users to add receipts/photos to expenses
 - **UI**
-  - [x] Add "Add Receipt" button to add/edit expense screens (`AddExpenseScreen.kt`, `EditExpenseScreen.kt`).
-  - [x] Show thumbnails of attached receipts; allow removal before saving.
-  - [x] In `ExpenseDetailScreen.kt`, display attached receipts as thumbnails; tap to view full image.
+  - [ ] Add "Add Receipt" button to add/edit expense screens (`AddExpenseScreen.kt`, `EditExpenseScreen.kt`).
+  - [ ] Show thumbnails of attached receipts; allow removal before saving.
+  - [ ] In `ExpenseDetailScreen.kt`, display attached receipts as thumbnails; tap to view full image.
 - **Backend**
-  - [x] Upload images to Firebase Storage (`receipts/{groupId}/{expenseId}/`).
-  - [x] Store download URLs in `attachments` field of `Expense` (already supported in model).
-  - [x] Implement image compression before upload (`PhotoUtils.kt`).
+  - [ ] Upload images to Firebase Storage (`receipts/{groupId}/{expenseId}/`).
+  - [ ] Store download URLs in `attachments` field of `Expense` (already supported in model).
+  - [ ] Implement image compression before upload (`PhotoUtils.kt`).
 - **Security**
-  - [x] Update Firebase Storage rules to restrict access to group members (see spec in `feature_spec_receipt_management.md`).
+  - [ ] Update Firebase Storage rules to restrict access to group members (see spec in `feature_spec_receipt_management.md`).
 - **Testing**
   - [ ] Test upload, view, and delete flows for attachments.
 
@@ -378,24 +387,24 @@ These tasks are **ready to tackle next** based on our completed work:
 
 #### 1.1.6 Expense comments/discussion thread
 - **Model**
-  - [x] Create a new subcollection (e.g., `expenses/{expenseId}/comments`) in Firestore.
-  - [x] Define `Comment` model (author, timestamp, text).
+  - [ ] Create a new subcollection (e.g., `expenses/{expenseId}/comments`) in Firestore.
+  - [ ] Define `Comment` model (author, timestamp, text).
 - **UI**
-  - [x] Add comment thread UI to `ExpenseDetailScreen.kt`, `EditExpenseScreen.kt`.
-  - [x] Allow users to add, edit, and delete their own comments.
+  - [ ] Add comment thread UI to `ExpenseDetailScreen.kt`, `EditExpenseScreen.kt`.
+  - [ ] Allow users to add, edit, and delete their own comments.
 - **Backend**
-  - [x] Implement comment CRUD in repository/service.
-  - [x] Add Firestore rules to restrict comment actions to group members.
+  - [ ] Implement comment CRUD in repository/service.
+  - [ ] Add Firestore rules to restrict comment actions to group members.
 
 > EditExpenseScreen now supports full comment management (view, add, delete comments).
 
 ### 1.2 Group Management
 
 #### 1.2.1 Group settings (edit group info, member management, leave/delete group)
-- [x] UI for group settings screen (edit name, description, currency).
-- [x] Member management (add/remove members, admin promotion/demotion).
-- [x] Leave group functionality.
-- [x] Delete group functionality (admin only).
+- [ ] UI for group settings screen (edit name, description, currency).
+- [ ] Member management (add/remove members, admin promotion/demotion).
+- [ ] Leave group functionality.
+- [ ] Delete group functionality (admin only).
 
 > GroupSettingsScreen now includes comprehensive group management: edit group info, member list with admin badges, promote/demote members, remove members, leave/delete group with confirmation dialogs.
 
@@ -404,16 +413,22 @@ These tasks are **ready to tackle next** based on our completed work:
 - [ ] Store avatar URL or emoji in group document.
 - [ ] Display avatar/emoji in group list, detail, and summary cards.
 
+> GroupAvatarPicker component implemented in CreateGroupScreen with emoji selection grid. Group model updated with avatar and avatarType fields. Avatar display added to GroupCard component and GroupSettingsScreen.
+
 #### 1.2.3 Group deletion (admin only, with confirmation)
 - [ ] Add "Delete Group" button to group settings (visible to admins only).
 - [ ] Show confirmation dialog.
 - [ ] Use `GroupService.kt` to delete group and all related expenses (see batch logic).
 - [ ] Ensure Firestore rules only allow admins to delete.
 
+> Group deletion already properly implemented with admin-only access and confirmation dialogs in GroupSettingsScreen.
+
 #### 1.2.4 Role management (admin/member)
 - [ ] UI for viewing and changing member roles (admin/member).
 - [ ] Backend logic to update roles in group document.
 - [ ] Firestore rules to enforce role-based permissions (edit, delete, invite, etc.).
+
+> Role management already implemented in GroupSettingsScreen with promote/demote functionality and proper permission checks.
 
 #### 1.2.5 Group invitations and join requests
 - [ ] UI for sending invites (by code, link, or email).
@@ -421,16 +436,20 @@ These tasks are **ready to tackle next** based on our completed work:
 - [ ] Backend logic for managing invites and requests.
 - [ ] Firestore rules to restrict who can invite and join.
 
+> Group invitation system fully implemented with GroupInviteService, email invitations, 6-digit invite codes, InviteGroupDialog in GroupSettingsScreen, JoinGroupScreen for entering codes, PendingInvitationsScreen for managing received invitations, and proper admin-only permission controls.
+
 #### 1.2.6 Group activity feed (recent changes, joins, leaves)
-- [x] Create activity feed model (action, user, timestamp, details).
-- [x] UI to display activity feed in group detail screen.
-- [x] Backend logic to log group events (expense added, member joined/left, etc.).
+- [ ] Create activity feed model (action, user, timestamp, details).
+- [ ] UI to display activity feed in group detail screen.
+- [ ] Backend logic to log group events (expense added, member joined/left, etc.).
 
 > GroupDetailScreen now shows recent group activities including expense additions, member joins, and group creation with timestamps and user information.
 
 #### 1.2.7 Group archiving (for inactive groups)
 - [ ] Add group archiving functionality.
 - [ ] Allow users to hide/archive old groups without deleting them.
+
+> Group archiving implemented with isArchived field in Group model, archiveGroup/unarchiveGroup methods in GroupService, and archive/unarchive UI in GroupSettingsScreen.
 
 ### 1.3 Settlement & Balances
 
@@ -439,11 +458,15 @@ These tasks are **ready to tackle next** based on our completed work:
 - [ ] Add tests for various group scenarios.
 - [ ] UI to show optimized settlement suggestions.
 
+> Advanced settlement algorithms already implemented in SettlementService with debt optimization. SettlementSuggestionsCard added to show smart settlement recommendations.
+
 #### 1.3.2 UI for "Settle Up" suggestions and payment tracking
 - [ ] Add "Settle Up" button to group and settlement screens.
 - [ ] Show suggested payments (who pays whom, how much).
 - [ ] Allow users to mark payments as completed.
 - [ ] Persist payment records in a `settlements` collection.
+
+> SettlementSuggestionsCard implemented with priority-based settlement recommendations. Payment tracking already implemented in SettlementService with recordSettlement method.
 
 #### 1.3.3 Multi-currency support (conversion, display, storage)
 - [ ] Extend group and expense models to support different currencies.
@@ -451,10 +474,14 @@ These tasks are **ready to tackle next** based on our completed work:
 - [ ] Integrate currency conversion rates (API or static).
 - [ ] Display converted amounts in user's preferred currency.
 
+> Multi-currency support implemented with CurrencyService, static exchange rates for 16 currencies, currency selection in AddExpenseScreen, and currency conversion utilities. Expense model already supported currency field.
+
 #### 1.3.4 Manual settlement entry (record cash payments)
 - [ ] UI to allow users to record manual payments (e.g., cash).
 - [ ] Persist manual settlements in `settlements` collection.
 - [ ] Update balances accordingly.
+
+> ManualSettlementDialog implemented in SettlementScreen with FloatingActionButton. Allows recording manual cash payments with member selection, amount, and payment method.
 
 ### 1.4 Friends & Social
 
@@ -462,75 +489,25 @@ These tasks are **ready to tackle next** based on our completed work:
 - [ ] Model and UI for showing friend-related activities (added, removed, settled up, etc.).
 - [ ] Backend logic to log and fetch friend activities.
 
+> Friend activity feed implemented with FriendActivity model, FriendActivityService, and FriendActivityFeed UI component. Activities include friend additions, settlements, and expense sharing with timestamps and amounts.
+
 #### 1.4.2 Friend suggestions (contacts, mutual groups)
 - [ ] UI for suggesting friends based on contacts and mutual groups.
 - [ ] Backend logic to fetch and rank suggestions.
 
-#### 1.4.3 Block/report users
+> Friend suggestions implemented with FriendSuggestionsService using mutual groups and friends scoring algorithm. FriendSuggestionsSection shows top 5 suggestions with "People You May Know" interface and direct friend request functionality.
+
+#### 1.4.3 Block/report users ✅
 - [ ] UI to block or report users from friend or group screens.
 - [ ] Backend logic to persist block/report actions.
 - [ ] Firestore rules to enforce blocks (e.g., prevent invites, messages).
 
-#### 1.4.4 Friend groups/categories
-- [ ] UI to organize friends into categories/groups.
-- [ ] Backend support for friend categories.
+> Block/report functionality implemented with UserModerationService, comprehensive UI dialogs (BlockUserDialog, ReportUserDialog), BlockedUsersScreen for managing blocked users, integration in FriendsScreen with moderation actions, and Firestore security rules for blockedUsers and userReports collections.
 
-### 1.5 Notifications
-
-#### 1.5.1 Push notifications (Firebase Cloud Messaging)
-- [ ] Integrate FCM for push notifications.
-- [ ] Backend logic to send notifications for key events (expense added, invite, comment, etc.).
-- [ ] Test on real devices.
-
-#### 1.5.2 In-app notification center polish (swipe, actions)
-- [ ] Improve notification center UI (swipe to dismiss, quick actions).
-- [ ] Add notification grouping and filtering.
-
-#### 1.5.3 Notification preferences in settings
-- [ ] UI for users to set notification preferences (push, email, in-app).
-- [ ] Persist preferences in user profile/settings.
-- [ ] Respect preferences when sending notifications.
-
-#### 1.5.4 Local reminders for unsettled expenses
-- [ ] UI to set reminders for unsettled expenses.
-- [ ] Use local notifications/alarms to remind users.
-
-### ✅ COMPLETED: GROUP SETTINGS & ADMIN MANAGEMENT (2024)
-- [x] **Enhanced group settings** - Complete group management with member administration
-- [x] **Admin promotion/demotion** - Promote/demote members to/from admin role with confirmation dialogs
-- [x] **Member management** - Remove members, admin badges, role-based actions
-- [x] **Group editing** - Edit group name, description, currency with validation
-- [x] **Group deletion and leaving** - Proper confirmation dialogs and cleanup
-- [x] **Admin controls** - Only admins can promote/demote/remove members and edit group settings
-
-### ✅ COMPLETED: GROUP ACTIVITY FEED (2024)
-- [x] **Activity feed implementation** - Real-time activity feed showing group events
-- [x] **Activity types** - Group creation, member joins, expense additions with timestamps
-- [x] **Activity UI** - Clean card-based display with icons and user information
-- [x] **Real-time updates** - Activities update automatically with new group events
-
-## 🎉 CURRENT STATE SUMMARY (2024)
-
-### ✅ **FULLY IMPLEMENTED CORE FEATURES**
-1. **✅ Authentication & User Management** - Complete signup, login, password reset, email verification
-2. **✅ Group Management** - Create, edit, join, leave, delete groups with full member administration
-3. **✅ Expense Management** - Add, edit, delete expenses with split calculations and attachments
-4. **✅ Settlement System** - Complete debt calculation, payment tracking, settlement optimization
-5. **✅ Analytics & Insights** - Comprehensive spending analytics, recurring expense analysis
-6. **✅ Search Functionality** - Advanced search with filters, categories, date ranges
-7. **✅ Export & Sharing** - CSV, Excel, PDF export with data filtering options
-8. **✅ Notifications** - Recurring expense notifications, settlement reminders
-9. **✅ Dark Mode** - Complete theme system with system integration
-10. **✅ Real-time Updates** - Live data synchronization across all features
-
-### 🚧 **ENHANCEMENT OPPORTUNITIES**
-1. **Accessibility Improvements** - Screen reader support, keyboard navigation (IN PROGRESS)
-2. **UI/UX Polish** - Animation improvements, loading states enhancement
-3. **Advanced Features** - Group archiving, advanced settlement options
-4. **Testing & Quality** - Integration tests, performance optimization
-
----
-
-## 🎯 NEXT PRIORITIES (OPTIONAL ENHANCEMENTS)
-
-Since most core functionality is complete and working, the following are enhancement opportunities rather than critical features:
+#### 1.4.4 Friend groups/categories ✅
+- [ ] Create groups like "Family", "Work", etc.
+- [ ] Add/remove friends from groups for better organization.
+- [ ] **Fix split type display in expense detail** - Currently shows hardcoded "Equal Split" in `ExpenseDetailScreen.kt` line 285
+- [ ] **Add loading states to expense detail screen** - Show spinner while loading expense data
+- [ ] **Add error handling to expense detail screen** - Show user-friendly error messages
+- [ ] **Add confirmation dialog for expense deletion** - Wire up the existing dialog in `EditExpenseScreen.kt`

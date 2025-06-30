@@ -69,6 +69,7 @@ fun GroupSettingsScreen(
 ) {
     var showDeleteDialog by remember { mutableStateOf(false) }
     var showLeaveDialog by remember { mutableStateOf(false) }
+    var showInviteDialog by remember { mutableStateOf(false) }
     val clipboardManager = LocalClipboardManager.current
     
     val uiState by viewModel.uiState.collectAsState()
@@ -135,16 +136,51 @@ fun GroupSettingsScreen(
                             .fillMaxWidth()
                             .padding(16.dp)
                     ) {
-                        Text(
-                            text = group.name,
-                            style = MaterialTheme.typography.headlineSmall
-                        )
-                        if (group.description.isNotEmpty()) {
-                            Text(
-                                text = group.description,
-                                style = MaterialTheme.typography.bodyMedium,
-                                color = MaterialTheme.colorScheme.onSurfaceVariant
-                            )
+                        // Group header with avatar
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            // Group Avatar
+                            Box(
+                                modifier = Modifier
+                                    .size(60.dp)
+                                    .background(
+                                        color = MaterialTheme.colorScheme.primaryContainer,
+                                        shape = CircleShape
+                                    ),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                if (group.avatar.isNotEmpty()) {
+                                    Text(
+                                        text = group.avatar,
+                                        fontSize = 28.sp
+                                    )
+                                } else {
+                                    Icon(
+                                        Icons.Default.Group,
+                                        contentDescription = "Group Icon",
+                                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                            }
+                            
+                            Spacer(modifier = Modifier.width(16.dp))
+                            
+                            Column(modifier = Modifier.weight(1f)) {
+                                Text(
+                                    text = group.name,
+                                    style = MaterialTheme.typography.headlineSmall
+                                )
+                                if (group.description.isNotEmpty()) {
+                                    Text(
+                                        text = group.description,
+                                        style = MaterialTheme.typography.bodyMedium,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                    )
+                                }
+                            }
                         }
                         
                         // Invite Code Section
@@ -182,11 +218,32 @@ fun GroupSettingsScreen(
 
             // Members Section
             item {
-                Text(
-                    text = "Members (${members.size})",
-                    style = MaterialTheme.typography.titleLarge,
-                    modifier = Modifier.padding(16.dp)
-                )
+                Row(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(16.dp),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Text(
+                        text = "Members (${members.size})",
+                        style = MaterialTheme.typography.titleLarge
+                    )
+                    
+                    if (group.isUserAdmin) {
+                        OutlinedButton(
+                            onClick = { showInviteDialog = true }
+                        ) {
+                            Icon(
+                                Icons.Default.PersonAdd,
+                                contentDescription = "Invite Members",
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(4.dp))
+                            Text("Invite")
+                        }
+                    }
+                }
             }
 
             items(members) { member ->
@@ -214,6 +271,24 @@ fun GroupSettingsScreen(
                                 title = "Edit Group",
                                 subtitle = "Change group name, description, or currency",
                                 onClick = { viewModel.showEditGroupDialog() }
+                            )
+                            
+                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                            
+                            SettingsActionItem(
+                                icon = if (group.isArchived) Icons.Default.Unarchive else Icons.Default.Archive,
+                                title = if (group.isArchived) "Unarchive Group" else "Archive Group",
+                                subtitle = if (group.isArchived) 
+                                    "Make this group active again" 
+                                else 
+                                    "Hide this group from active list",
+                                onClick = { 
+                                    if (group.isArchived) {
+                                        viewModel.unarchiveGroup()
+                                    } else {
+                                        viewModel.archiveGroup()
+                                    }
+                                }
                             )
                             
                             HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
@@ -409,6 +484,18 @@ fun GroupSettingsScreen(
                 TextButton(onClick = { viewModel.hideDemoteMemberDialog() }) {
                     Text("Cancel")
                 }
+            }
+        )
+    }
+
+    // Invite Members Dialog
+    if (showInviteDialog) {
+        InviteGroupDialog(
+            groupName = group.name,
+            onDismiss = { showInviteDialog = false },
+            onInvite = { email, message ->
+                viewModel.sendGroupInvitation(email, message)
+                showInviteDialog = false
             }
         )
     }
@@ -638,6 +725,97 @@ fun EditGroupDialog(
                 }
             ) {
                 Text("Save")
+            }
+        },
+        dismissButton = {
+            TextButton(onClick = onDismiss) {
+                Text("Cancel")
+            }
+        }
+    )
+}
+
+@Composable
+fun InviteGroupDialog(
+    groupName: String,
+    onDismiss: () -> Unit,
+    onInvite: (String, String) -> Unit
+) {
+    var email by remember { mutableStateOf("") }
+    var message by remember { mutableStateOf("") }
+    var isEmailError by remember { mutableStateOf(false) }
+
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        title = { Text("Invite to $groupName") },
+        text = {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(vertical = 8.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Email Field
+                OutlinedTextField(
+                    value = email,
+                    onValueChange = { 
+                        email = it
+                        isEmailError = false
+                    },
+                    label = { Text("Email Address") },
+                    placeholder = { Text("friend@example.com") },
+                    isError = isEmailError,
+                    supportingText = {
+                        if (isEmailError) {
+                            Text("Please enter a valid email address")
+                        }
+                    },
+                    modifier = Modifier.fillMaxWidth(),
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.Email,
+                            contentDescription = "Email"
+                        )
+                    }
+                )
+
+                // Optional Message
+                OutlinedTextField(
+                    value = message,
+                    onValueChange = { message = it },
+                    label = { Text("Message (Optional)") },
+                    placeholder = { Text("Hey! Join our group to split expenses...") },
+                    modifier = Modifier.fillMaxWidth(),
+                    minLines = 2,
+                    maxLines = 3,
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.Message,
+                            contentDescription = "Message"
+                        )
+                    }
+                )
+                
+                // Info text
+                Text(
+                    text = "The person will receive an email invitation with a link to join the group.",
+                    style = MaterialTheme.typography.bodySmall,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        },
+        confirmButton = {
+            TextButton(
+                onClick = {
+                    // Basic email validation
+                    if (email.isBlank() || !android.util.Patterns.EMAIL_ADDRESS.matcher(email).matches()) {
+                        isEmailError = true
+                    } else {
+                        onInvite(email.trim(), message.trim())
+                    }
+                }
+            ) {
+                Text("Send Invite")
             }
         },
         dismissButton = {

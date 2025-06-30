@@ -4,6 +4,8 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fairr.data.groups.GroupService
 import com.example.fairr.data.groups.GroupResult
+import com.example.fairr.data.groups.GroupInviteService
+import com.example.fairr.data.groups.GroupInviteResult
 import com.example.fairr.data.model.Group
 import com.example.fairr.data.model.GroupMember
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -36,7 +38,8 @@ sealed class GroupSettingsEvent {
 
 @HiltViewModel
 class GroupSettingsViewModel @Inject constructor(
-    private val groupService: GroupService
+    private val groupService: GroupService,
+    private val groupInviteService: GroupInviteService
 ) : ViewModel() {
 
     private val _uiState = MutableStateFlow(GroupSettingsUiState())
@@ -265,6 +268,62 @@ class GroupSettingsViewModel @Inject constructor(
                     }
                     is GroupResult.Error -> {
                         _uiState.update { it.copy(isLoading = false, showDemoteMemberDialog = false, memberToDemote = null) }
+                        _uiEvents.emit(GroupSettingsEvent.ShowError(result.message))
+                    }
+                }
+            }
+        }
+    }
+
+    fun archiveGroup() {
+        viewModelScope.launch {
+            currentGroupId?.let { groupId ->
+                _uiState.update { it.copy(isLoading = true) }
+                when (val result = groupService.archiveGroup(groupId)) {
+                    is GroupResult.Success -> {
+                        _uiState.update { it.copy(isLoading = false) }
+                        _uiEvents.emit(GroupSettingsEvent.ShowSuccess("Group archived successfully"))
+                        loadGroup(groupId)
+                    }
+                    is GroupResult.Error -> {
+                        _uiState.update { it.copy(isLoading = false) }
+                        _uiEvents.emit(GroupSettingsEvent.ShowError(result.message))
+                    }
+                }
+            }
+        }
+    }
+
+    fun unarchiveGroup() {
+        viewModelScope.launch {
+            currentGroupId?.let { groupId ->
+                _uiState.update { it.copy(isLoading = true) }
+                when (val result = groupService.unarchiveGroup(groupId)) {
+                    is GroupResult.Success -> {
+                        _uiState.update { it.copy(isLoading = false) }
+                        _uiEvents.emit(GroupSettingsEvent.ShowSuccess("Group unarchived successfully"))
+                        loadGroup(groupId)
+                    }
+                    is GroupResult.Error -> {
+                        _uiState.update { it.copy(isLoading = false) }
+                        _uiEvents.emit(GroupSettingsEvent.ShowError(result.message))
+                    }
+                }
+            }
+        }
+    }
+
+    fun sendGroupInvitation(email: String, message: String) {
+        viewModelScope.launch {
+            currentGroupId?.let { groupId ->
+                _uiState.update { it.copy(isLoading = true) }
+                when (val result = groupInviteService.sendGroupInvitation(groupId, email, message)) {
+                    is GroupInviteResult.Success -> {
+                        _uiState.update { it.copy(isLoading = false) }
+                        _uiEvents.emit(GroupSettingsEvent.ShowSuccess(result.message))
+                    }
+                    is GroupInviteResult.Error -> {
+                        _uiState.update { it.copy(isLoading = false) }
                         _uiEvents.emit(GroupSettingsEvent.ShowError(result.message))
                     }
                 }

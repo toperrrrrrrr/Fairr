@@ -21,16 +21,107 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.lifecycle.ViewModel
+import androidx.lifecycle.viewModelScope
 import com.example.fairr.ui.theme.*
 import com.example.fairr.navigation.Screen
+import com.example.fairr.data.groups.GroupService
+import com.example.fairr.data.settlements.SettlementService
+import com.example.fairr.util.CurrencyFormatter
+import com.google.firebase.auth.FirebaseAuth
+import dagger.hilt.android.lifecycle.HiltViewModel
+import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.first
+import javax.inject.Inject
+
+// Data classes for overview
+data class GroupBalance(
+    val groupId: String,
+    val groupName: String,
+    val memberCount: Int,
+    val userBalance: Double, // Positive = user is owed money, Negative = user owes money
+    val hasActiveDebts: Boolean
+)
+
+data class OverviewUiState(
+    val isLoading: Boolean = false,
+    val totalBalance: Double = 0.0,
+    val groupBalances: List<GroupBalance> = emptyList(),
+    val error: String? = null
+)
+
+// ViewModel for the overview screen
+@HiltViewModel
+class SettlementsOverviewViewModel @Inject constructor(
+    private val groupService: GroupService,
+    private val settlementService: SettlementService,
+    private val auth: FirebaseAuth
+) : ViewModel() {
+    
+    var uiState by mutableStateOf(OverviewUiState())
+        private set
+    
+    init {
+        loadOverviewData()
+    }
+    
+    private fun loadOverviewData() {
+        viewModelScope.launch {
+            try {
+                uiState = uiState.copy(isLoading = true, error = null)
+                
+                val userGroups = groupService.getUserGroups().first()
+                val groupBalances = mutableListOf<GroupBalance>()
+                var totalBalance = 0.0
+                
+                userGroups.forEach { group ->
+                    try {
+                        val settlementSummary = settlementService.getSettlementSummary(group.id)
+                        val currentUserId = auth.currentUser?.uid ?: ""
+                        val userSummary = settlementSummary.find { it.userId == currentUserId }
+                        
+                        val balance = userSummary?.netBalance ?: 0.0
+                        val hasDebts = userSummary?.let { it.totalOwed > 0 || it.totalOwedToThem > 0 } ?: false
+                        
+                        groupBalances.add(
+                            GroupBalance(
+                                groupId = group.id,
+                                groupName = group.name,
+                                memberCount = group.members.size,
+                                userBalance = balance,
+                                hasActiveDebts = hasDebts
+                            )
+                        )
+                        
+                        totalBalance += balance
+                    } catch (e: Exception) {
+                        // Continue with other groups if one fails
+                    }
+                }
+                
+                uiState = uiState.copy(
+                    isLoading = false,
+                    totalBalance = totalBalance,
+                    groupBalances = groupBalances.filter { it.hasActiveDebts }
+                )
+                
+            } catch (e: Exception) {
+                uiState = uiState.copy(
+                    isLoading = false,
+                    error = e.message ?: "Failed to load settlement overview"
+                )
+            }
+        }
+    }
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun SettlementsOverviewScreen(
     navController: NavController,
-    viewModel: SettlementViewModel = hiltViewModel()
+    viewModel: SettlementsOverviewViewModel = hiltViewModel()
 ) {
-    val state = viewModel.state
+    val state = viewModel.uiState
     val snackbarHostState = remember { SnackbarHostState() }
 
     Scaffold(
@@ -104,99 +195,50 @@ fun SettlementsOverviewScreen(
                                 color = TextSecondary
                             )
                             Text(
-                                text = "₱0.00", // TODO: Calculate overall balance
+                                text = CurrencyFormatter.format(state.totalBalance),
                                 fontSize = 24.sp,
                                 fontWeight = FontWeight.Bold,
-                                color = TextPrimary
+                                color = when {
+                                    state.totalBalance > 0 -> SuccessGreen
+                                    state.totalBalance < 0 -> ErrorRed
+                                    else -> TextPrimary
+                                }
+                            )
+                            
+                            Text(
+                                text = when {
+                                    state.totalBalance > 0 -> "You are owed"
+                                    state.totalBalance < 0 -> "You owe"
+                                    else -> "All settled"
+                                },
+                                fontSize = 14.sp,
+                                color = TextSecondary
                             )
                         }
                     }
                 }
 
                 // Groups with settlements
-                item {
-                    Text(
-                        text = "Groups with Settlements",
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        color = TextPrimary
-                    )
-                }
-
-                // Placeholder for groups with settlements
-                item {
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .clickable {
-                                // TODO: Navigate to specific group settlement
-                            }
-                            .shadow(1.dp, RoundedCornerShape(12.dp)),
-                        shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(containerColor = NeutralWhite)
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(16.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Row(
-                                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                verticalAlignment = Alignment.CenterVertically
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(40.dp)
-                                        .background(
-                                            color = Primary.copy(alpha = 0.1f),
-                                            shape = CircleShape
-                                        ),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Text(
-                                        text = "G",
-                                        fontSize = 16.sp,
-                                        fontWeight = FontWeight.Bold,
-                                        color = Primary
-                                    )
-                                }
-                                Column {
-                                    Text(
-                                        text = "Sample Group",
-                                        fontSize = 16.sp,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = TextPrimary
-                                    )
-                                    Text(
-                                        text = "3 members",
-                                        fontSize = 14.sp,
-                                        color = TextSecondary
-                                    )
-                                }
-                            }
-                            Column(
-                                horizontalAlignment = Alignment.End
-                            ) {
-                                Text(
-                                    text = "₱150.00",
-                                    fontSize = 16.sp,
-                                    fontWeight = FontWeight.Bold,
-                                    color = ErrorRed
-                                )
-                                Text(
-                                    text = "You owe",
-                                    fontSize = 12.sp,
-                                    color = TextSecondary
-                                )
-                            }
-                        }
+                if (state.groupBalances.isNotEmpty()) {
+                    item {
+                        Text(
+                            text = "Groups with Outstanding Balances",
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
                     }
-                }
 
-                // Empty state if no settlements
-                if (true) { // TODO: Replace with actual condition
+                    items(state.groupBalances) { groupBalance ->
+                        GroupBalanceCard(
+                            groupBalance = groupBalance,
+                            onNavigateToGroup = {
+                                navController.navigate(Screen.Settlement.createRoute(groupBalance.groupId))
+                            }
+                        )
+                    }
+                } else {
+                    // Empty state - all settled
                     item {
                         Card(
                             modifier = Modifier
@@ -243,4 +285,77 @@ fun SettlementsOverviewScreen(
         hostState = snackbarHostState,
         modifier = Modifier.padding(16.dp)
     )
+}
+
+@Composable
+private fun GroupBalanceCard(
+    groupBalance: GroupBalance,
+    onNavigateToGroup: () -> Unit
+) {
+    Card(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable { onNavigateToGroup() }
+            .shadow(1.dp, RoundedCornerShape(12.dp)),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(containerColor = NeutralWhite)
+    ) {
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(16.dp),
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                verticalAlignment = Alignment.CenterVertically
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .background(
+                            color = Primary.copy(alpha = 0.1f),
+                            shape = CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = groupBalance.groupName.take(1).uppercase(),
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Bold,
+                        color = Primary
+                    )
+                }
+                Column {
+                    Text(
+                        text = groupBalance.groupName,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        color = TextPrimary
+                    )
+                    Text(
+                        text = "${groupBalance.memberCount} members",
+                        fontSize = 14.sp,
+                        color = TextSecondary
+                    )
+                }
+            }
+            Column(
+                horizontalAlignment = Alignment.End
+            ) {
+                Text(
+                    text = CurrencyFormatter.format(kotlin.math.abs(groupBalance.userBalance)),
+                    fontSize = 16.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = if (groupBalance.userBalance < 0) ErrorRed else SuccessGreen
+                )
+                Text(
+                    text = if (groupBalance.userBalance < 0) "You owe" else "You're owed",
+                    fontSize = 12.sp,
+                    color = TextSecondary
+                )
+            }
+        }
+    }
 } 

@@ -162,7 +162,9 @@ fun SearchScreen(
                     }
                 } else if (searchQuery.isEmpty()) {
                     item {
-                        SearchSuggestionsState()
+                        SearchSuggestionsState(
+                            onSuggestionClick = { suggestion -> searchQuery = suggestion }
+                        )
                     }
                 } else {
                     items(uiState.searchResults) { result: SearchResult ->
@@ -525,7 +527,9 @@ fun EmptySearchState(query: String) {
 }
 
 @Composable
-fun SearchSuggestionsState() {
+fun SearchSuggestionsState(
+    onSuggestionClick: (String) -> Unit
+) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -551,7 +555,7 @@ fun SearchSuggestionsState() {
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .clickable { /* TODO: Apply suggestion */ }
+                    .clickable { onSuggestionClick(suggestion) }
                     .padding(vertical = 8.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {

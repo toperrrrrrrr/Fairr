@@ -8,6 +8,8 @@ import com.example.fairr.data.notifications.RecurringExpenseNotificationService
 import com.example.fairr.data.activity.ActivityService
 import com.example.fairr.data.repository.*
 import com.example.fairr.data.settings.SettingsDataStore
+import com.example.fairr.data.user.UserModerationService
+import com.example.fairr.data.friends.FriendGroupService
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreSettings
@@ -74,9 +76,9 @@ object AppModule {
     @Provides
     @Singleton
     fun provideGroupInviteService(
-        auth: FirebaseAuth,
-        firestore: FirebaseFirestore
-    ): GroupInviteService = GroupInviteService(auth, firestore)
+        firestore: FirebaseFirestore,
+        auth: FirebaseAuth
+    ): GroupInviteService = GroupInviteService(firestore, auth)
 
     @Provides
     @Singleton
@@ -100,12 +102,17 @@ object AppModule {
         @ApplicationContext context: Context
     ): SettingsDataStore = SettingsDataStore(context)
 
-    /*
     @Provides
     @Singleton
-    fun provideCommentService(
+    fun provideUserModerationService(
         auth: FirebaseAuth,
         firestore: FirebaseFirestore
-    ): CommentService = CommentService(auth, firestore)
-    */
+    ): UserModerationService = UserModerationService(auth, firestore)
+
+    @Provides
+    @Singleton
+    fun provideFriendGroupService(
+        auth: FirebaseAuth,
+        firestore: FirebaseFirestore
+    ): FriendGroupService = FriendGroupService(auth, firestore)
 } 

@@ -131,12 +131,21 @@ class SearchViewModel @Inject constructor(
             userGroups.forEach { group ->
                 if (group.name.lowercase().contains(query) || 
                     group.description.lowercase().contains(query)) {
+                    
+                    // Calculate actual expense count and balance for the group
+                    val groupExpenses = expenseRepository.getExpensesByGroupId(group.id)
+                    val expenseCount = groupExpenses.size
+                    
+                    // Calculate user's balance in this group
+                    val currentUserId = auth.currentUser?.uid ?: ""
+                    val userBalance = calculateUserBalanceInGroup(groupExpenses, currentUserId)
+                    
                     results.add(SearchResult.GroupResult(
                         id = group.id,
                         name = group.name,
                         memberCount = group.members.size,
-                        expenseCount = 0, // TODO: Calculate actual expense count
-                        balance = 0.0 // TODO: Calculate actual balance
+                        expenseCount = expenseCount,
+                        balance = userBalance
                     ))
                 }
             }
@@ -145,6 +154,24 @@ class SearchViewModel @Inject constructor(
         } catch (e: Exception) {
             return emptyList()
         }
+    }
+
+    private fun calculateUserBalanceInGroup(expenses: List<Expense>, userId: String): Double {
+        var balance = 0.0
+        
+        expenses.forEach { expense ->
+            // Amount the user paid
+            val amountPaid = if (expense.paidBy == userId) expense.amount else 0.0
+            
+            // Amount the user owes
+            val userSplit = expense.splitBetween.find { it.userId == userId }
+            val amountOwed = userSplit?.share ?: 0.0
+            
+            // User's balance = amount paid - amount owed
+            balance += amountPaid - amountOwed
+        }
+        
+        return balance
     }
 
     private fun matchesExpenseSearch(

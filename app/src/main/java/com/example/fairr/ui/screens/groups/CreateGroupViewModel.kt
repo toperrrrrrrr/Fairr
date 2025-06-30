@@ -10,7 +10,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.fairr.data.groups.GroupResult
 import com.example.fairr.data.groups.GroupService
 import com.example.fairr.data.groups.GroupInviteService
-import com.example.fairr.data.groups.InviteResult
+import com.example.fairr.data.groups.GroupInviteResult
 import com.example.fairr.ui.model.CreateGroupData
 import com.example.fairr.ui.model.GroupMember
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -54,6 +54,9 @@ class CreateGroupViewModel @Inject constructor(
         private set
 
     var groupCurrency by mutableStateOf("PHP")
+        private set
+
+    var groupAvatar by mutableStateOf("")
         private set
 
     private val _members = mutableStateOf<List<GroupMember>>(emptyList())
@@ -111,6 +114,10 @@ class CreateGroupViewModel @Inject constructor(
         groupCurrency = currency
     }
 
+    fun onGroupAvatarChange(avatar: String) {
+        groupAvatar = avatar
+    }
+
     fun addMember(member: GroupMember) {
         // Validate email before adding member
         when (val validation = validateEmail(member.email)) {
@@ -151,6 +158,7 @@ class CreateGroupViewModel @Inject constructor(
                     name = groupName,
                     description = groupDescription,
                     currency = groupCurrency,
+                    avatar = groupAvatar,
                     members = members
                 )
 
@@ -163,11 +171,11 @@ class CreateGroupViewModel @Inject constructor(
                         if (members.isNotEmpty()) {
                             members.forEach { member ->
                                 try {
-                                    when (val inviteResult = groupInviteService.sendGroupInvite(result.groupId, member.email)) {
-                                        is InviteResult.Success -> {
+                                    when (val inviteResult = groupInviteService.sendGroupInvitation(result.groupId, member.email, "Join our group!")) {
+                                        is GroupInviteResult.Success -> {
                                             successfulInvites++
                                         }
-                                        is InviteResult.Error -> {
+                                        is GroupInviteResult.Error -> {
                                             failedInvites.add("${member.email}: ${inviteResult.message}")
                                         }
                                     }
@@ -203,6 +211,7 @@ class CreateGroupViewModel @Inject constructor(
         groupName = ""
         groupDescription = ""
         groupCurrency = "PHP"
+        groupAvatar = ""
         _members.value = emptyList()
     }
 } 

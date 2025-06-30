@@ -9,7 +9,7 @@ import androidx.lifecycle.viewModelScope
 import com.example.fairr.data.groups.GroupJoinService
 import com.example.fairr.data.groups.JoinRequestResult
 import com.example.fairr.data.groups.GroupInviteService
-import com.example.fairr.data.groups.InviteResult
+import com.example.fairr.data.groups.GroupInviteResult
 import com.example.fairr.data.model.Notification
 import com.example.fairr.data.model.NotificationType
 import com.example.fairr.data.notifications.NotificationService
@@ -141,8 +141,14 @@ class NotificationsViewModel @Inject constructor(
                 _uiState.value = _uiState.value.copy(processingRequestId = inviteId)
                 Log.d(TAG, "Set processing state: ${_uiState.value}")
 
-                when (val result = groupInviteService.respondToInvite(inviteId, accept)) {
-                    is InviteResult.Success -> {
+                val result = if (accept) {
+                    groupInviteService.acceptInvitation(inviteId)
+                } else {
+                    groupInviteService.rejectInvitation(inviteId)
+                }
+
+                when (result) {
+                    is GroupInviteResult.Success -> {
                         Log.d(TAG, "Invite response successful")
                         notificationService.markNotificationAsRead(notificationId)
                         
@@ -158,7 +164,7 @@ class NotificationsViewModel @Inject constructor(
                         )
                         Log.d(TAG, "Updated state after success: ${_uiState.value}")
                     }
-                    is InviteResult.Error -> {
+                    is GroupInviteResult.Error -> {
                         Log.e(TAG, "Invite response failed: ${result.message}")
                         snackbarMessage = result.message
                         _uiState.value = _uiState.value.copy(processingRequestId = null)

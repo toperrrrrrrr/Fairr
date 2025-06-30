@@ -40,7 +40,9 @@ data class AddExpenseState(
     val isLoading: Boolean = false,
     val error: String? = null,
     val groupMembers: List<MemberInfo> = emptyList(),
-    val userCurrency: String = "PHP"
+    val userCurrency: String = "PHP",
+    val expenseCurrency: String = "PHP",
+    val groupCurrency: String = "PHP"
 )
 
 @HiltViewModel
@@ -70,15 +72,38 @@ class AddExpenseViewModel @Inject constructor(
     }
 
     fun getCurrencySymbol(): String {
-        return CurrencyFormatter.getSymbol(state.userCurrency)
+        return CurrencyFormatter.getSymbol(state.expenseCurrency)
     }
 
     fun formatCurrency(amount: Double): String {
-        return CurrencyFormatter.format(state.userCurrency, amount)
+        return CurrencyFormatter.format(state.expenseCurrency, amount)
     }
 
     fun formatCurrencyWithSpacing(amount: Double): String {
-        return CurrencyFormatter.formatWithSpacing(state.userCurrency, amount)
+        return CurrencyFormatter.formatWithSpacing(state.expenseCurrency, amount)
+    }
+
+    fun getGroupCurrency(): String {
+        return state.expenseCurrency
+    }
+
+    fun updateExpenseCurrency(currency: String) {
+        state = state.copy(expenseCurrency = currency)
+    }
+
+    fun loadGroupCurrency(groupId: String) {
+        viewModelScope.launch {
+            try {
+                groupService.getGroupById(groupId).collectLatest { group ->
+                    state = state.copy(
+                        groupCurrency = group.currency,
+                        expenseCurrency = group.currency // Default to group currency
+                    )
+                }
+            } catch (e: Exception) {
+                // Use default currency if group loading fails
+            }
+        }
     }
 
     /**
@@ -160,7 +185,18 @@ class AddExpenseViewModel @Inject constructor(
                 state = state.copy(isLoading = true)
                 
                 // Add the expense first to get the expense ID
-                expenseRepository.addExpense(groupId, description, amount, date, paidBy, splitType, category, isRecurring, recurrenceRule)
+                expenseRepository.addExpense(
+                    groupId = groupId,
+                    description = description,
+                    amount = amount,
+                    currency = state.expenseCurrency,
+                    date = date,
+                    paidBy = paidBy,
+                    splitType = splitType,
+                    category = category,
+                    isRecurring = isRecurring,
+                    recurrenceRule = recurrenceRule
+                )
                 
                 // Get the created expense to upload photos
                 val expenses = expenseRepository.getExpensesByGroupId(groupId)

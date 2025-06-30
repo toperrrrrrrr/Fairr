@@ -36,6 +36,10 @@ import com.example.fairr.ui.components.LoadingSpinner
 import com.example.fairr.ui.components.KeyboardDismissibleBox
 import com.example.fairr.ui.components.*
 import com.example.fairr.navigation.Screen
+import androidx.compose.foundation.clickable
+import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
+import androidx.compose.foundation.lazy.grid.GridCells
+import androidx.compose.foundation.lazy.grid.items
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -164,6 +168,15 @@ fun CreateGroupScreen(
                                 modifier = Modifier.fillMaxWidth(),
                                 minLines = 3,
                                 maxLines = 5
+                            )
+                        }
+
+                        // Group Avatar Section
+                        item {
+                            GroupAvatarPicker(
+                                selectedAvatar = viewModel.groupAvatar,
+                                onAvatarSelected = viewModel::onGroupAvatarChange,
+                                modifier = Modifier.fillMaxWidth()
                             )
                         }
 
@@ -370,5 +383,103 @@ fun CreateGroupScreenPreview() {
         CreateGroupScreen(
             navController = rememberNavController()
         )
+    }
+}
+
+@Composable
+private fun GroupAvatarPicker(
+    selectedAvatar: String,
+    onAvatarSelected: (String) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val emojiOptions = listOf(
+        "👥", "🏠", "🎉", "💰", "🍕", "☕", "🎬", "✈️", 
+        "🏖️", "🎸", "📚", "💡", "🎯", "🌟", "❤️", "🔥",
+        "🎨", "🏃", "🍔", "🍻", "🎮", "📱", "💻", "🚗",
+        "🎭", "🏆", "🎪", "🎨", "🌈", "⚽", "🏀", "🎳"
+    )
+    
+    Card(
+        modifier = modifier,
+        colors = CardDefaults.cardColors(containerColor = MaterialTheme.colorScheme.surface)
+    ) {
+        Column(
+            modifier = Modifier.padding(16.dp)
+        ) {
+            Text(
+                text = "Group Avatar",
+                style = MaterialTheme.typography.titleMedium,
+                fontWeight = FontWeight.Bold,
+                modifier = Modifier.padding(bottom = 8.dp)
+            )
+            
+            // Avatar preview
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                modifier = Modifier.padding(bottom = 16.dp)
+            ) {
+                Box(
+                    modifier = Modifier
+                        .size(60.dp)
+                        .background(
+                            color = MaterialTheme.colorScheme.primaryContainer,
+                            shape = CircleShape
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (selectedAvatar.isNotEmpty()) {
+                        Text(
+                            text = selectedAvatar,
+                            fontSize = 28.sp
+                        )
+                    } else {
+                        Icon(
+                            Icons.Default.Group,
+                            contentDescription = "Default Group Icon",
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
+                            modifier = Modifier.size(24.dp)
+                        )
+                    }
+                }
+                
+                Spacer(modifier = Modifier.width(12.dp))
+                
+                Text(
+                    text = if (selectedAvatar.isNotEmpty()) "Selected avatar" else "Choose an emoji for your group",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            
+            // Emoji grid
+            LazyVerticalGrid(
+                columns = GridCells.Fixed(8),
+                contentPadding = PaddingValues(4.dp),
+                horizontalArrangement = Arrangement.spacedBy(4.dp),
+                verticalArrangement = Arrangement.spacedBy(4.dp),
+                modifier = Modifier.height(200.dp)
+            ) {
+                items(emojiOptions) { emoji ->
+                    Box(
+                        modifier = Modifier
+                            .size(40.dp)
+                            .clip(CircleShape)
+                            .background(
+                                color = if (selectedAvatar == emoji) 
+                                    MaterialTheme.colorScheme.primaryContainer 
+                                else 
+                                    Color.Transparent
+                            )
+                            .clickable { onAvatarSelected(emoji) },
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text(
+                            text = emoji,
+                            fontSize = 20.sp
+                        )
+                    }
+                }
+            }
+        }
     }
 } 

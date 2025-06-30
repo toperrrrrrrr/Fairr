@@ -26,6 +26,8 @@ data class CreateGroupData(
     val name: String,
     val description: String,
     val currency: String,
+    val avatar: String = "",
+    val avatarType: String = "EMOJI",
     val members: List<GroupMember> = emptyList()
 )
 

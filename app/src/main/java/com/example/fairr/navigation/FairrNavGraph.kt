@@ -316,10 +316,7 @@ fun FairrNavGraph(
 
         composable(Screen.JoinGroup.route) {
             JoinGroupScreen(
-                navController = navController,
-                onJoinSuccess = {
-                    navController.popBackStack()
-                }
+                navController = navController
             )
         }
 
@@ -369,6 +366,7 @@ fun FairrNavGraph(
 
         composable(Screen.Friends.route) {
             FriendsScreen(
+                navController = navController,
                 onNavigateBack = {
                     navController.popBackStack()
                 }

@@ -8,6 +8,12 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fairr.data.friends.FriendResult
 import com.example.fairr.data.friends.FriendService
+import com.example.fairr.data.friends.FriendActivityService
+import com.example.fairr.data.friends.FriendSuggestionsService
+import com.example.fairr.data.friends.FriendSuggestion
+import com.example.fairr.data.model.*
+import com.example.fairr.data.user.UserModerationService
+import com.example.fairr.data.user.ModerationResult
 import com.example.fairr.ui.model.Friend
 import com.example.fairr.ui.model.FriendRequest
 import com.example.fairr.ui.model.FriendStatus
@@ -22,6 +28,8 @@ sealed class FriendsUiState {
         val friends: List<Friend> = emptyList(),
         val pendingRequests: List<FriendRequest> = emptyList(),
         val acceptedRequests: List<FriendRequest> = emptyList(),
+        val friendActivities: List<FriendActivity> = emptyList(),
+        val friendSuggestions: List<FriendSuggestion> = emptyList(),
         val emailInput: String = ""
     ) : FriendsUiState()
     data class Error(val message: String) : FriendsUiState()
@@ -37,7 +45,10 @@ sealed class EmailValidationResult {
 
 @HiltViewModel
 class FriendsViewModel @Inject constructor(
-    private val friendService: FriendService
+    private val friendService: FriendService,
+    private val friendActivityService: FriendActivityService,
+    private val friendSuggestionsService: FriendSuggestionsService,
+    private val userModerationService: UserModerationService
 ) : ViewModel() {
 
     var uiState by mutableStateOf<FriendsUiState>(FriendsUiState.Loading)
@@ -48,6 +59,70 @@ class FriendsViewModel @Inject constructor(
 
     init {
         loadFriendsAndRequests()
+    }
+
+    /**
+     * Check if a user is blocked
+     */
+    suspend fun isUserBlocked(userId: String): Boolean {
+        return userModerationService.isUserBlocked(userId)
+    }
+
+    /**
+     * Block a user
+     */
+    fun blockUser(userId: String, userName: String, userEmail: String, reason: String = "") {
+        viewModelScope.launch {
+            when (val result = userModerationService.blockUser(userId, userName, userEmail, reason)) {
+                is ModerationResult.Success -> {
+                    _userMessage.emit(result.message)
+                }
+                is ModerationResult.Error -> {
+                    _userMessage.emit(result.message)
+                }
+            }
+        }
+    }
+
+    /**
+     * Unblock a user
+     */
+    fun unblockUser(userId: String) {
+        viewModelScope.launch {
+            when (val result = userModerationService.unblockUser(userId)) {
+                is ModerationResult.Success -> {
+                    _userMessage.emit(result.message)
+                }
+                is ModerationResult.Error -> {
+                    _userMessage.emit(result.message)
+                }
+            }
+        }
+    }
+
+    /**
+     * Report a user
+     */
+    fun reportUser(
+        userId: String,
+        userName: String,
+        userEmail: String,
+        reportType: UserReportType,
+        reason: String,
+        description: String
+    ) {
+        viewModelScope.launch {
+            when (val result = userModerationService.reportUser(
+                userId, userName, userEmail, reportType, reason, description
+            )) {
+                is ModerationResult.Success -> {
+                    _userMessage.emit(result.message)
+                }
+                is ModerationResult.Error -> {
+                    _userMessage.emit(result.message)
+                }
+            }
+        }
     }
 
     /**
@@ -71,16 +146,20 @@ class FriendsViewModel @Inject constructor(
     private fun loadFriendsAndRequests() {
         viewModelScope.launch {
             try {
-                // Combine both friends and requests flows
+                // Combine friends, requests, and activities flows
                 combine(
                     friendService.getUserFriends(),
-                    friendService.getAllFriendRequests()
-                ) { friends, requests ->
+                    friendService.getAllFriendRequests(),
+                    friendActivityService.getFriendActivities(),
+                    friendSuggestionsService.getFriendSuggestions()
+                ) { friends, requests, activities, suggestions ->
                     val (pending, accepted) = requests.partition { it.status == FriendStatus.PENDING }
                     FriendsUiState.Success(
                         friends = friends,
                         pendingRequests = pending,
                         acceptedRequests = accepted,
+                        friendActivities = activities,
+                        friendSuggestions = suggestions,
                         emailInput = (uiState as? FriendsUiState.Success)?.emailInput ?: ""
                     )
                 }.catch { e ->
@@ -159,6 +238,32 @@ class FriendsViewModel @Inject constructor(
     fun removeFriend(friendId: String) {
         viewModelScope.launch {
             when (val result = friendService.removeFriend(friendId)) {
+                is FriendResult.Success -> {
+                    _userMessage.emit(result.message)
+                }
+                is FriendResult.Error -> {
+                    _userMessage.emit(result.message)
+                }
+            }
+        }
+    }
+
+    fun sendFriendRequestToUser(email: String) {
+        // Validate email format first
+        when (val validation = validateEmail(email)) {
+            is EmailValidationResult.Error -> {
+                viewModelScope.launch {
+                    _userMessage.emit(validation.message)
+                }
+                return
+            }
+            is EmailValidationResult.Success -> {
+                // Continue with sending request
+            }
+        }
+
+        viewModelScope.launch {
+            when (val result = friendService.sendFriendRequest(email)) {
                 is FriendResult.Success -> {
                     _userMessage.emit(result.message)
                 }

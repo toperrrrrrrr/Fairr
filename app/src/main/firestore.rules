@@ -195,5 +195,47 @@ service cloud.firestore {
       // Allow deleting friend requests if user is either sender or receiver
       allow delete: if request.auth != null && isInvolvedInRequest();
     }
+
+    // Blocked users collection rules
+    match /blockedUsers/{blockId} {
+      allow read, list: if request.auth != null && 
+                         request.auth.uid == resource.data.blockedBy;
+      allow create: if request.auth != null && 
+                   request.resource.data.blockedBy == request.auth.uid;
+      allow delete: if request.auth != null && 
+                   request.auth.uid == resource.data.blockedBy;
+    }
+
+    // User reports collection rules
+    match /userReports/{reportId} {
+      allow read, list: if request.auth != null && 
+                         request.auth.uid == resource.data.reportedBy;
+      allow create: if request.auth != null && 
+                   request.resource.data.reportedBy == request.auth.uid;
+      // Only allow reading own reports, admins would handle moderation elsewhere
+    }
+
+    // Friend groups collection rules
+    match /friendGroups/{groupId} {
+      allow read, list: if request.auth != null && 
+                         request.auth.uid == resource.data.createdBy;
+      allow create: if request.auth != null && 
+                   request.resource.data.createdBy == request.auth.uid;
+      allow update: if request.auth != null && 
+                   request.auth.uid == resource.data.createdBy;
+      allow delete: if request.auth != null && 
+                   request.auth.uid == resource.data.createdBy &&
+                   resource.data.isDefault != true; // Cannot delete default groups
+    }
+
+    // Friend group memberships collection rules
+    match /friendGroupMemberships/{membershipId} {
+      allow read, list: if request.auth != null && 
+                         request.auth.uid == resource.data.addedBy;
+      allow create: if request.auth != null && 
+                   request.resource.data.addedBy == request.auth.uid;
+      allow delete: if request.auth != null && 
+                   request.auth.uid == resource.data.addedBy;
+    }
   }
 } 

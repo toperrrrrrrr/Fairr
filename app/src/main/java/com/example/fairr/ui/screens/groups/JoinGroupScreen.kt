@@ -6,8 +6,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
-import androidx.compose.material.icons.filled.Group
-import androidx.compose.material.icons.filled.Key
+import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -15,6 +14,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
+import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
@@ -31,187 +31,187 @@ import com.example.fairr.ui.theme.*
 @Composable
 fun JoinGroupScreen(
     navController: NavController,
-    onJoinSuccess: () -> Unit = {},
     viewModel: JoinGroupViewModel = hiltViewModel()
 ) {
-    val snackbarHostState = remember { SnackbarHostState() }
-    val scope = rememberCoroutineScope()
+    var inviteCode by remember { mutableStateOf(TextFieldValue("")) }
+    val uiState by viewModel.uiState.collectAsState()
+
+    // Handle successful join
+    LaunchedEffect(uiState.successMessage) {
+        if (uiState.successMessage != null) {
+            // Navigate back to groups or main screen after successful join
+            navController.popBackStack()
+        }
+    }
 
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { 
-                    Text(
-                        "Join Group",
-                        fontWeight = FontWeight.SemiBold
-                    )
-                },
+                title = { Text("Join Group") },
                 navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
-                        )
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.AutoMirrored.Filled.ArrowBack, contentDescription = "Back")
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.background
-                )
+                }
             )
-        },
-        snackbarHost = { SnackbarHost(snackbarHostState) }
+        }
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(MaterialTheme.colorScheme.background)
-                .padding(padding),
-            horizontalAlignment = Alignment.CenterHorizontally
+                .padding(padding)
+                .padding(16.dp),
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.spacedBy(24.dp)
         ) {
-            Spacer(modifier = Modifier.height(60.dp))
+            Spacer(modifier = Modifier.height(32.dp))
             
-            Box(
-                modifier = Modifier
-                    .size(120.dp)
-                    .background(
-                        MaterialTheme.colorScheme.primary,
-                        RoundedCornerShape(24.dp)
-                    ),
-                contentAlignment = Alignment.Center
+            // Icon
+            Icon(
+                Icons.Default.Groups,
+                contentDescription = "Join Group",
+                modifier = Modifier.size(80.dp),
+                tint = MaterialTheme.colorScheme.primary
+            )
+            
+            // Title and description
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
             ) {
-                Icon(
-                    Icons.Default.Group,
-                    contentDescription = "Join Group",
-                    tint = MaterialTheme.colorScheme.onPrimary,
-                    modifier = Modifier.size(60.dp)
+                Text(
+                    text = "Join a Group",
+                    style = MaterialTheme.typography.headlineMedium,
+                    fontWeight = FontWeight.Bold
+                )
+                Text(
+                    text = "Enter the 6-digit invite code to join a group",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant,
+                    textAlign = TextAlign.Center
                 )
             }
             
-            Spacer(modifier = Modifier.height(32.dp))
-            
-            Text(
-                text = "Join a Group",
-                style = MaterialTheme.typography.headlineMedium,
-                fontWeight = FontWeight.Bold
-            )
-            
-            Text(
-                text = "Enter the invite code shared by your friend to join their group",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center,
-                modifier = Modifier.padding(horizontal = 32.dp, vertical = 8.dp)
-            )
-            
-            Spacer(modifier = Modifier.height(40.dp))
-            
+            // Invite code input
             Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp),
-                shape = RoundedCornerShape(12.dp)
+                modifier = Modifier.fillMaxWidth(),
+                colors = CardDefaults.cardColors(
+                    containerColor = MaterialTheme.colorScheme.surface
+                )
             ) {
                 Column(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(24.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
+                        .padding(16.dp),
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
                     OutlinedTextField(
-                        value = viewModel.inviteCode,
-                        onValueChange = viewModel::onInviteCodeChange,
+                        value = inviteCode,
+                        onValueChange = { 
+                            if (it.text.length <= 6 && it.text.all { char -> char.isDigit() }) {
+                                inviteCode = it
+                                viewModel.clearMessages()
+                            }
+                        },
                         label = { Text("Invite Code") },
-                        singleLine = true,
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(56.dp),
-                        shape = RoundedCornerShape(8.dp),
-                        isError = viewModel.uiState is JoinGroupUiState.Error,
+                        placeholder = { Text("123456") },
                         leadingIcon = {
                             Icon(
-                                Icons.Default.Key,
+                                Icons.Default.Pin,
                                 contentDescription = "Invite Code"
                             )
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        isError = uiState.errorMessage != null,
+                        supportingText = {
+                            uiState.errorMessage?.let { message ->
+                                Text(
+                                    text = message,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
                         }
                     )
-                    
-                    val errorState = viewModel.uiState as? JoinGroupUiState.Error
-                    if (errorState != null) {
-                        Spacer(modifier = Modifier.height(8.dp))
-                        Text(
-                            text = errorState.message,
-                            style = MaterialTheme.typography.labelSmall,
-                            color = MaterialTheme.colorScheme.error,
-                            modifier = Modifier.fillMaxWidth()
-                        )
-                    }
-                    
-                    Spacer(modifier = Modifier.height(24.dp))
                     
                     Button(
-                        onClick = { viewModel.requestToJoinGroup() },
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .height(48.dp),
-                        shape = RoundedCornerShape(8.dp),
-                        enabled = viewModel.uiState !is JoinGroupUiState.Loading
+                        onClick = {
+                            if (inviteCode.text.length == 6) {
+                                viewModel.joinGroupWithCode(inviteCode.text)
+                            }
+                        },
+                        modifier = Modifier.fillMaxWidth(),
+                        enabled = !uiState.isLoading && inviteCode.text.length == 6
                     ) {
-                        if (viewModel.uiState is JoinGroupUiState.Loading) {
+                        if (uiState.isLoading) {
                             CircularProgressIndicator(
-                                modifier = Modifier.size(20.dp),
-                                color = MaterialTheme.colorScheme.onPrimary,
+                                modifier = Modifier.size(16.dp),
                                 strokeWidth = 2.dp
                             )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Joining...")
                         } else {
-                            Text("Send Join Request")
+                            Icon(
+                                Icons.Default.GroupAdd,
+                                contentDescription = "Join",
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Join Group")
                         }
                     }
                 }
             }
             
-            Spacer(modifier = Modifier.height(32.dp))
-            
-            Card(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 24.dp),
-                shape = RoundedCornerShape(12.dp),
-                colors = CardDefaults.cardColors(
-                    containerColor = MaterialTheme.colorScheme.surfaceVariant
-                )
-            ) {
-                Column(
-                    modifier = Modifier.padding(16.dp)
+            // Success message
+            uiState.successMessage?.let { message ->
+                Card(
+                    colors = CardDefaults.cardColors(
+                        containerColor = MaterialTheme.colorScheme.primaryContainer
+                    )
                 ) {
-                    Text(
-                        text = "💡 How it works",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "Ask a group member to share their invite code from the group settings. The code is usually 6-8 characters long.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = MaterialTheme.colorScheme.onSurfaceVariant
-                    )
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.CheckCircle,
+                            contentDescription = "Success",
+                            tint = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                        Spacer(modifier = Modifier.width(12.dp))
+                        Text(
+                            text = message,
+                            style = MaterialTheme.typography.bodyMedium,
+                            color = MaterialTheme.colorScheme.onPrimaryContainer
+                        )
+                    }
                 }
             }
-        }
-    }
-
-    // Handle UI state changes
-    LaunchedEffect(viewModel.uiState) {
-        when (val state = viewModel.uiState) {
-            is JoinGroupUiState.Success -> {
-                scope.launch {
-                    snackbarHostState.showSnackbar(
-                        message = state.message,
-                        duration = SnackbarDuration.Long
-                    )
+            
+            // Help text
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                Text(
+                    text = "Don't have an invite code?",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+                TextButton(
+                    onClick = {
+                        // Navigate to create group screen
+                        navController.navigate("create_group")
+                    }
+                ) {
+                    Text("Create a New Group")
                 }
-                viewModel.resetState()
             }
-            else -> {}
+            
+            Spacer(modifier = Modifier.weight(1f))
         }
     }
 }

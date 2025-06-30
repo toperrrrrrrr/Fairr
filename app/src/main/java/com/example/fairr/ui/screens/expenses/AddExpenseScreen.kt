@@ -186,6 +186,7 @@ fun AddExpenseScreen(
     // Load group members when screen opens
     LaunchedEffect(groupId) {
         viewModel.loadGroupMembers(groupId)
+        viewModel.loadGroupCurrency(groupId)
     }
 
     // Handle events
@@ -475,12 +476,79 @@ fun AddExpenseScreen(
                     modifier = Modifier.fillMaxWidth(),
                     verticalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Text(
-                        text = "Amount",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = TextPrimary
-                    )
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Amount",
+                            fontSize = 14.sp,
+                            fontWeight = FontWeight.SemiBold,
+                            color = TextPrimary
+                        )
+                        
+                        // Currency Selector
+                        var showCurrencyDropdown by remember { mutableStateOf(false) }
+                        Box {
+                            OutlinedButton(
+                                onClick = { showCurrencyDropdown = true },
+                                modifier = Modifier.width(100.dp),
+                                colors = ButtonDefaults.outlinedButtonColors(
+                                    contentColor = Primary
+                                ),
+                                border = BorderStroke(1.dp, Primary.copy(alpha = 0.5f))
+                            ) {
+                                Text(
+                                    text = viewModel.getGroupCurrency(),
+                                    fontSize = 14.sp,
+                                    fontWeight = FontWeight.Medium
+                                )
+                                Icon(
+                                    Icons.Default.ArrowDropDown,
+                                    contentDescription = "Select Currency",
+                                    modifier = Modifier.size(16.dp)
+                                )
+                            }
+                            
+                            DropdownMenu(
+                                expanded = showCurrencyDropdown,
+                                onDismissRequest = { showCurrencyDropdown = false }
+                            ) {
+                                listOf("USD", "EUR", "GBP", "JPY", "PHP", "SGD", "CAD", "AUD").forEach { currency ->
+                                    DropdownMenuItem(
+                                        text = { 
+                                            Row(
+                                                verticalAlignment = Alignment.CenterVertically,
+                                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                                            ) {
+                                                Text(
+                                                    text = when(currency) {
+                                                        "USD" -> "🇺🇸"
+                                                        "EUR" -> "🇪🇺"
+                                                        "GBP" -> "🇬🇧"
+                                                        "JPY" -> "🇯🇵"
+                                                        "PHP" -> "🇵🇭"
+                                                        "SGD" -> "🇸🇬"
+                                                        "CAD" -> "🇨🇦"
+                                                        "AUD" -> "🇦🇺"
+                                                        else -> "💰"
+                                                    },
+                                                    fontSize = 16.sp
+                                                )
+                                                Text(currency)
+                                            }
+                                        },
+                                        onClick = {
+                                            viewModel.updateExpenseCurrency(currency)
+                                            showCurrencyDropdown = false
+                                        }
+                                    )
+                                }
+                            }
+                        }
+                    }
+                    
                     CompactCalculator(
                         value = amount,
                         onValueChange = { amount = it },

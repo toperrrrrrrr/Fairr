@@ -12,7 +12,8 @@ data class Group(
     val inviteCode: String = "",
     val members: List<GroupMember> = emptyList(),
     val avatar: String = "",
-    val avatarType: AvatarType = AvatarType.EMOJI
+    val avatarType: AvatarType = AvatarType.EMOJI,
+    val isArchived: Boolean = false
 ) {
     val isUserAdmin: Boolean
         get() = members.any { it.role == GroupRole.ADMIN }
