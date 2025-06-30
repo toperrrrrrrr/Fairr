@@ -1,174 +1,227 @@
-# Fairr Android App - TODO List (Organized by Implementation Time)
+# Fairr Technical Issues - Current Status
 
-## 🚀 QUICK FIXES (1-4 hours each)
-
-### Currency & Display Issues
-- [x] **Fix currency symbol display consistency**
-  - Update `CurrencyFormatter.kt` to use dynamic currency from user settings
-  - Remove hardcoded USD references in ViewModels
-  - Files: `util/CurrencyFormatter.kt`, `data/settings/SettingsDataStore.kt`
-
-- [ ] **Replace main page settings button**
-  - Replace settings button with profile avatar or hamburger menu
-  - Files: `ui/screens/home/HomeScreen.kt`, `ui/screens/MainScreen.kt`
-
-### Navigation & UI Polish
-- [x] **Reduce navigation bar white space**
-  - Modify padding/margins in `ModernNavigationBar.kt`
-  - Implement oblong floating button shapes
-  - Files: `ui/components/ModernNavigationBar.kt`
-
-- [ ] **Add keyboard auto-hide functionality**
-  - Implement keyboard hiding when calculator is clicked
-  - Add tap-to-dismiss behavior for text fields
-  - Files: `ui/components/Calculator.kt`, text input screens
-  - Add expense page.
-  - create group pge as well
-
-### Validation & Error Handling
-- [x] **Improve email validation**
-  - Add robust email validation in friend invitations
-  - Implement proper error messaging for invalid formats
-  - Files: `ui/screens/friends/FriendsViewModel.kt`, `data/friends/FriendService.kt`
-
-## ⚡ MEDIUM FIXES (4-8 hours each)
-
-### Authentication & Session Management
-- [x] **Fix session persistence issues**
-  - Enhance `AuthService.kt` for proper session validation
-  - Modify `StartupViewModel.kt` to check Firebase Auth state
-  - Update `FairrNavGraph.kt` for conditional auth screens
-  - Files: `data/auth/AuthService.kt`, `ui/viewmodels/StartupViewModel.kt`, `navigation/FairrNavGraph.kt`
-
-- [x] **Implement proper sign-out data clearing**
-  - Clear `UserPreferencesManager` and `SettingsDataStore` on logout
-  - Reset all ViewModels to initial state
-  - Force account selection dialog on next login
-  - Files: `data/auth/AuthService.kt`, `data/preferences/UserPreferencesManager.kt`
-
-### Group Management Features
-- [x] **Complete remove member functionality**
-  - Implement `removeMemberFromGroup()` in `GroupSettingsViewModel.kt`
-  - Add confirmation dialog and notifications
-  - Files: `ui/viewmodel/GroupSettingsViewModel.kt`, `data/groups/GroupService.kt`
-
-- [x] **Implement edit group functionality**
-  - Add group editing logic in `GroupSettingsViewModel.kt`
-  - Create update methods in `GroupService.kt`
-  - Files: `ui/viewmodel/GroupSettingsViewModel.kt`, `data/groups/GroupService.kt`
-
-### UI Component Improvements
-- [ ] **Redesign notification cards**
-  - Use `ModernComponents.kt` patterns for notification UI
-  - Add card elevation, visual hierarchy, and action buttons
-  - Consider swipe-to-dismiss functionality
-  - Files: `ui/screens/notifications/NotificationsScreen.kt`, `ui/components/ModernComponents.kt`
-
-- [ ] **Add emoji support for groups**
-  - Create emoji picker component
-  - Integrate in group creation and detail screens
-  - Files: `ui/screens/groups/CreateGroupScreen.kt`, `ui/screens/groups/GroupDetailScreen.kt`
-
-### Profile & Onboarding
-- [ ] **Add profile completion prompts**
-  - Implement profile completion checking
-  - Add onboarding flow for missing details
-  - Create prompts in home screen
-  - Files: `ui/viewmodels/ProfileViewModel.kt`, `data/repository/UserRepository.kt`
-
-## 🔧 COMPLEX FIXES (8-16 hours each)
-
-### Real-time Data & Performance
-- [ ] **Fix group details real-time updates**
-  - Implement Firestore real-time listeners in `GroupDetailViewModel`
-  - Ensure proper data refresh after expense operations
-  - Use Flow-based data streams for reactive updates
-  - Files: `ui/screens/groups/GroupDetailViewModel.kt`, `data/expenses/ExpenseService.kt`
-
-- [ ] **Comprehensive group expense flow audit**
-  - Test end-to-end: Group Creation → Expense Logging → Settlement
-  - Verify data consistency between ViewModels and Services
-  - Create integration tests for each flow step
-  - Files: All group-related ViewModels, Services, and Screens
-
-### Advanced UI Features
-- [ ] **Implement page transition effects**
-  - Add custom transitions in `FairrNavGraph.kt`
-  - Use Compose Animation APIs (slideInHorizontally, fadeIn, etc.)
-  - Create consistent transition patterns
-  - Files: `navigation/FairrNavGraph.kt`
-
-- [ ] **User activity tracking system**
-  - Implement analytics tracking in `AuthService.kt`
-  - Add action logging throughout critical flows
-  - Consider Firebase Analytics integration
-  - Create user engagement dashboard
-  - Files: `data/auth/AuthService.kt`, major ViewModels
-
-## 🏗️ MAJOR IMPLEMENTATIONS (16+ hours each)
-
-### Feature Completeness
-- [ ] **Systematic feature completeness review**
-  - Compare implementation against `MVP_SCOPE.md`
-  - Create feature matrix of planned vs. implemented
-  - Identify missing critical features (OCR, offline support, analytics)
-  - Prioritize based on user impact
-
-### Testing & Quality Assurance
-- [ ] **Comprehensive testing suite**
-  - Unit tests for ViewModel logic
-  - Integration tests for Service layer
-  - UI tests for critical user flows
-  - Performance testing and optimization
-
-### Security & Data Management
-- [ ] **Advanced security implementation**
-  - Validate all user inputs comprehensively
-  - Implement robust Firestore security rules
-  - Ensure secure authentication flows throughout
-  - Implement proper session management
+**Status**: Based on December 2024 Comprehensive 5-Pass Codebase Review  
+**Critical Priority**: Address security and stability issues before production  
+**Reference**: See [Comprehensive Review](../Docu2/) for detailed analysis
 
 ---
 
-## 📋 IMPLEMENTATION GUIDELINES
+## 🚨 **CRITICAL ISSUES (Immediate Attention Required)**
 
-### Development Standards
-- Follow Clean Architecture + MVVM patterns
-- Maintain existing naming conventions
-- Use Hilt for dependency injection
-- Implement proper error handling
-- Use coroutines and Flow for async operations
+### **P0 - Security & Crash Prevention** 
+*Must fix within 24-48 hours*
 
-### Testing Requirements
-Each TODO should include:
-- [ ] Unit tests written
-- [ ] Integration tests (if applicable)
-- [ ] Manual testing completed
-- [ ] Performance impact assessed
+#### 🔒 **Security Vulnerabilities**
+- [ ] **Implement comprehensive Firestore security rules**
+  - Missing user authentication checks for all collections
+  - No group membership validation in queries
+  - Risk: Data breaches and unauthorized access
+  - **Files**: `firestore.rules`, all repository classes
+  - **Effort**: 8-12 hours
 
-### Priority Indicators
-- 🚀 **Quick Fixes**: Can be completed in a single session
-- ⚡ **Medium Fixes**: Require focused development time
-- 🔧 **Complex Fixes**: Need careful planning and testing
-- 🏗️ **Major Implementations**: Significant feature development
+- [ ] **Fix authentication state management** 
+  - Force unwrap in `AuthService.kt:54` causes crashes
+  - Invalid session states possible
+  - **Files**: `AuthService.kt`, `StartupViewModel.kt`
+  - **Effort**: 4-6 hours
 
----
+#### 🚨 **Null Pointer Crash Risks**
+- [ ] **Replace all force unwrap operators (!!)**
+  - **Files**: `SettlementScreen.kt:229-243`, `AddExpenseScreen.kt:409,816,891-894`
+  - **Files**: `AdvancedRecurrenceRule.kt:82-163`, `SettlementService.kt:122-123`
+  - Risk: Immediate app crashes under normal usage
+  - **Effort**: 4-6 hours
 
-## 🎯 RECOMMENDED SPRINT PLANNING
-
-### Sprint 1 (Week 1): Quick Wins
-Focus on 🚀 Quick Fixes to improve immediate user experience
-
-### Sprint 2 (Week 2): Core Functionality
-Address ⚡ Medium Fixes, especially authentication and group management
-
-### Sprint 3 (Week 3): Advanced Features
-Tackle 🔧 Complex Fixes for real-time updates and UI enhancements
-
-### Sprint 4 (Week 4): Polish & Testing
-Complete 🏗️ Major Implementations and comprehensive testing
+#### 💾 **Data Integrity Issues**
+- [ ] **Remove test/dummy data from production**
+  - **Files**: `RecurringExpenseAnalyticsScreen.kt:426`, `RecurringExpenseManagementScreen.kt:379`
+  - Hardcoded "test" group IDs in production code
+  - **Effort**: 3-4 hours
 
 ---
 
-*Total Estimated Time: 60-80 hours of development work*
-*Recommended Team Size: 2-3 developers working in parallel* 
+## ⚡ **HIGH PRIORITY ISSUES**
+*Fix within 1 week*
+
+### **Memory & Performance**
+- [ ] **Fix ViewModel memory leaks**
+  - Uncancelled coroutines in multiple ViewModels
+  - Firebase listeners not properly cleaned up
+  - **Files**: Multiple ViewModels throughout app
+  - **Effort**: 8-10 hours
+
+- [ ] **Implement pagination for large datasets**
+  - Expenses, groups, friends lists need pagination
+  - Performance issues with heavy usage
+  - **Effort**: 12-16 hours
+
+### **UI/UX Issues**
+- [ ] **Update deprecated Material 3 components**
+  - Replace deprecated `ArrowBack` with `AutoMirrored` versions
+  - Fix progress indicators and other deprecated components
+  - **Effort**: 4-6 hours
+
+- [ ] **Implement comprehensive input validation**
+  - Missing validation for amounts, emails, text inputs
+  - Add input sanitization before Firestore storage
+  - **Effort**: 12-16 hours
+
+### **Currency & Hardcoded Values**
+- [ ] **Fix hardcoded currency references**
+  - Remove USD hardcoding throughout ViewModels
+  - Implement dynamic currency from user preferences
+  - **Files**: Multiple ViewModels, `CurrencyFormatter.kt`
+  - **Effort**: 6-8 hours
+
+---
+
+## 📊 **MEDIUM PRIORITY ISSUES**
+*Address within 2-4 weeks*
+
+### **Code Quality**
+- [ ] **Clean up duplicate files and .bak files**
+  - Remove: `ActivityService.kt.bak`, `GroupActivityService.kt.bak`, etc.
+  - Consolidate duplicate ExpenseCategory implementations
+  - **Effort**: 2-4 hours
+
+- [ ] **Fix code duplication issues**
+  - Extract repeated UI components
+  - Centralize balance calculation logic
+  - **Effort**: 16-20 hours
+
+### **User Experience**
+- [ ] **Implement comprehensive error handling**
+  - User-friendly error messages throughout
+  - Retry mechanisms for failed operations
+  - **Effort**: 16-20 hours
+
+- [ ] **Add accessibility features**
+  - Content descriptions for all interactive elements
+  - TalkBack support and keyboard navigation
+  - **Effort**: 20-24 hours
+
+### **Performance Optimization**
+- [ ] **Implement proper caching strategy**
+  - Local caching for frequently accessed data
+  - Cache invalidation strategies
+  - **Effort**: 20-24 hours
+
+---
+
+## ✅ **COMPLETED FIXES**
+
+### **Core Features (95% Complete)**
+- [x] **All MVP features implemented** - Authentication, groups, expenses, settlements
+- [x] **Real-time data integration** - All screens connected to live Firestore data
+- [x] **Advanced features** - Multi-currency, dark mode, analytics, notifications
+- [x] **Build stability** - App compiles and runs successfully
+- [x] **Test infrastructure** - Basic testing framework in place
+
+### **UI/UX Improvements**
+- [x] **Modern Material 3 design** - Professional UI throughout
+- [x] **Dark mode support** - Complete theme system
+- [x] **Loading states** - Basic loading indicators implemented
+- [x] **Navigation** - Smooth transitions and proper routing
+
+### **Data & Backend**
+- [x] **Firestore integration** - All CRUD operations working
+- [x] **Offline support** - Firestore persistence enabled
+- [x] **Real-time updates** - Live data synchronization
+- [x] **Settlement algorithms** - Advanced debt optimization
+
+---
+
+## 🎯 **IMPLEMENTATION ROADMAP**
+
+### **Week 1: Critical Stability**
+**Focus**: Eliminate crash risks and security vulnerabilities
+- Fix all force unwrap operators
+- Implement Firestore security rules  
+- Add authentication state management
+- Remove test data from production
+
+**Success Criteria**: Zero crashes, secure data access
+
+### **Week 2: Performance & Polish**
+**Focus**: Memory management and user experience
+- Fix memory leaks in ViewModels
+- Update deprecated components
+- Implement input validation
+- Fix currency hardcoding
+
+**Success Criteria**: Professional appearance, stable performance
+
+### **Week 3: Advanced Features**
+**Focus**: User experience and accessibility
+- Comprehensive error handling
+- Accessibility features
+- Code duplication cleanup
+- Caching optimization
+
+**Success Criteria**: Production-ready user experience
+
+### **Week 4: Final Readiness**
+**Focus**: Production deployment preparation
+- GDPR compliance features
+- Comprehensive testing
+- Analytics and monitoring
+- Deployment automation
+
+**Success Criteria**: Ready for public release
+
+---
+
+## 📋 **QUALITY GATES**
+
+### **Security Requirements**
+- [ ] Zero critical security vulnerabilities
+- [ ] Complete Firestore security rule coverage
+- [ ] All user inputs properly validated
+- [ ] Session management secure and tested
+
+### **Stability Requirements**  
+- [ ] Zero force unwrap operators in codebase
+- [ ] Memory usage under 200MB peak
+- [ ] No memory leaks in ViewModels
+- [ ] App startup time under 2 seconds
+
+### **User Experience Requirements**
+- [ ] All async operations have loading states
+- [ ] Error messages user-friendly and helpful
+- [ ] Accessibility support complete
+- [ ] Professional appearance (no test data)
+
+---
+
+## 🔧 **DEVELOPMENT GUIDELINES**
+
+### **Immediate Priorities**
+1. **Security first** - Fix Firestore rules and authentication
+2. **Stability second** - Eliminate crash risks
+3. **Polish third** - User experience improvements
+4. **Features last** - Only add features after stability
+
+### **Code Standards**
+- No force unwrap operators (`!!`) allowed
+- All user inputs must be validated
+- Proper error handling required
+- Memory management with proper cleanup
+- Consistent UI patterns throughout
+
+### **Testing Requirements**
+- Unit tests for critical business logic
+- Integration tests for data operations
+- Manual testing for all user flows
+- Performance testing before release
+
+---
+
+**Total Estimated Effort**: 400-500 developer hours  
+**Recommended Team**: 2-3 developers working in parallel  
+**Timeline to Production**: 4-6 weeks with focused effort
+
+---
+
+*Last updated: December 19, 2024*  
+*Based on: 5-Pass Comprehensive Codebase Review*  
+*Next review: Weekly during critical issue resolution* 
