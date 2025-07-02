@@ -11,6 +11,8 @@ import com.example.fairr.data.model.RecurrenceRule
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import java.util.*
 import javax.inject.Inject
@@ -21,7 +23,7 @@ class RecurringExpenseScheduler @Inject constructor(
     private val context: Context,
     private val expenseRepository: ExpenseRepository
 ) {
-    private val scope = CoroutineScope(Dispatchers.IO)
+    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val alarmManager = context.getSystemService(Context.ALARM_SERVICE) as AlarmManager
     
     companion object {
@@ -196,5 +198,14 @@ class RecurringExpenseScheduler @Inject constructor(
                 Log.e(TAG, "Error generating instances for expense $expenseId", e)
             }
         }
+    }
+    
+    /**
+     * Clean up resources and cancel pending coroutines
+     * Should be called when the app is being destroyed or user signs out
+     */
+    fun cleanup() {
+        scope.cancel()
+        Log.d(TAG, "RecurringExpenseScheduler cleanup completed")
     }
 } 

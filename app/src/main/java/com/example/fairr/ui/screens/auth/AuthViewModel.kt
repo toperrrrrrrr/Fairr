@@ -13,6 +13,9 @@ import com.example.fairr.data.auth.GoogleAuthService
 import com.example.fairr.data.preferences.UserPreferencesManager
 import com.example.fairr.data.repository.UserRepository
 import com.example.fairr.data.settings.SettingsDataStore
+import com.example.fairr.data.notifications.RecurringExpenseNotificationService
+import com.example.fairr.data.repository.RecurringExpenseScheduler
+import com.example.fairr.data.analytics.RecurringExpenseAnalytics
 import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.common.api.ApiException
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -31,7 +34,10 @@ class AuthViewModel @Inject constructor(
     private val googleAuthService: GoogleAuthService,
     private val userRepository: UserRepository,
     private val userPreferencesManager: UserPreferencesManager,
-    private val settingsDataStore: SettingsDataStore
+    private val settingsDataStore: SettingsDataStore,
+    private val recurringExpenseNotificationService: RecurringExpenseNotificationService,
+    private val recurringExpenseScheduler: RecurringExpenseScheduler,
+    private val recurringExpenseAnalytics: RecurringExpenseAnalytics
 ) : ViewModel() {
     private val _state = MutableStateFlow(AuthState())
     val state: StateFlow<AuthState> = _state.asStateFlow()
@@ -173,6 +179,11 @@ class AuthViewModel @Inject constructor(
     fun signOut() {
         viewModelScope.launch {
             try {
+                // Clean up all services first to prevent memory leaks
+                recurringExpenseNotificationService.cleanup()
+                recurringExpenseScheduler.cleanup()
+                recurringExpenseAnalytics.cleanup()
+                
                 // Sign out from Google and Firebase with complete data clearing
                 googleAuthService.signOut()
                 authService.signOutWithDataClearing(userPreferencesManager, settingsDataStore)
@@ -183,7 +194,7 @@ class AuthViewModel @Inject constructor(
                 // Emit reset event to trigger app-wide reset
                 _uiEvent.emit(AuthUiEvent.ResetApp)
                 
-                Log.d("AuthViewModel", "Sign out completed with data clearing")
+                Log.d("AuthViewModel", "Sign out completed with data clearing and service cleanup")
             } catch (e: Exception) {
                 Log.e("AuthViewModel", "Error during sign out", e)
                 // Fallback to basic sign out if data clearing fails
@@ -198,6 +209,11 @@ class AuthViewModel @Inject constructor(
 
     private fun setError(message: String) {
         _state.value = _state.value.copy(error = message)
+    }
+    
+    override fun onCleared() {
+        super.onCleared()
+        // Clean up any service resources if needed
     }
 
     fun showMessage(message: String) {

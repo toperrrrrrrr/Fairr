@@ -377,7 +377,7 @@ private fun buildRecurrenceSummary(rule: RecurrenceRule): String {
 fun RecurringExpenseManagementScreenPreview() {
     FairrTheme {
         RecurringExpenseManagementScreen(
-            groupId = "test",
+            groupId = "sample_group_preview",
             navController = rememberNavController()
         )
     }

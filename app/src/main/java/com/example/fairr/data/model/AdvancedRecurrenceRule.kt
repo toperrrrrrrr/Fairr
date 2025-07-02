@@ -78,9 +78,9 @@ data class AdvancedRecurrenceRule(
     }
     
     private fun calculateNextWeekly(calendar: Calendar): Date {
-        if (dayOfWeek != null) {
+        val targetDayOfWeek = dayOfWeek
+        if (targetDayOfWeek != null) {
             // Specific day of week (e.g., every Monday)
-            val targetDayOfWeek = dayOfWeek!!
             val currentDayOfWeek = calendar.get(Calendar.DAY_OF_WEEK)
             
             if (currentDayOfWeek == targetDayOfWeek) {
@@ -103,9 +103,9 @@ data class AdvancedRecurrenceRule(
     }
     
     private fun calculateNextMonthly(calendar: Calendar): Date {
-        if (dayOfMonth != null) {
+        val targetDay = dayOfMonth
+        if (targetDay != null) {
             // Specific day of month (e.g., monthly on the 15th)
-            val targetDay = dayOfMonth!!
             val currentDay = calendar.get(Calendar.DAY_OF_MONTH)
             
             if (currentDay == targetDay) {
@@ -120,10 +120,11 @@ data class AdvancedRecurrenceRule(
                     calendar.add(Calendar.MONTH, interval)
                 }
             }
-        } else if (weekOfMonth != null && dayOfWeek != null) {
-            // Specific week and day of month (e.g., first Monday of month)
-            val targetWeek = weekOfMonth!!
-            val targetDay = dayOfWeek!!
+        } else {
+            val targetWeek = weekOfMonth
+            val targetDayOfWeek = dayOfWeek
+            if (targetWeek != null && targetDayOfWeek != null) {
+                // Specific week and day of month (e.g., first Monday of month)
             
             // Move to next month
             calendar.add(Calendar.MONTH, interval)
@@ -131,37 +132,38 @@ data class AdvancedRecurrenceRule(
             // Set to first day of month
             calendar.set(Calendar.DAY_OF_MONTH, 1)
             
-            // Find the target day of the target week
-            while (calendar.get(Calendar.DAY_OF_WEEK) != targetDay) {
-                calendar.add(Calendar.DAY_OF_MONTH, 1)
-            }
-            
-            // Add weeks to get to target week
-            if (targetWeek > 1) {
-                calendar.add(Calendar.WEEK_OF_MONTH, targetWeek - 1)
-            } else if (targetWeek == -1) {
-                // Last week: move to next month and go back
-                calendar.add(Calendar.MONTH, 1)
-                calendar.set(Calendar.DAY_OF_MONTH, 1)
-                calendar.add(Calendar.DAY_OF_MONTH, -1)
-                
-                while (calendar.get(Calendar.DAY_OF_WEEK) != targetDay) {
-                    calendar.add(Calendar.DAY_OF_MONTH, -1)
+                // Find the target day of the target week
+                while (calendar.get(Calendar.DAY_OF_WEEK) != targetDayOfWeek) {
+                    calendar.add(Calendar.DAY_OF_MONTH, 1)
                 }
+                
+                // Add weeks to get to target week
+                if (targetWeek > 1) {
+                    calendar.add(Calendar.WEEK_OF_MONTH, targetWeek - 1)
+                } else if (targetWeek == -1) {
+                    // Last week: move to next month and go back
+                    calendar.add(Calendar.MONTH, 1)
+                    calendar.set(Calendar.DAY_OF_MONTH, 1)
+                    calendar.add(Calendar.DAY_OF_MONTH, -1)
+                    
+                    while (calendar.get(Calendar.DAY_OF_WEEK) != targetDayOfWeek) {
+                        calendar.add(Calendar.DAY_OF_MONTH, -1)
+                    }
+                }
+            } else {
+                // Regular monthly (same day of month)
+                calendar.add(Calendar.MONTH, interval)
             }
-        } else {
-            // Regular monthly (same day of month)
-            calendar.add(Calendar.MONTH, interval)
         }
         
         return calendar.time
     }
     
     private fun calculateNextYearly(calendar: Calendar): Date {
-        if (monthOfYear != null && dayOfMonth != null) {
+        val targetMonth = monthOfYear
+        val targetDay = dayOfMonth
+        if (targetMonth != null && targetDay != null) {
             // Specific month and day (e.g., yearly on March 15th)
-            val targetMonth = monthOfYear!!
-            val targetDay = dayOfMonth!!
             val currentMonth = calendar.get(Calendar.MONTH) + 1 // Calendar.MONTH is 0-based
             
             if (currentMonth == targetMonth && calendar.get(Calendar.DAY_OF_MONTH) == targetDay) {

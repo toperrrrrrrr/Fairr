@@ -166,46 +166,50 @@ fun CategoryManagementScreen(
     }
     
     // Edit Category Dialog
-    if (showEditDialog && selectedCategory != null) {
-        AddEditCategoryDialog(
-            category = selectedCategory,
-            onDismiss = { showEditDialog = false },
-            onSave = { updatedCategory ->
-                categories = categories.map { 
-                    if (it.id == selectedCategory!!.id) updatedCategory else it 
+    selectedCategory?.let { category ->
+        if (showEditDialog) {
+            AddEditCategoryDialog(
+                category = category,
+                onDismiss = { showEditDialog = false },
+                onSave = { updatedCategory ->
+                    categories = categories.map { 
+                        if (it.id == category.id) updatedCategory else it 
+                    }
+                    showEditDialog = false
+                    selectedCategory = null
                 }
-                showEditDialog = false
-                selectedCategory = null
-            }
-        )
+            )
+        }
     }
     
     // Delete Confirmation Dialog
-    if (showDeleteDialog && selectedCategory != null) {
-        AlertDialog(
-            onDismissRequest = { showDeleteDialog = false },
-            title = { Text("Delete Category") },
-            text = { 
-                Text("Are you sure you want to delete \"${selectedCategory!!.name}\"? This action cannot be undone.") 
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        categories = categories.filter { it.id != selectedCategory!!.id }
-                        showDeleteDialog = false
-                        selectedCategory = null
-                    },
-                    colors = ButtonDefaults.buttonColors(containerColor = ErrorRed)
-                ) {
-                    Text("Delete")
+    selectedCategory?.let { category ->
+        if (showDeleteDialog) {
+            AlertDialog(
+                onDismissRequest = { showDeleteDialog = false },
+                title = { Text("Delete Category") },
+                text = { 
+                    Text("Are you sure you want to delete \"${category.name}\"? This action cannot be undone.") 
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            categories = categories.filter { it.id != category.id }
+                            showDeleteDialog = false
+                            selectedCategory = null
+                        },
+                        colors = ButtonDefaults.buttonColors(containerColor = ErrorRed)
+                    ) {
+                        Text("Delete")
+                    }
+                },
+                dismissButton = {
+                    TextButton(onClick = { showDeleteDialog = false }) {
+                        Text("Cancel")
+                    }
                 }
-            },
-            dismissButton = {
-                TextButton(onClick = { showDeleteDialog = false }) {
-                    Text("Cancel")
-                }
-            }
-        )
+            )
+        }
     }
 }
 

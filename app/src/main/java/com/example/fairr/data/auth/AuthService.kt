@@ -50,9 +50,10 @@ class AuthService @Inject constructor(
         // Add auth state listener on initialization
         auth.addAuthStateListener(authStateListener)
         
-        // Set initial state
-        _authState.value = if (auth.currentUser != null) {
-            AuthState.Authenticated(auth.currentUser!!)
+        // Set initial state safely
+        val currentUser = auth.currentUser
+        _authState.value = if (currentUser != null) {
+            AuthState.Authenticated(currentUser)
         } else {
             AuthState.Unauthenticated
         }

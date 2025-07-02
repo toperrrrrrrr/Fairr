@@ -549,7 +549,7 @@ class ExpenseRepositoryImpl @Inject constructor(
             return
         }
         
-        val rule = expense.recurrenceRule!!
+        val rule = expense.recurrenceRule ?: return
         val calendar = Calendar.getInstance()
         calendar.time = expense.date.toDate()
         

@@ -22,6 +22,9 @@ import com.example.fairr.ui.screens.SplashScreen
 import com.example.fairr.ui.theme.FairrTheme
 import com.example.fairr.ui.viewmodels.StartupViewModel
 import com.example.fairr.data.notifications.RecurringExpenseNotificationService
+import com.example.fairr.data.repository.RecurringExpenseScheduler
+import com.example.fairr.data.analytics.RecurringExpenseAnalytics
+import com.example.fairr.data.auth.AuthService
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import androidx.core.view.WindowCompat
@@ -33,6 +36,15 @@ class MainActivity : ComponentActivity() {
     
     @Inject
     lateinit var recurringExpenseNotificationService: RecurringExpenseNotificationService
+    
+    @Inject
+    lateinit var recurringExpenseScheduler: RecurringExpenseScheduler
+    
+    @Inject
+    lateinit var recurringExpenseAnalytics: RecurringExpenseAnalytics
+    
+    @Inject
+    lateinit var authService: AuthService
     
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
@@ -114,6 +126,20 @@ class MainActivity : ComponentActivity() {
                     }
                 }
             }
+        }
+    }
+    
+    override fun onDestroy() {
+        super.onDestroy()
+        // Clean up all services to prevent memory leaks
+        try {
+            recurringExpenseNotificationService.cleanup()
+            recurringExpenseScheduler.cleanup()
+            recurringExpenseAnalytics.cleanup()
+            authService.cleanup()
+        } catch (e: Exception) {
+            // Log error but don't crash during cleanup
+            android.util.Log.e("MainActivity", "Error during cleanup", e)
         }
     }
 }

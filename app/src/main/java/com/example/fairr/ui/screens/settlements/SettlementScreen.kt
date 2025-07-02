@@ -218,81 +218,83 @@ fun SettlementScreen(
     )
 
     // Payment Dialog
-    if (showPaymentDialog && selectedSettlement != null) {
-        AlertDialog(
-            onDismissRequest = { showPaymentDialog = false },
-            title = {
-                Text("Record Payment")
-            },
-            text = {
-                Column {
-                    Text(
-                        text = if (selectedSettlement!!.type == DebtType.YOU_OWE) {
-                            "Record payment to ${selectedSettlement!!.personName}"
-                        } else {
-                            "Record payment from ${selectedSettlement!!.personName}"
-                        },
-                        modifier = Modifier.padding(bottom = 16.dp)
-                    )
-                    
-                    OutlinedTextField(
-                        value = customAmount,
-                        onValueChange = { customAmount = it },
-                        label = { Text("Amount") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        modifier = Modifier.fillMaxWidth(),
-                        placeholder = { Text("$${String.format("%.2f", selectedSettlement!!.amount)}") }
-                    )
-                    
-                    Spacer(modifier = Modifier.height(16.dp))
-                    
-                    Text("Payment Method", fontWeight = FontWeight.Medium)
-                    Spacer(modifier = Modifier.height(8.dp))
-                    
-                    paymentMethods.forEach { method ->
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            modifier = Modifier.fillMaxWidth()
-                        ) {
-                            RadioButton(
-                                selected = selectedPaymentMethod == method,
-                                onClick = { selectedPaymentMethod = method }
-                            )
-                            Text(
-                                text = method,
-                                modifier = Modifier.padding(start = 8.dp)
-                            )
+    selectedSettlement?.let { settlement ->
+        if (showPaymentDialog) {
+            AlertDialog(
+                onDismissRequest = { showPaymentDialog = false },
+                title = {
+                    Text("Record Payment")
+                },
+                text = {
+                    Column {
+                        Text(
+                            text = if (settlement.type == DebtType.YOU_OWE) {
+                                "Record payment to ${settlement.personName}"
+                            } else {
+                                "Record payment from ${settlement.personName}"
+                            },
+                            modifier = Modifier.padding(bottom = 16.dp)
+                        )
+                        
+                        OutlinedTextField(
+                            value = customAmount,
+                            onValueChange = { customAmount = it },
+                            label = { Text("Amount") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                            modifier = Modifier.fillMaxWidth(),
+                            placeholder = { Text("$${String.format("%.2f", settlement.amount)}") }
+                        )
+                        
+                        Spacer(modifier = Modifier.height(16.dp))
+                        
+                        Text("Payment Method", fontWeight = FontWeight.Medium)
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        paymentMethods.forEach { method ->
+                            Row(
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                RadioButton(
+                                    selected = selectedPaymentMethod == method,
+                                    onClick = { selectedPaymentMethod = method }
+                                )
+                                Text(
+                                    text = method,
+                                    modifier = Modifier.padding(start = 8.dp)
+                                )
+                            }
                         }
                     }
-                }
-            },
-            confirmButton = {
-                Button(
-                    onClick = {
-                        val amountValue = customAmount.toDoubleOrNull() ?: selectedSettlement!!.amount
-                        viewModel.recordSettlement(
-                            groupId = groupId,
-                            debtInfo = selectedSettlement!!,
-                            amount = amountValue,
-                            paymentMethod = selectedPaymentMethod
+                },
+                confirmButton = {
+                    Button(
+                        onClick = {
+                            val amountValue = customAmount.toDoubleOrNull() ?: settlement.amount
+                            viewModel.recordSettlement(
+                                groupId = groupId,
+                                debtInfo = settlement,
+                                amount = amountValue,
+                                paymentMethod = selectedPaymentMethod
+                            )
+                            showPaymentDialog = false
+                        },
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = DarkGreen
                         )
-                        showPaymentDialog = false
-                    },
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = DarkGreen
-                    )
-                ) {
-                    Text("Record Payment")
+                    ) {
+                        Text("Record Payment")
+                    }
+                },
+                dismissButton = {
+                    TextButton(
+                        onClick = { showPaymentDialog = false }
+                    ) {
+                        Text("Cancel")
+                    }
                 }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { showPaymentDialog = false }
-                ) {
-                    Text("Cancel")
-                }
-            }
-        )
+            )
+        }
     }
 
     // Manual Settlement Dialog
@@ -734,7 +736,7 @@ private fun ManualSettlementDialog(
                         }
                     }
                 },
-                enabled = selectedMember != null && amount.toDoubleOrNull() != null && amount.toDoubleOrNull()!! > 0
+                enabled = selectedMember != null && (amount.toDoubleOrNull() ?: 0.0) > 0
             ) {
                 Text("Record Settlement")
             }

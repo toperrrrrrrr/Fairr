@@ -405,9 +405,9 @@ fun AddExpenseScreen(
                             val summary = buildString {
                                 append("Repeats every $recurrenceInterval ")
                                 append(recurrenceFrequency.displayName.lowercase())
-                                if (recurrenceEndDate != null) {
+                                recurrenceEndDate?.let { endDate ->
                                     append(" until ")
-                                    append(java.text.SimpleDateFormat("MMM dd, yyyy").format(recurrenceEndDate!!))
+                                    append(java.text.SimpleDateFormat("MMM dd, yyyy").format(endDate))
                                 }
                             }
                             Text(text = summary, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
@@ -814,8 +814,10 @@ fun AddExpenseScreen(
                     TextButton(
                         onClick = {
                             currentPhotoFile = PhotoUtils.createImageFile(context)
-                            cameraLauncher.launch(PhotoUtils.getImageUri(context, currentPhotoFile!!))
-                            showPhotoPickerDialog = false
+                            currentPhotoFile?.let { photoFile ->
+                                cameraLauncher.launch(PhotoUtils.getImageUri(context, photoFile))
+                                showPhotoPickerDialog = false
+                            }
                         }
                     ) {
                         Icon(Icons.Default.CameraAlt, contentDescription = null)
@@ -886,13 +888,15 @@ fun CompactCalculator(
     }
 
     fun performOperation() {
-        if (firstNumber != null && operation != null && displayValue.isNotEmpty()) {
+        val first = firstNumber
+        val op = operation
+        if (first != null && op != null && displayValue.isNotEmpty()) {
             val secondNumber = displayValue.toDoubleOrNull() ?: return
-            val result = when (operation) {
-                "+" -> firstNumber!! + secondNumber
-                "-" -> firstNumber!! - secondNumber
-                "×" -> firstNumber!! * secondNumber
-                "÷" -> if (secondNumber != 0.0) firstNumber!! / secondNumber else return
+            val result = when (op) {
+                "+" -> first + secondNumber
+                "-" -> first - secondNumber
+                "×" -> first * secondNumber
+                "÷" -> if (secondNumber != 0.0) first / secondNumber else return
                 else -> return
             }
             displayValue = String.format("%.2f", result)

@@ -424,7 +424,7 @@ private fun MonthlyTrendsCard(trends: List<RecurringExpenseAnalytics.MonthlyTren
 fun RecurringExpenseAnalyticsScreenPreview() {
     FairrTheme {
         RecurringExpenseAnalyticsScreen(
-            groupId = "test",
+            groupId = "sample_group_preview",
             navController = rememberNavController()
         )
     }

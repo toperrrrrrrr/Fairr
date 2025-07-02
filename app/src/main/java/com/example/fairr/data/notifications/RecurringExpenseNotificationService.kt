@@ -18,6 +18,8 @@ import com.example.fairr.util.CurrencyFormatter
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.first
 import java.text.SimpleDateFormat
@@ -34,7 +36,7 @@ class RecurringExpenseNotificationService @Inject constructor(
     private val groupService: GroupService,
     private val auth: FirebaseAuth
 ) {
-    private val scope = CoroutineScope(Dispatchers.IO)
+    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     private val notificationManager = context.getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager
     
     companion object {
@@ -289,5 +291,14 @@ class RecurringExpenseNotificationService @Inject constructor(
     fun cancelExpenseNotification(expenseId: String) {
         notificationManager.cancel(NOTIFICATION_ID_BASE + expenseId.hashCode())
         Log.d(TAG, "Cancelled notification for expense $expenseId")
+    }
+    
+    /**
+     * Clean up resources and cancel pending coroutines
+     * Should be called when the app is being destroyed or user signs out
+     */
+    fun cleanup() {
+        scope.cancel()
+        Log.d(TAG, "RecurringExpenseNotificationService cleanup completed")
     }
 } 

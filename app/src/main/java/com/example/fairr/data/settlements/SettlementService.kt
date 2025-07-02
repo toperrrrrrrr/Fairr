@@ -1,5 +1,6 @@
 package com.example.fairr.data.settlements
 
+import android.util.Log
 import com.example.fairr.data.model.Expense
 import com.example.fairr.data.repository.ExpenseRepository
 import com.google.firebase.Timestamp
@@ -119,19 +120,25 @@ class SettlementService @Inject constructor(
             // Calculate the settlement amount
             val settlementAmount = minOf(-maxDebtAmount, maxCreditAmount)
             
-            // Create debt record
-            val debtorBalance = userBalances[maxDebtor]!!
-            val creditorBalance = userBalances[maxCreditor]!!
+            // Create debt record safely
+            val debtorBalance = userBalances[maxDebtor]
+            val creditorBalance = userBalances[maxCreditor]
             
-            debts.add(
-                DebtInfo(
-                    creditorId = maxCreditor,
-                    creditorName = creditorBalance.userName,
-                    debtorId = maxDebtor,
-                    debtorName = debtorBalance.userName,
-                    amount = settlementAmount
+            if (debtorBalance != null && creditorBalance != null) {
+                debts.add(
+                    DebtInfo(
+                        creditorId = maxCreditor,
+                        creditorName = creditorBalance.userName,
+                        debtorId = maxDebtor,
+                        debtorName = debtorBalance.userName,
+                        amount = settlementAmount
+                    )
                 )
-            )
+            } else {
+                // Skip this iteration if user balance data is missing
+                Log.w("SettlementService", "Missing user balance data for debtor: $maxDebtor or creditor: $maxCreditor")
+                break
+            }
             
             // Update balances
             balances[maxDebtor] = (balances[maxDebtor] ?: 0.0) + settlementAmount

@@ -1,10 +1,13 @@
 package com.example.fairr.data.analytics
 
+import android.util.Log
 import com.example.fairr.data.model.Expense
 import com.example.fairr.data.model.RecurrenceFrequency
 import com.example.fairr.data.repository.ExpenseRepository
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.SupervisorJob
+import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
 import java.util.*
 import javax.inject.Inject
@@ -14,7 +17,7 @@ import javax.inject.Singleton
 class RecurringExpenseAnalytics @Inject constructor(
     private val expenseRepository: ExpenseRepository
 ) {
-    private val scope = CoroutineScope(Dispatchers.IO)
+    private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
     
     data class RecurringExpenseStats(
         val totalRecurringExpenses: Int,
@@ -281,5 +284,14 @@ class RecurringExpenseAnalytics @Inject constructor(
             Calendar.DECEMBER -> "December"
             else -> "Unknown"
         }
+    }
+    
+    /**
+     * Clean up resources and cancel pending coroutines
+     * Should be called when the app is being destroyed or user signs out
+     */
+    fun cleanup() {
+        scope.cancel()
+        Log.d("RecurringExpenseAnalytics", "RecurringExpenseAnalytics cleanup completed")
     }
 } 
