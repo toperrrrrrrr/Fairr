@@ -137,7 +137,22 @@ class SettlementViewModel @Inject constructor(
                 
             } catch (e: Exception) {
                 state = state.copy(isLoading = false)
-                _events.emit(SettlementEvent.ShowError(e.message ?: "Failed to record settlement"))
+                val errorMessage = when {
+                    e.message?.contains("PERMISSION_DENIED") == true -> 
+                        "You don't have permission to record this settlement. Please check if you're a group member."
+                    e.message?.contains("INSUFFICIENT_PERMISSIONS") == true -> 
+                        "Insufficient permissions. Please contact group admin."
+                    e.message?.contains("User must be authenticated") == true ->
+                        "Please sign in to record settlements."
+                    e.message?.contains("User can only record settlements they are involved in") == true ->
+                        "You can only record settlements where you are either paying or receiving money."
+                    e is IllegalStateException -> 
+                        "Authentication error: ${e.message}"
+                    e is IllegalArgumentException -> 
+                        "Invalid settlement: ${e.message}"
+                    else -> e.message ?: "Failed to record settlement"
+                }
+                _events.emit(SettlementEvent.ShowError(errorMessage))
             }
         }
     }

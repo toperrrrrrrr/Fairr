@@ -535,7 +535,17 @@ private fun QuickActionsSection(
         ) {
             Button(
                 onClick = { 
-                    navController.navigate(Screen.RecurringExpenseManagement.createRoute(groupId))
+                    try {
+                        if (groupId.isNotBlank()) {
+                            navController.navigate(Screen.RecurringExpenseManagement.createRoute(groupId))
+                        } else {
+                            // Log error for debugging
+                            android.util.Log.e("GroupDetailScreen", "Group ID is blank, cannot navigate to recurring expenses")
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.e("GroupDetailScreen", "Failed to navigate to recurring expenses", e)
+                        // Could show a toast or snackbar here for user feedback
+                    }
                 },
                 modifier = Modifier.fillMaxWidth(),
                 colors = ButtonDefaults.buttonColors(

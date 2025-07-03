@@ -4,6 +4,7 @@ import android.util.Log
 import com.example.fairr.data.model.Expense
 import com.example.fairr.data.repository.ExpenseRepository
 import com.google.firebase.Timestamp
+import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -29,7 +30,8 @@ data class SettlementSummary(
 @Singleton
 class SettlementService @Inject constructor(
     private val expenseRepository: ExpenseRepository,
-    private val firestore: FirebaseFirestore
+    private val firestore: FirebaseFirestore,
+    private val auth: FirebaseAuth
 ) {
     
     /**
@@ -165,14 +167,26 @@ class SettlementService @Inject constructor(
         amount: Double,
         paymentMethod: String = "cash"
     ) {
-        // 1. Create settlement document
+        val currentUserId = auth.currentUser?.uid
+        if (currentUserId == null) {
+            throw IllegalStateException("User must be authenticated to record settlement")
+        }
+        
+        // Validate that current user is either payer or payee
+        if (currentUserId != payerId && currentUserId != payeeId) {
+            throw IllegalArgumentException("User can only record settlements they are involved in")
+        }
+        
+        // 1. Create settlement document with required fields for security rules
         val settlementData = hashMapOf(
             "groupId" to groupId,
             "payerId" to payerId,
             "payeeId" to payeeId,
             "amount" to amount,
             "paymentMethod" to paymentMethod,
-            "createdAt" to Timestamp.now()
+            "createdAt" to Timestamp.now(),
+            "createdBy" to currentUserId, // Required for security rules
+            "status" to "completed" // Track settlement status
         )
         firestore.collection("settlements").add(settlementData).await()
 

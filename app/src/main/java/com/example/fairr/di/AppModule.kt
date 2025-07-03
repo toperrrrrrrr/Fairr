@@ -91,8 +91,9 @@ object AppModule {
     @Singleton
     fun provideSettlementService(
         expenseRepository: ExpenseRepository,
-        firestore: FirebaseFirestore
-    ): com.example.fairr.data.settlements.SettlementService = com.example.fairr.data.settlements.SettlementService(expenseRepository, firestore)
+        firestore: FirebaseFirestore,
+        auth: FirebaseAuth
+    ): com.example.fairr.data.settlements.SettlementService = com.example.fairr.data.settlements.SettlementService(expenseRepository, firestore, auth)
 
     @Provides
     @Singleton

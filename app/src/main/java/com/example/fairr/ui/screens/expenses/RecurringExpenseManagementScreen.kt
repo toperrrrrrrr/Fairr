@@ -41,6 +41,15 @@ fun RecurringExpenseManagementScreen(
     navController: NavController,
     viewModel: RecurringExpenseManagementViewModel = hiltViewModel()
 ) {
+    // Add validation at screen entry
+    if (groupId.isBlank()) {
+        LaunchedEffect(Unit) {
+            android.util.Log.e("RecurringExpenseManagement", "Invalid group ID received: '$groupId'")
+            navController.popBackStack()
+        }
+        return
+    }
+    
     val state by viewModel.state.collectAsState()
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }

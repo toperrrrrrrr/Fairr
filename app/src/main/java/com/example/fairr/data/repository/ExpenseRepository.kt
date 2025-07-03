@@ -19,6 +19,8 @@ import com.google.firebase.firestore.ktx.toObject
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.flow.flowOn
+import kotlinx.coroutines.flow.callbackFlow
+import kotlinx.coroutines.channels.awaitClose
 
 private const val TAG = "ExpenseRepository"
 
@@ -368,21 +370,41 @@ class ExpenseRepositoryImpl @Inject constructor(
     }
 
     @Suppress("UNCHECKED_CAST")
-    override fun getExpensesByGroupIdFlow(groupId: String): Flow<List<Expense>> = flow {
-        try {
-            // Use real-time listener with pagination for better performance
-            val result = getPaginatedExpenses(
-                ExpenseQueryParams(
-                    groupId = groupId,
-                    pageSize = DEFAULT_PAGE_SIZE
-                )
-            )
-            emit(result.expenses)
-        } catch (e: Exception) {
-            Log.e(TAG, "Error in expense flow", e)
-            emit(emptyList())
+    override fun getExpensesByGroupIdFlow(groupId: String): Flow<List<Expense>> = callbackFlow {
+        val query = firestore.collection("expenses")
+            .whereEqualTo("groupId", groupId)
+            .orderBy("createdAt", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .limit(50) // Limit for performance
+        
+        val listenerRegistration = query.addSnapshotListener { snapshot, e ->
+            if (e != null) {
+                Log.e(TAG, "Error in expense flow listener", e)
+                close(e)
+                return@addSnapshotListener
+            }
+            
+            if (snapshot == null) {
+                trySend(emptyList())
+                return@addSnapshotListener
+            }
+            
+            try {
+                // Parse expenses without async user fetching for real-time updates
+                val expenses = snapshot.documents.mapNotNull { doc ->
+                    parseExpenseDocument(doc)
+                }
+                trySend(expenses)
+            } catch (parseError: Exception) {
+                Log.e(TAG, "Error parsing expenses in flow", parseError)
+                trySend(emptyList())
+            }
         }
-    }.flowOn(Dispatchers.IO)
+        
+        awaitClose { 
+            listenerRegistration.remove()
+            Log.d(TAG, "Expense flow listener removed for group: $groupId")
+        }
+    }
 
     override suspend fun addExpense(
         groupId: String,

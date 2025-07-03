@@ -36,6 +36,13 @@ class RecurringExpenseManagementViewModel @Inject constructor(
     val events = _events.asSharedFlow()
 
     fun loadRecurringExpenses(groupId: String) {
+        if (groupId.isBlank()) {
+            viewModelScope.launch {
+                _events.emit(RecurringExpenseManagementEvent.ShowError("Invalid group ID"))
+            }
+            return
+        }
+        
         viewModelScope.launch {
             try {
                 _state.update { it.copy(isLoading = true, error = null) }
@@ -47,13 +54,15 @@ class RecurringExpenseManagementViewModel @Inject constructor(
                     ) 
                 }
             } catch (e: Exception) {
+                val errorMessage = "Failed to load recurring expenses: ${e.message}"
+                android.util.Log.e("RecurringExpenseViewModel", errorMessage, e)
                 _state.update { 
                     it.copy(
                         isLoading = false, 
-                        error = e.message ?: "Failed to load recurring expenses"
+                        error = errorMessage
                     ) 
                 }
-                _events.emit(RecurringExpenseManagementEvent.ShowError(e.message ?: "Failed to load recurring expenses"))
+                _events.emit(RecurringExpenseManagementEvent.ShowError(errorMessage))
             }
         }
     }

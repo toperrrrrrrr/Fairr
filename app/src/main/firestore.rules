@@ -93,12 +93,21 @@ service cloud.firestore {
         return (request.method == 'create') ? request.resource.data.groupId : resource.data.groupId;
       }
 
-      // Only group members can read or write settlements for their group
+      // Only group members can read settlements for their group
       allow read: if request.auth != null && isGroupMember(settleGroupId());
-      allow create: if request.auth != null && isGroupMember(settleGroupId());
+      
+      // Settlement creation allowed when:
+      // 1. User is a group member AND
+      // 2. User is either the payer or payee of the settlement
+      allow create: if request.auth != null && 
+        isGroupMember(settleGroupId()) &&
+        (request.auth.uid == request.resource.data.payerId || 
+         request.auth.uid == request.resource.data.payeeId) &&
+        request.resource.data.createdBy == request.auth.uid;
 
-      // Updates & deletes allowed to group admins only
-      allow update, delete: if request.auth != null && isGroupAdmin(settleGroupId());
+      // Updates & deletes allowed to settlement creator or group admin
+      allow update, delete: if request.auth != null && 
+        (request.auth.uid == resource.data.createdBy || isGroupAdmin(settleGroupId()));
     }
 
     // Group summaries collection (read-only for clients)
