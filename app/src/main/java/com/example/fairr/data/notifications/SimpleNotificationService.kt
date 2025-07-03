@@ -1,11 +1,14 @@
 package com.example.fairr.data.notifications
 
+import android.annotation.SuppressLint
 import android.app.NotificationChannel
 import android.app.NotificationManager
 import android.app.PendingIntent
 import android.content.Context
 import android.content.Intent
+import android.content.pm.PackageManager
 import android.os.Build
+import androidx.core.app.ActivityCompat
 import androidx.core.app.NotificationCompat
 import androidx.core.app.NotificationManagerCompat
 import com.example.fairr.MainActivity
@@ -41,11 +44,25 @@ class SimpleNotificationService @Inject constructor(
         }
     }
 
+    private fun hasNotificationPermission(): Boolean {
+        return if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            ActivityCompat.checkSelfPermission(
+                context,
+                android.Manifest.permission.POST_NOTIFICATIONS
+            ) == PackageManager.PERMISSION_GRANTED
+        } else {
+            NotificationManagerCompat.from(context).areNotificationsEnabled()
+        }
+    }
+
+    @SuppressLint("MissingPermission")
     fun showExpenseAddedNotification(
         expenseDescription: String,
         amount: String,
         groupName: String
     ) {
+        if (!hasNotificationPermission()) return
+        
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
         }
@@ -68,10 +85,13 @@ class SimpleNotificationService @Inject constructor(
         }
     }
 
+    @SuppressLint("MissingPermission")
     fun showGroupInviteNotification(
         groupName: String,
         inviterName: String
     ) {
+        if (!hasNotificationPermission()) return
+        
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             putExtra("navigate_to", "pending_invitations")
@@ -95,10 +115,13 @@ class SimpleNotificationService @Inject constructor(
         }
     }
 
+    @SuppressLint("MissingPermission")
     fun showSettlementReminderNotification(
         amount: String,
         debtorName: String
     ) {
+        if (!hasNotificationPermission()) return
+        
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             putExtra("navigate_to", "settlements")
@@ -122,11 +145,14 @@ class SimpleNotificationService @Inject constructor(
         }
     }
 
+    @SuppressLint("MissingPermission")
     fun showRecurringExpenseNotification(
         expenseDescription: String,
         amount: String,
         groupName: String
     ) {
+        if (!hasNotificationPermission()) return
+        
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             putExtra("navigate_to", "recurring_expenses")
@@ -150,11 +176,14 @@ class SimpleNotificationService @Inject constructor(
         }
     }
 
+    @SuppressLint("MissingPermission")
     fun showGeneralNotification(
         title: String,
         message: String,
         navigateTo: String? = null
     ) {
+        if (!hasNotificationPermission()) return
+        
         val intent = Intent(context, MainActivity::class.java).apply {
             flags = Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK
             navigateTo?.let { putExtra("navigate_to", it) }
@@ -178,7 +207,10 @@ class SimpleNotificationService @Inject constructor(
         }
     }
 
+    @SuppressLint("MissingPermission")
     fun clearAllNotifications() {
+        if (!hasNotificationPermission()) return
+        
         with(NotificationManagerCompat.from(context)) {
             cancelAll()
         }

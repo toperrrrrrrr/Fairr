@@ -19,12 +19,15 @@ Group list page:
 - Manual settlement crashes the app.
 - Emoji selected on group cration page is not appearing on the group list reccords 
 
+Main group page:
+- The group details doesnt update the latest expense list after saving the add expense. 
 
 Group Settings Page:
 - no option to edit the emoji/icon
 - Archive button not working. 
 - Add participants placeholder on the group for those that doesnt have account yet which user can invite later on that will fill the slot. 
-- 
+- Notification page cards ui can be improved.
+-Remove member should ask the user if the user is sure. Also notify the removed user. 
 
 
 Notification page:
@@ -47,6 +50,7 @@ Create group page.
 - group avatar should be material icons, and must be inside a button not on directly show up on the page directly. 
 - icons/emoji can be from user's keyboard?
 - instead of invite members/ we will create placeholder for the members, where users can invite them 1 by 1. 
+- Keyboard should collapse, be hidden when calcultor is clicked or outside the textbox. 
 
 
 
@@ -82,3 +86,7 @@ Settings page:
 
 
 
+Random: 
+- UI ux Transition from one page to another for more smoother experienc (later)
+-  sign out should clear the app and prompt the user to select account next time.  (not prio)
+- Nav bar have huge white space make the oblong and the buttons float. (not prio)

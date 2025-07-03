@@ -1,0 +1,127 @@
+[debug] [2025-07-03T10:23:27.125Z] ----------------------------------------------------------------------
+[debug] [2025-07-03T10:23:27.130Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\Nori\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js deploy --only firestore:indexes
+[debug] [2025-07-03T10:23:27.131Z] CLI Version:   14.6.0
+[debug] [2025-07-03T10:23:27.132Z] Platform:      win32
+[debug] [2025-07-03T10:23:27.132Z] Node Version:  v23.7.0
+[debug] [2025-07-03T10:23:27.132Z] Time:          Thu Jul 03 2025 18:23:27 GMT+0800 (Irkutsk Standard Time)
+[debug] [2025-07-03T10:23:27.133Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-07-03T10:23:27.494Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-07-03T10:23:27.495Z] > authorizing via signed-in user (lacsinankc@gmail.com)
+[debug] [2025-07-03T10:23:27.496Z] [iam] checking project fairr-c71bb for permissions ["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]
+[debug] [2025-07-03T10:23:27.497Z] Checked if tokens are valid: true, expires at: 1751541786758
+[debug] [2025-07-03T10:23:27.498Z] Checked if tokens are valid: true, expires at: 1751541786758
+[debug] [2025-07-03T10:23:27.499Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/fairr-c71bb:testIamPermissions [none]
+[debug] [2025-07-03T10:23:27.500Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/fairr-c71bb:testIamPermissions x-goog-quota-user=projects/fairr-c71bb
+[debug] [2025-07-03T10:23:27.500Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/fairr-c71bb:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]}
+[debug] [2025-07-03T10:23:28.499Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/fairr-c71bb:testIamPermissions 200
+[debug] [2025-07-03T10:23:28.500Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/fairr-c71bb:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]}
+[info] 
+[info] === Deploying to 'fairr-c71bb'...
+[info] 
+[info] i  deploying firestore 
+[info] i  firestore: reading indexes from firestore.indexes.json... 
+[info] i  cloud.firestore: checking app/src/main/firestore.rules for compilation errors... 
+[debug] [2025-07-03T10:23:28.514Z] Checked if tokens are valid: true, expires at: 1751541786758
+[debug] [2025-07-03T10:23:28.514Z] Checked if tokens are valid: true, expires at: 1751541786758
+[debug] [2025-07-03T10:23:28.514Z] >>> [apiv2][query] POST https://firebaserules.googleapis.com/v1/projects/fairr-c71bb:test [none]
+[debug] [2025-07-03T10:23:28.515Z] >>> [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/fairr-c71bb:test [omitted]
+[debug] [2025-07-03T10:23:29.613Z] <<< [apiv2][status] POST https://firebaserules.googleapis.com/v1/projects/fairr-c71bb:test 200
+[debug] [2025-07-03T10:23:29.613Z] <<< [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/fairr-c71bb:test {}
+[info] +  cloud.firestore: rules file app/src/main/firestore.rules compiled successfully 
+[debug] [2025-07-03T10:23:29.616Z] Checked if tokens are valid: true, expires at: 1751541786758
+[debug] [2025-07-03T10:23:29.616Z] Checked if tokens are valid: true, expires at: 1751541786758
+[debug] [2025-07-03T10:23:29.616Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/fairr-c71bb/databases/(default) [none]
+[debug] [2025-07-03T10:23:30.774Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/fairr-c71bb/databases/(default) 200
+[debug] [2025-07-03T10:23:30.775Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/fairr-c71bb/databases/(default) {"name":"projects/fairr-c71bb/databases/(default)","uid":"0db52535-617e-4358-b0ca-69487eed5e5d","createTime":"2025-06-05T09:05:01.214275Z","updateTime":"2025-06-05T09:05:01.214275Z","locationId":"nam5","type":"FIRESTORE_NATIVE","concurrencyMode":"PESSIMISTIC","versionRetentionPeriod":"3600s","earliestVersionTime":"2025-07-03T09:23:31.225852Z","appEngineIntegrationMode":"DISABLED","keyPrefix":"s","pointInTimeRecoveryEnablement":"POINT_IN_TIME_RECOVERY_DISABLED","deleteProtectionState":"DELETE_PROTECTION_DISABLED","databaseEdition":"STANDARD","freeTier":true,"etag":"INP9j6e8oI4DMJiGg6r52Y0D"}
+[info] i  firestore: deploying indexes... 
+[debug] [2025-07-03T10:23:30.779Z] Checked if tokens are valid: true, expires at: 1751541786758
+[debug] [2025-07-03T10:23:30.779Z] Checked if tokens are valid: true, expires at: 1751541786758
+[debug] [2025-07-03T10:23:30.779Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/fairr-c71bb/databases/(default)/collectionGroups/-/indexes [none]
+[debug] [2025-07-03T10:23:31.065Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/fairr-c71bb/databases/(default)/collectionGroups/-/indexes 200
+[debug] [2025-07-03T10:23:31.065Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/fairr-c71bb/databases/(default)/collectionGroups/-/indexes {"indexes":[{"name":"projects/fairr-c71bb/databases/(default)/collectionGroups/groupJoinRequests/indexes/CICAgNiav4AK","queryScope":"COLLECTION","fields":[{"fieldPath":"groupCreatorId","order":"ASCENDING"},{"fieldPath":"status","order":"ASCENDING"},{"fieldPath":"__name__","order":"ASCENDING"}],"state":"READY","density":"SPARSE_ALL"},{"name":"projects/fairr-c71bb/databases/(default)/collectionGroups/expenses/indexes/CICAgJim14AK","queryScope":"COLLECTION","fields":[{"fieldPath":"groupId","order":"ASCENDING"},{"fieldPath":"createdAt","order":"DESCENDING"},{"fieldPath":"__name__","order":"DESCENDING"}],"state":"READY","density":"SPARSE_ALL"},{"name":"projects/fairr-c71bb/databases/(default)/collectionGroups/groupInvites/indexes/CICAgLjy8IAK","queryScope":"COLLECTION","fields":[{"fieldPath":"groupId","order":"ASCENDING"},{"fieldPath":"inviteeId","order":"ASCENDING"},{"fieldPath":"status","order":"ASCENDING"},{"fieldPath":"__name__","order":"ASCENDING"}],"state":"READY","density":"SPARSE_ALL"},{"name":"projects/fairr-c71bb/databases/(default)/collectionGroups/friends/indexes/CICAgJj7z4EK","queryScope":"COLLECTION","fields":[{"fieldPath":"userId","order":"ASCENDING"},{"fieldPath":"friendId","order":"ASCENDING"},{"fieldPath":"__name__","order":"ASCENDING"}],"state":"READY","density":"SPARSE_ALL"},{"name":"projects/fairr-c71bb/databases/(default)/collectionGroups/notifications/indexes/CICAgNjpgYIK","queryScope":"COLLECTION","fields":[{"fieldPath":"recipientId","order":"ASCENDING"},{"fieldPath":"createdAt","order":"DESCENDING"},{"fieldPath":"__name__","order":"DESCENDING"}],"state":"READY","density":"SPARSE_ALL"},{"name":"projects/fairr-c71bb/databases/(default)/collectionGroups/settlements/indexes/CICAgLjRyYIK","queryScope":"COLLECTION","fields":[{"fieldPath":"groupId","order":"ASCENDING"},{"fieldPath":"settledAt","order":"DESCENDING"},{"fieldPath":"__name__","order":"DESCENDING"}],"state":"READY","density":"SPARSE_ALL"},{"name":"projects/fairr-c71bb/databases/(default)/collectionGroups/friendRequests/indexes/CICAgJjF9oIK","queryScope":"COLLECTION","fields":[{"fieldPath":"receiverId","order":"ASCENDING"},{"fieldPath":"status","order":"ASCENDING"},{"fieldPath":"__name__","order":"ASCENDING"}],"state":"READY","density":"SPARSE_ALL"},{"name":"projects/fairr-c71bb/databases/(default)/collectionGroups/groupInvites/indexes/CICAgLiIkYMK","queryScope":"COLLECTION","fields":[{"fieldPath":"groupId","order":"ASCENDING"},{"fieldPath":"status","order":"ASCENDING"},{"fieldPath":"__name__","order":"ASCENDING"}],"state":"READY","density":"SPARSE_ALL"},{"name":"projects/fairr-c71bb/databases/(default)/collectionGroups/groupInvites/indexes/CICAgJiH2JAK","queryScope":"COLLECTION","fields":[{"fieldPath":"inviteeId","order":"ASCENDING"},{"fieldPath":"status","order":"ASCENDING"},{"fieldPath":"__name__","order":"ASCENDING"}],"state":"READY","density":"SPARSE_ALL"},{"name":"projects/fairr-c71bb/databases/(default)/collectionGroups/groupJoinRequests/indexes/CICAgJjFqZMK","queryScope":"COLLECTION","fields":[{"fieldPath":"userId","order":"ASCENDING"},{"fieldPath":"groupId","order":"ASCENDING"},{"fieldPath":"status","order":"ASCENDING"},{"fieldPath":"__name__","order":"ASCENDING"}],"state":"READY","density":"SPARSE_ALL"}]}
+[debug] [2025-07-03T10:23:31.066Z] Checked if tokens are valid: true, expires at: 1751541786758
+[debug] [2025-07-03T10:23:31.067Z] Checked if tokens are valid: true, expires at: 1751541786758
+[debug] [2025-07-03T10:23:31.067Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/fairr-c71bb/databases/(default)/collectionGroups/-/fields?filter=indexConfig.usesAncestorConfig=false OR ttlConfig:* [none]
+[debug] [2025-07-03T10:23:31.327Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/fairr-c71bb/databases/(default)/collectionGroups/-/fields?filter=indexConfig.usesAncestorConfig=false OR ttlConfig:* 200
+[debug] [2025-07-03T10:23:31.327Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/fairr-c71bb/databases/(default)/collectionGroups/-/fields?filter=indexConfig.usesAncestorConfig=false OR ttlConfig:* {"fields":[{"name":"projects/fairr-c71bb/databases/(default)/collectionGroups/__default__/fields/*","indexConfig":{"indexes":[{"queryScope":"COLLECTION","fields":[{"fieldPath":"*","order":"ASCENDING"}],"state":"READY"},{"queryScope":"COLLECTION","fields":[{"fieldPath":"*","order":"DESCENDING"}],"state":"READY"},{"queryScope":"COLLECTION","fields":[{"fieldPath":"*","arrayConfig":"CONTAINS"}],"state":"READY"}]}},{"name":"projects/fairr-c71bb/databases/(default)/collectionGroups/groups/fields/inviteCode","indexConfig":{"indexes":[{"queryScope":"COLLECTION","fields":[{"fieldPath":"inviteCode","order":"ASCENDING"}],"state":"READY"}],"ancestorField":"projects/fairr-c71bb/databases/(default)/collectionGroups/__default__/fields/*"}},{"name":"projects/fairr-c71bb/databases/(default)/collectionGroups/groups/fields/memberIds","indexConfig":{"indexes":[{"queryScope":"COLLECTION","fields":[{"fieldPath":"memberIds","order":"ASCENDING"}],"state":"READY"},{"queryScope":"COLLECTION","fields":[{"fieldPath":"memberIds","arrayConfig":"CONTAINS"}],"state":"READY"}],"ancestorField":"projects/fairr-c71bb/databases/(default)/collectionGroups/__default__/fields/*"}}]}
+[info] i  firestore: The following indexes are defined in your project but are not present in your firestore indexes file:
+	(groupJoinRequests) -- (groupCreatorId,ASCENDING) (status,ASCENDING) 
+	(groupInvites) -- (groupId,ASCENDING) (inviteeId,ASCENDING) (status,ASCENDING) 
+	(friends) -- (userId,ASCENDING) (friendId,ASCENDING) 
+	(notifications) -- (recipientId,ASCENDING) (createdAt,DESCENDING) 
+	(settlements) -- (groupId,ASCENDING) (settledAt,DESCENDING) 
+	(friendRequests) -- (receiverId,ASCENDING) (status,ASCENDING) 
+	(groupInvites) -- (groupId,ASCENDING) (status,ASCENDING) 
+	(groupInvites) -- (inviteeId,ASCENDING) (status,ASCENDING) 
+	(groupJoinRequests) -- (userId,ASCENDING) (groupId,ASCENDING) (status,ASCENDING)  
+[debug] [2025-07-03T10:48:58.198Z] ----------------------------------------------------------------------
+[debug] [2025-07-03T10:48:58.215Z] Command:       C:\Program Files\nodejs\node.exe C:\Users\Nori\AppData\Roaming\npm\node_modules\firebase-tools\lib\bin\firebase.js deploy --only firestore:indexes
+[debug] [2025-07-03T10:48:58.216Z] CLI Version:   14.6.0
+[debug] [2025-07-03T10:48:58.216Z] Platform:      win32
+[debug] [2025-07-03T10:48:58.216Z] Node Version:  v23.7.0
+[debug] [2025-07-03T10:48:58.217Z] Time:          Thu Jul 03 2025 18:48:58 GMT+0800 (Irkutsk Standard Time)
+[debug] [2025-07-03T10:48:58.217Z] ----------------------------------------------------------------------
+[debug] 
+[debug] [2025-07-03T10:48:58.629Z] > command requires scopes: ["email","openid","https://www.googleapis.com/auth/cloudplatformprojects.readonly","https://www.googleapis.com/auth/firebase","https://www.googleapis.com/auth/cloud-platform"]
+[debug] [2025-07-03T10:48:58.630Z] > authorizing via signed-in user (lacsinankc@gmail.com)
+[debug] [2025-07-03T10:48:58.631Z] [iam] checking project fairr-c71bb for permissions ["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]
+[debug] [2025-07-03T10:48:58.633Z] Checked if tokens are valid: true, expires at: 1751541786758
+[debug] [2025-07-03T10:48:58.634Z] Checked if tokens are valid: true, expires at: 1751541786758
+[debug] [2025-07-03T10:48:58.636Z] >>> [apiv2][query] POST https://cloudresourcemanager.googleapis.com/v1/projects/fairr-c71bb:testIamPermissions [none]
+[debug] [2025-07-03T10:48:58.637Z] >>> [apiv2][(partial)header] POST https://cloudresourcemanager.googleapis.com/v1/projects/fairr-c71bb:testIamPermissions x-goog-quota-user=projects/fairr-c71bb
+[debug] [2025-07-03T10:48:58.637Z] >>> [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/fairr-c71bb:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]}
+[debug] [2025-07-03T10:48:59.921Z] <<< [apiv2][status] POST https://cloudresourcemanager.googleapis.com/v1/projects/fairr-c71bb:testIamPermissions 200
+[debug] [2025-07-03T10:48:59.921Z] <<< [apiv2][body] POST https://cloudresourcemanager.googleapis.com/v1/projects/fairr-c71bb:testIamPermissions {"permissions":["datastore.indexes.create","datastore.indexes.delete","datastore.indexes.list","datastore.indexes.update","firebase.projects.get"]}
+[info] 
+[info] === Deploying to 'fairr-c71bb'...
+[info] 
+[info] i  deploying firestore 
+[info] i  firestore: reading indexes from firestore.indexes.json... 
+[info] i  cloud.firestore: checking app/src/main/firestore.rules for compilation errors... 
+[debug] [2025-07-03T10:48:59.934Z] Checked if tokens are valid: true, expires at: 1751541786758
+[debug] [2025-07-03T10:48:59.935Z] Checked if tokens are valid: true, expires at: 1751541786758
+[debug] [2025-07-03T10:48:59.935Z] >>> [apiv2][query] POST https://firebaserules.googleapis.com/v1/projects/fairr-c71bb:test [none]
+[debug] [2025-07-03T10:48:59.935Z] >>> [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/fairr-c71bb:test [omitted]
+[debug] [2025-07-03T10:49:01.236Z] <<< [apiv2][status] POST https://firebaserules.googleapis.com/v1/projects/fairr-c71bb:test 200
+[debug] [2025-07-03T10:49:01.236Z] <<< [apiv2][body] POST https://firebaserules.googleapis.com/v1/projects/fairr-c71bb:test {}
+[info] +  cloud.firestore: rules file app/src/main/firestore.rules compiled successfully 
+[debug] [2025-07-03T10:49:01.239Z] Checked if tokens are valid: true, expires at: 1751541786758
+[debug] [2025-07-03T10:49:01.239Z] Checked if tokens are valid: true, expires at: 1751541786758
+[debug] [2025-07-03T10:49:01.240Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/fairr-c71bb/databases/(default) [none]
+[debug] [2025-07-03T10:49:02.444Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/fairr-c71bb/databases/(default) 200
+[debug] [2025-07-03T10:49:02.444Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/fairr-c71bb/databases/(default) {"name":"projects/fairr-c71bb/databases/(default)","uid":"0db52535-617e-4358-b0ca-69487eed5e5d","createTime":"2025-06-05T09:05:01.214275Z","updateTime":"2025-06-05T09:05:01.214275Z","locationId":"nam5","type":"FIRESTORE_NATIVE","concurrencyMode":"PESSIMISTIC","versionRetentionPeriod":"3600s","earliestVersionTime":"2025-07-03T09:49:02.891871Z","appEngineIntegrationMode":"DISABLED","keyPrefix":"s","pointInTimeRecoveryEnablement":"POINT_IN_TIME_RECOVERY_DISABLED","deleteProtectionState":"DELETE_PROTECTION_DISABLED","databaseEdition":"STANDARD","freeTier":true,"etag":"IJS5vYHCoI4DMJiGg6r52Y0D"}
+[info] i  firestore: deploying indexes... 
+[debug] [2025-07-03T10:49:02.449Z] Checked if tokens are valid: true, expires at: 1751541786758
+[debug] [2025-07-03T10:49:02.449Z] Checked if tokens are valid: true, expires at: 1751541786758
+[debug] [2025-07-03T10:49:02.450Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/fairr-c71bb/databases/(default)/collectionGroups/-/indexes [none]
+[debug] [2025-07-03T10:49:02.731Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/fairr-c71bb/databases/(default)/collectionGroups/-/indexes 200
+[debug] [2025-07-03T10:49:02.731Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/fairr-c71bb/databases/(default)/collectionGroups/-/indexes {"indexes":[{"name":"projects/fairr-c71bb/databases/(default)/collectionGroups/groupJoinRequests/indexes/CICAgNiav4AK","queryScope":"COLLECTION","fields":[{"fieldPath":"groupCreatorId","order":"ASCENDING"},{"fieldPath":"status","order":"ASCENDING"},{"fieldPath":"__name__","order":"ASCENDING"}],"state":"READY","density":"SPARSE_ALL"},{"name":"projects/fairr-c71bb/databases/(default)/collectionGroups/expenses/indexes/CICAgJim14AK","queryScope":"COLLECTION","fields":[{"fieldPath":"groupId","order":"ASCENDING"},{"fieldPath":"createdAt","order":"DESCENDING"},{"fieldPath":"__name__","order":"DESCENDING"}],"state":"READY","density":"SPARSE_ALL"},{"name":"projects/fairr-c71bb/databases/(default)/collectionGroups/groupInvites/indexes/CICAgLjy8IAK","queryScope":"COLLECTION","fields":[{"fieldPath":"groupId","order":"ASCENDING"},{"fieldPath":"inviteeId","order":"ASCENDING"},{"fieldPath":"status","order":"ASCENDING"},{"fieldPath":"__name__","order":"ASCENDING"}],"state":"READY","density":"SPARSE_ALL"},{"name":"projects/fairr-c71bb/databases/(default)/collectionGroups/friends/indexes/CICAgJj7z4EK","queryScope":"COLLECTION","fields":[{"fieldPath":"userId","order":"ASCENDING"},{"fieldPath":"friendId","order":"ASCENDING"},{"fieldPath":"__name__","order":"ASCENDING"}],"state":"READY","density":"SPARSE_ALL"},{"name":"projects/fairr-c71bb/databases/(default)/collectionGroups/notifications/indexes/CICAgNjpgYIK","queryScope":"COLLECTION","fields":[{"fieldPath":"recipientId","order":"ASCENDING"},{"fieldPath":"createdAt","order":"DESCENDING"},{"fieldPath":"__name__","order":"DESCENDING"}],"state":"READY","density":"SPARSE_ALL"},{"name":"projects/fairr-c71bb/databases/(default)/collectionGroups/settlements/indexes/CICAgLjRyYIK","queryScope":"COLLECTION","fields":[{"fieldPath":"groupId","order":"ASCENDING"},{"fieldPath":"settledAt","order":"DESCENDING"},{"fieldPath":"__name__","order":"DESCENDING"}],"state":"READY","density":"SPARSE_ALL"},{"name":"projects/fairr-c71bb/databases/(default)/collectionGroups/friendRequests/indexes/CICAgJjF9oIK","queryScope":"COLLECTION","fields":[{"fieldPath":"receiverId","order":"ASCENDING"},{"fieldPath":"status","order":"ASCENDING"},{"fieldPath":"__name__","order":"ASCENDING"}],"state":"READY","density":"SPARSE_ALL"},{"name":"projects/fairr-c71bb/databases/(default)/collectionGroups/groupInvites/indexes/CICAgLiIkYMK","queryScope":"COLLECTION","fields":[{"fieldPath":"groupId","order":"ASCENDING"},{"fieldPath":"status","order":"ASCENDING"},{"fieldPath":"__name__","order":"ASCENDING"}],"state":"READY","density":"SPARSE_ALL"},{"name":"projects/fairr-c71bb/databases/(default)/collectionGroups/groupInvites/indexes/CICAgJiH2JAK","queryScope":"COLLECTION","fields":[{"fieldPath":"inviteeId","order":"ASCENDING"},{"fieldPath":"status","order":"ASCENDING"},{"fieldPath":"__name__","order":"ASCENDING"}],"state":"READY","density":"SPARSE_ALL"},{"name":"projects/fairr-c71bb/databases/(default)/collectionGroups/groupJoinRequests/indexes/CICAgJjFqZMK","queryScope":"COLLECTION","fields":[{"fieldPath":"userId","order":"ASCENDING"},{"fieldPath":"groupId","order":"ASCENDING"},{"fieldPath":"status","order":"ASCENDING"},{"fieldPath":"__name__","order":"ASCENDING"}],"state":"READY","density":"SPARSE_ALL"}]}
+[debug] [2025-07-03T10:49:02.732Z] Checked if tokens are valid: true, expires at: 1751541786758
+[debug] [2025-07-03T10:49:02.733Z] Checked if tokens are valid: true, expires at: 1751541786758
+[debug] [2025-07-03T10:49:02.733Z] >>> [apiv2][query] GET https://firestore.googleapis.com/v1/projects/fairr-c71bb/databases/(default)/collectionGroups/-/fields?filter=indexConfig.usesAncestorConfig=false OR ttlConfig:* [none]
+[debug] [2025-07-03T10:49:02.986Z] <<< [apiv2][status] GET https://firestore.googleapis.com/v1/projects/fairr-c71bb/databases/(default)/collectionGroups/-/fields?filter=indexConfig.usesAncestorConfig=false OR ttlConfig:* 200
+[debug] [2025-07-03T10:49:02.986Z] <<< [apiv2][body] GET https://firestore.googleapis.com/v1/projects/fairr-c71bb/databases/(default)/collectionGroups/-/fields?filter=indexConfig.usesAncestorConfig=false OR ttlConfig:* {"fields":[{"name":"projects/fairr-c71bb/databases/(default)/collectionGroups/__default__/fields/*","indexConfig":{"indexes":[{"queryScope":"COLLECTION","fields":[{"fieldPath":"*","order":"ASCENDING"}],"state":"READY"},{"queryScope":"COLLECTION","fields":[{"fieldPath":"*","order":"DESCENDING"}],"state":"READY"},{"queryScope":"COLLECTION","fields":[{"fieldPath":"*","arrayConfig":"CONTAINS"}],"state":"READY"}]}},{"name":"projects/fairr-c71bb/databases/(default)/collectionGroups/groups/fields/inviteCode","indexConfig":{"indexes":[{"queryScope":"COLLECTION","fields":[{"fieldPath":"inviteCode","order":"ASCENDING"}],"state":"READY"}],"ancestorField":"projects/fairr-c71bb/databases/(default)/collectionGroups/__default__/fields/*"}},{"name":"projects/fairr-c71bb/databases/(default)/collectionGroups/groups/fields/memberIds","indexConfig":{"indexes":[{"queryScope":"COLLECTION","fields":[{"fieldPath":"memberIds","order":"ASCENDING"}],"state":"READY"},{"queryScope":"COLLECTION","fields":[{"fieldPath":"memberIds","arrayConfig":"CONTAINS"}],"state":"READY"}],"ancestorField":"projects/fairr-c71bb/databases/(default)/collectionGroups/__default__/fields/*"}}]}
+[info] i  firestore: The following indexes are defined in your project but are not present in your firestore indexes file:
+	(groupJoinRequests) -- (groupCreatorId,ASCENDING) (status,ASCENDING) 
+	(groupInvites) -- (groupId,ASCENDING) (inviteeId,ASCENDING) (status,ASCENDING) 
+	(friends) -- (userId,ASCENDING) (friendId,ASCENDING) 
+	(notifications) -- (recipientId,ASCENDING) (createdAt,DESCENDING) 
+	(settlements) -- (groupId,ASCENDING) (settledAt,DESCENDING) 
+	(friendRequests) -- (receiverId,ASCENDING) (status,ASCENDING) 
+	(groupInvites) -- (groupId,ASCENDING) (status,ASCENDING) 
+	(groupInvites) -- (inviteeId,ASCENDING) (status,ASCENDING) 
+	(groupJoinRequests) -- (userId,ASCENDING) (groupId,ASCENDING) (status,ASCENDING)  
+[debug] [2025-07-03T10:49:03.030Z] ExitPromptError: User force closed the prompt with SIGINT
+    at Interface.sigint (C:\Users\Nori\AppData\Roaming\npm\node_modules\firebase-tools\node_modules\@inquirer\core\dist\commonjs\lib\create-prompt.js:101:37)
+    at Interface.emit (node:events:507:28)
+    at Interface.emit (node:domain:489:12)
+    at [_ttyWrite] [as _ttyWrite] (node:internal/readline/interface:1125:18)
+    at ReadStream.onkeypress (node:internal/readline/interface:264:20)
+    at ReadStream.emit (node:events:519:35)
+    at ReadStream.emit (node:domain:489:12)
+    at emitKeys (node:internal/readline/utils:370:14)
+    at emitKeys.next (<anonymous>)
+    at ReadStream.onData (node:internal/readline/emitKeypressEvents:64:36)
+[error] 
+[error] Error: An unexpected error has occurred.

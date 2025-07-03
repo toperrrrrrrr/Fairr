@@ -35,6 +35,7 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import coil.compose.AsyncImage
 import com.example.fairr.ui.components.*
+import com.example.fairr.ui.components.dialogs.GDPRAccountDeletionDialog
 import com.example.fairr.ui.theme.*
 
 data class UserProfile(
@@ -244,17 +245,15 @@ fun UserProfileScreen(
     
     // Delete Account Dialog
     if (showDeleteAccountDialog) {
-        FairrConfirmationDialog(
-            title = "Delete Account",
-            message = "Are you sure you want to delete your account? This action cannot be undone.",
-            confirmText = "Delete",
-            dismissText = "Cancel",
-            isDestructive = true,
-            onConfirm = {
+        GDPRAccountDeletionDialog(
+            onDismiss = { showDeleteAccountDialog = false },
+            onAccountDeleted = {
                 showDeleteAccountDialog = false
-                // Handle account deletion
-            },
-            onDismiss = { showDeleteAccountDialog = false }
+                // Navigate back to auth screen
+                navController.navigate("auth") {
+                    popUpTo(0) { inclusive = true }
+                }
+            }
         )
     }
 }

@@ -52,20 +52,7 @@
             </intent-filter>
         </activity>
 
-        <!-- Firebase Cloud Messaging Service -->
-        <service
-            android:name=".notifications.FairrFirebaseMessagingService"
-            android:exported="false">
-            <intent-filter>
-                <action android:name="com.google.firebase.MESSAGING_EVENT" />
-            </intent-filter>
-        </service>
 
-        <!-- Notification Action Receiver -->
-        <receiver
-            android:name=".notifications.NotificationActionReceiver"
-            android:exported="false">
-        </receiver>
 
         <!-- Default notification icon and color -->
         <meta-data

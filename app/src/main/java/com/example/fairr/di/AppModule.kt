@@ -14,6 +14,11 @@ import com.example.fairr.data.comments.CommentService
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreSettings
+import com.google.firebase.storage.FirebaseStorage
+import com.google.firebase.analytics.FirebaseAnalytics
+import com.google.firebase.crashlytics.FirebaseCrashlytics
+import com.google.firebase.perf.FirebasePerformance
+import com.example.fairr.utils.PhotoUtils
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
@@ -130,4 +135,25 @@ object AppModule {
     fun provideSimpleNotificationService(
         @ApplicationContext context: Context
     ): SimpleNotificationService = SimpleNotificationService(context)
+
+    @Provides
+    @Singleton
+    fun provideFirebaseStorage(): FirebaseStorage = FirebaseStorage.getInstance()
+
+    @Provides
+    @Singleton
+    fun providePhotoUtils(): PhotoUtils = PhotoUtils
+
+    @Provides
+    @Singleton
+    fun provideFirebaseAnalytics(@ApplicationContext context: Context): FirebaseAnalytics = 
+        FirebaseAnalytics.getInstance(context)
+
+    @Provides
+    @Singleton
+    fun provideFirebaseCrashlytics(): FirebaseCrashlytics = FirebaseCrashlytics.getInstance()
+
+    @Provides
+    @Singleton
+    fun provideFirebasePerformance(): FirebasePerformance = FirebasePerformance.getInstance()
 } 

@@ -1,16 +1,7 @@
 
-2. Notification page cards ui can be improved.
 3. Nav bar have huge white space make the oblong and the buttons float. 
 4. Need to review the process from creation of group, recording of group, how expnses is being recorded. inviting members, recording of who paid for the expense the split, and the settlement. We need to make sure that every step of the process and data is conncted to one another to make sure that the data reflecting is correct. 
-5 .The group details doesnt update the latest expense list after saving the add expense. 
-6. remove member in the group settings doesnt work. 
-7. Edit group doesnt work either.
-9. UI ux Transition from one page to another for more smoother experienc (later)
 
-11. Keyboard should collapse, be hidden when calcultor is clicked or outside the textbox. 
-12. Remove member should ask the user if the user is sure. Also notify the removed user. 
-13. Remove the settins button on the main page. Replace with something else 
-15. sign out should clear the app and prompt the user to select account next time. 
 
 
 
