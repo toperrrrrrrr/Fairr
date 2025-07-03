@@ -1,10 +1,6 @@
 
-3. Nav bar have huge white space make the oblong and the buttons float. 
-4. Need to review the process from creation of group, recording of group, how expnses is being recorded. inviting members, recording of who paid for the expense the split, and the settlement. We need to make sure that every step of the process and data is conncted to one another to make sure that the data reflecting is correct. 
 
-
-
-
+4. 
 
 
 
