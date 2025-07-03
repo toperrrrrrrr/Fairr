@@ -6,11 +6,10 @@
 6. remove member in the group settings doesnt work. 
 7. Edit group doesnt work either.
 9. UI ux Transition from one page to another for more smoother experienc (later)
-10. Feature Completeness review. 
+
 11. Keyboard should collapse, be hidden when calcultor is clicked or outside the textbox. 
 12. Remove member should ask the user if the user is sure. Also notify the removed user. 
 13. Remove the settins button on the main page. Replace with something else 
-14. Add emoji in the groups and also create group page. 
 15. sign out should clear the app and prompt the user to select account next time. 
 
 

@@ -4,16 +4,20 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fairr.data.analytics.RecurringExpenseAnalytics
 import com.example.fairr.data.repository.ExpenseRepository
+import com.example.fairr.data.settings.SettingsDataStore
+import com.example.fairr.util.CurrencyFormatter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
 import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.update
+import kotlinx.coroutines.flow.first
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
 data class RecurringExpenseAnalyticsState(
     val isLoading: Boolean = false,
     val error: String? = null,
+    val userCurrency: String = "PHP",
     val stats: RecurringExpenseAnalytics.RecurringExpenseStats = RecurringExpenseAnalytics.RecurringExpenseStats(
         totalRecurringExpenses = 0,
         totalAmount = 0.0,
@@ -34,7 +38,8 @@ data class RecurringExpenseAnalyticsState(
 @HiltViewModel
 class RecurringExpenseAnalyticsViewModel @Inject constructor(
     private val analytics: RecurringExpenseAnalytics,
-    private val expenseRepository: ExpenseRepository
+    private val expenseRepository: ExpenseRepository,
+    private val settingsDataStore: SettingsDataStore
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(RecurringExpenseAnalyticsState())
@@ -44,6 +49,9 @@ class RecurringExpenseAnalyticsViewModel @Inject constructor(
         viewModelScope.launch {
             try {
                 _state.update { it.copy(isLoading = true, error = null) }
+                
+                // Get user's preferred currency
+                val userCurrency = settingsDataStore.defaultCurrency.first()
                 
                 // Load all analytics data
                 val stats = analytics.getRecurringExpenseStats(groupId)
@@ -56,6 +64,7 @@ class RecurringExpenseAnalyticsViewModel @Inject constructor(
                 _state.update { 
                     it.copy(
                         isLoading = false,
+                        userCurrency = userCurrency,
                         stats = stats,
                         frequencyBreakdown = frequencyBreakdown,
                         categoryBreakdown = categoryBreakdown,
@@ -73,5 +82,18 @@ class RecurringExpenseAnalyticsViewModel @Inject constructor(
                 }
             }
         }
+    }
+
+    // Currency formatting methods using user's preferred currency
+    fun formatCurrency(amount: Double): String {
+        return CurrencyFormatter.format(state.value.userCurrency, amount)
+    }
+
+    fun formatCurrencyWithSpacing(amount: Double): String {
+        return CurrencyFormatter.formatWithSpacing(state.value.userCurrency, amount)
+    }
+
+    fun getCurrencySymbol(): String {
+        return CurrencyFormatter.getSymbol(state.value.userCurrency)
     }
 } 

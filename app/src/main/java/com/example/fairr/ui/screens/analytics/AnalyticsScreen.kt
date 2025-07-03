@@ -85,7 +85,7 @@ fun AnalyticsScreen(
                 ) {
                     // Overall Spending Overview
                     item {
-                        OverallSpendingCard(stats = state.overallStats)
+                        OverallSpendingCard(stats = state.overallStats, viewModel = viewModel)
                     }
                     
                     // Group Spending Breakdown
@@ -93,6 +93,7 @@ fun AnalyticsScreen(
                         item {
                             GroupBreakdownCard(
                                 breakdown = state.groupBreakdown,
+                                viewModel = viewModel,
                                 onGroupClick = { groupId ->
                                     // Navigate to group analytics
                                     navController.navigate("recurring_analytics/$groupId")
@@ -104,14 +105,14 @@ fun AnalyticsScreen(
                     // Category Spending
                     if (state.categoryBreakdown.isNotEmpty()) {
                         item {
-                            CategorySpendingCard(breakdown = state.categoryBreakdown)
+                            CategorySpendingCard(breakdown = state.categoryBreakdown, viewModel = viewModel)
                         }
                     }
                     
                     // Monthly Trends
                     if (state.monthlyTrends.isNotEmpty()) {
                         item {
-                            MonthlyTrendsCard(trends = state.monthlyTrends)
+                            MonthlyTrendsCard(trends = state.monthlyTrends, viewModel = viewModel)
                         }
                     }
                     
@@ -141,7 +142,7 @@ fun AnalyticsScreen(
 }
 
 @Composable
-private fun OverallSpendingCard(stats: OverallSpendingStats) {
+private fun OverallSpendingCard(stats: OverallSpendingStats, viewModel: AnalyticsViewModel) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -166,12 +167,12 @@ private fun OverallSpendingCard(stats: OverallSpendingStats) {
             ) {
                 StatItem(
                     label = "Total Spent",
-                    value = CurrencyFormatter.format("USD", stats.totalSpent),
+                    value = viewModel.formatCurrency(stats.totalSpent),
                     icon = Icons.Default.AccountBalance
                 )
                 StatItem(
                     label = "This Month",
-                    value = CurrencyFormatter.format("USD", stats.thisMonthSpent),
+                    value = viewModel.formatCurrency(stats.thisMonthSpent),
                     icon = Icons.Default.CalendarToday
                 )
             }
@@ -210,7 +211,7 @@ private fun OverallSpendingCard(stats: OverallSpendingStats) {
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "Average per expense: ${CurrencyFormatter.format("USD", stats.averagePerExpense)}",
+                            text = "Average per expense: ${viewModel.formatCurrency(stats.averagePerExpense)}",
                             style = MaterialTheme.typography.bodyMedium,
                             color = Primary
                         )
@@ -256,6 +257,7 @@ private fun StatItem(
 @Composable
 private fun GroupBreakdownCard(
     breakdown: List<GroupSpendingBreakdown>,
+    viewModel: AnalyticsViewModel,
     onGroupClick: (String) -> Unit
 ) {
     Card(
@@ -298,7 +300,7 @@ private fun GroupBreakdownCard(
                         )
                     }
                     Text(
-                        text = CurrencyFormatter.format("USD", group.totalSpent),
+                        text = viewModel.formatCurrency(group.totalSpent),
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.SemiBold,
                         color = Primary
@@ -310,7 +312,7 @@ private fun GroupBreakdownCard(
 }
 
 @Composable
-private fun CategorySpendingCard(breakdown: List<CategorySpendingBreakdown>) {
+private fun CategorySpendingCard(breakdown: List<CategorySpendingBreakdown>, viewModel: AnalyticsViewModel) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -342,7 +344,7 @@ private fun CategorySpendingCard(breakdown: List<CategorySpendingBreakdown>) {
                         modifier = Modifier.weight(1f)
                     )
                     Text(
-                        text = CurrencyFormatter.format("USD", category.totalSpent),
+                        text = viewModel.formatCurrency(category.totalSpent),
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.SemiBold,
                         color = Primary
@@ -359,7 +361,7 @@ private fun CategorySpendingCard(breakdown: List<CategorySpendingBreakdown>) {
 }
 
 @Composable
-private fun MonthlyTrendsCard(trends: List<MonthlySpendingTrend>) {
+private fun MonthlyTrendsCard(trends: List<MonthlySpendingTrend>, viewModel: AnalyticsViewModel) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -391,7 +393,7 @@ private fun MonthlyTrendsCard(trends: List<MonthlySpendingTrend>) {
                         modifier = Modifier.weight(1f)
                     )
                     Text(
-                        text = CurrencyFormatter.format("USD", trend.totalSpent),
+                        text = viewModel.formatCurrency(trend.totalSpent),
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.SemiBold,
                         color = Primary

@@ -6,6 +6,8 @@ import com.example.fairr.data.repository.ExpenseRepository
 import com.example.fairr.data.groups.GroupService
 import com.example.fairr.data.model.Expense
 import com.example.fairr.data.model.Group
+import com.example.fairr.data.settings.SettingsDataStore
+import com.example.fairr.util.CurrencyFormatter
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -19,6 +21,7 @@ import javax.inject.Inject
 data class AnalyticsState(
     val isLoading: Boolean = false,
     val error: String? = null,
+    val userCurrency: String = "PHP",
     val overallStats: OverallSpendingStats = OverallSpendingStats(),
     val groupBreakdown: List<GroupSpendingBreakdown> = emptyList(),
     val categoryBreakdown: List<CategorySpendingBreakdown> = emptyList(),
@@ -58,16 +61,24 @@ data class MonthlySpendingTrend(
 class AnalyticsViewModel @Inject constructor(
     private val expenseRepository: ExpenseRepository,
     private val groupService: GroupService,
-    private val auth: FirebaseAuth
+    private val auth: FirebaseAuth,
+    private val settingsDataStore: SettingsDataStore
 ) : ViewModel() {
 
     private val _state = MutableStateFlow(AnalyticsState())
     val state: StateFlow<AnalyticsState> = _state
 
+    init {
+        loadAnalytics()
+    }
+
     fun loadAnalytics() {
         viewModelScope.launch {
             try {
                 _state.update { it.copy(isLoading = true, error = null) }
+                
+                // Get user's preferred currency
+                val userCurrency = settingsDataStore.defaultCurrency.first()
                 
                 // Get current user
                 val currentUser = auth.currentUser
@@ -109,6 +120,7 @@ class AnalyticsViewModel @Inject constructor(
                 _state.update { 
                     it.copy(
                         isLoading = false,
+                        userCurrency = userCurrency,
                         overallStats = overallStats,
                         groupBreakdown = groupBreakdown,
                         categoryBreakdown = categoryBreakdown,
@@ -127,7 +139,20 @@ class AnalyticsViewModel @Inject constructor(
             }
         }
     }
-    
+
+    // Currency formatting methods using user's preferred currency
+    fun formatCurrency(amount: Double): String {
+        return CurrencyFormatter.format(state.value.userCurrency, amount)
+    }
+
+    fun formatCurrencyWithSpacing(amount: Double): String {
+        return CurrencyFormatter.formatWithSpacing(state.value.userCurrency, amount)
+    }
+
+    fun getCurrencySymbol(): String {
+        return CurrencyFormatter.getSymbol(state.value.userCurrency)
+    }
+
     private fun calculateOverallStats(expenses: List<Expense>, groups: List<Group>): OverallSpendingStats {
         if (expenses.isEmpty()) {
             return OverallSpendingStats()

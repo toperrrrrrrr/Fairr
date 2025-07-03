@@ -90,7 +90,7 @@ fun RecurringExpenseAnalyticsScreen(
                 ) {
                     // Overview Stats
                     item {
-                        OverviewStatsCard(stats = state.stats)
+                        OverviewStatsCard(stats = state.stats, viewModel = viewModel)
                     }
                     
                     // Insights
@@ -110,14 +110,14 @@ fun RecurringExpenseAnalyticsScreen(
                     // Category Breakdown
                     if (state.categoryBreakdown.isNotEmpty()) {
                         item {
-                            CategoryBreakdownCard(breakdown = state.categoryBreakdown)
+                            CategoryBreakdownCard(breakdown = state.categoryBreakdown, viewModel = viewModel)
                         }
                     }
                     
                     // Monthly Trends
                     if (state.monthlyTrends.isNotEmpty()) {
                         item {
-                            MonthlyTrendsCard(trends = state.monthlyTrends)
+                            MonthlyTrendsCard(trends = state.monthlyTrends, viewModel = viewModel)
                         }
                     }
                 }
@@ -127,7 +127,10 @@ fun RecurringExpenseAnalyticsScreen(
 }
 
 @Composable
-private fun OverviewStatsCard(stats: RecurringExpenseAnalytics.RecurringExpenseStats) {
+private fun OverviewStatsCard(
+    stats: RecurringExpenseAnalytics.RecurringExpenseStats,
+    viewModel: RecurringExpenseAnalyticsViewModel
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -168,12 +171,12 @@ private fun OverviewStatsCard(stats: RecurringExpenseAnalytics.RecurringExpenseS
             ) {
                 StatItem(
                     label = "Monthly Projection",
-                    value = CurrencyFormatter.format("USD", stats.monthlyProjection),
+                    value = viewModel.formatCurrency(stats.monthlyProjection),
                     icon = Icons.AutoMirrored.Filled.TrendingUp
                 )
                 StatItem(
                     label = "Yearly Projection",
-                    value = CurrencyFormatter.format("USD", stats.yearlyProjection),
+                    value = viewModel.formatCurrency(stats.yearlyProjection),
                     icon = Icons.Default.CalendarToday
                 )
             }
@@ -327,7 +330,10 @@ private fun FrequencyBreakdownCard(breakdown: List<RecurringExpenseAnalytics.Fre
 }
 
 @Composable
-private fun CategoryBreakdownCard(breakdown: List<RecurringExpenseAnalytics.CategoryBreakdown>) {
+private fun CategoryBreakdownCard(
+    breakdown: List<RecurringExpenseAnalytics.CategoryBreakdown>,
+    viewModel: RecurringExpenseAnalyticsViewModel
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -359,7 +365,7 @@ private fun CategoryBreakdownCard(breakdown: List<RecurringExpenseAnalytics.Cate
                         modifier = Modifier.weight(1f)
                     )
                     Text(
-                        text = CurrencyFormatter.format("USD", item.totalAmount),
+                        text = viewModel.formatCurrency(item.totalAmount),
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.SemiBold,
                         color = Primary
@@ -376,7 +382,10 @@ private fun CategoryBreakdownCard(breakdown: List<RecurringExpenseAnalytics.Cate
 }
 
 @Composable
-private fun MonthlyTrendsCard(trends: List<RecurringExpenseAnalytics.MonthlyTrend>) {
+private fun MonthlyTrendsCard(
+    trends: List<RecurringExpenseAnalytics.MonthlyTrend>,
+    viewModel: RecurringExpenseAnalyticsViewModel
+) {
     Card(
         modifier = Modifier
             .fillMaxWidth()
@@ -408,7 +417,7 @@ private fun MonthlyTrendsCard(trends: List<RecurringExpenseAnalytics.MonthlyTren
                         modifier = Modifier.weight(1f)
                     )
                     Text(
-                        text = CurrencyFormatter.format("USD", trend.totalAmount),
+                        text = viewModel.formatCurrency(trend.totalAmount),
                         style = MaterialTheme.typography.bodyMedium,
                         fontWeight = FontWeight.SemiBold,
                         color = Primary

@@ -1,4 +1,14 @@
+
+We need to do Feature Completeness review. 
+
+Error list
+ERROR : PERMISSION_DENIED: Missing or insufficient permissions
+
+
+We need to create a more easy way to understand what is happening. Own version of error tracking. like error 404 means something on the internet right. I would like to follow that kind of standard. 
+
 Mainpage:
+- This is actually ok. We can improve this later on. Maybe just hide this page.
 - We can move the quick actions to a more smaller buttons. Grouplist must be what's showing up first. 
 - recent transactions can live on the notification page. 
 - 
@@ -6,6 +16,8 @@ Mainpage:
 Group list page: 
 - There is a huge space below the manage recurring. 
 - Manage recurring button is too huge, we can make it way smaller and put it somewhere else. Maybe as quick actions as well? 
+- Manual settlement crashes the app.
+- Emoji selected on group cration page is not appearing on the group list reccords 
 
 
 Group Settings Page:
@@ -54,3 +66,19 @@ Login Page:
 When app loads first
 - instead of showing the page without the data. Do not load the page immediately until data is ready. 
 - Or preload the data when app starts? 
+
+Settle Up Page: 
+ERROR : PERMISSION_DENIED: Missing or insufficient permissions
+- This error shows up when I request for payment
+- This error also shows up when individual balance is being settled. 
+
+
+Edit profile page: 
+- using fake details of john doe.
+
+
+Settings page:
+- Dark mode is still not working, this setting must be saved to user profile or offline storage so that it doesnt change whenever user uses the app
+
+
+
