@@ -25,7 +25,7 @@ import kotlinx.coroutines.channels.awaitClose
 private const val TAG = "ExpenseRepository"
 
 // Pagination constants
-private const val DEFAULT_PAGE_SIZE = 20    
+private const val DEFAULT_PAGE_SIZE = 20    x
 private const val MAX_PAGE_SIZE = 50
 private const val INITIAL_LOAD_SIZE = 10
 

@@ -42,6 +42,10 @@ import com.example.fairr.ui.components.CategoryIcon
 import com.example.fairr.data.model.Group
 import com.example.fairr.data.model.Expense
 import java.util.Date
+import androidx.compose.ui.text.AnnotatedString
+import androidx.compose.ui.text.SpanStyle
+import androidx.compose.ui.text.buildAnnotatedString
+import androidx.compose.ui.text.withStyle
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -337,13 +341,10 @@ fun SearchScreen(
                         }
                         
                         items(groupResults) { groupResult ->
-                            GroupSearchResultCardOld(
-                                groupResult = groupResult,
+                            GroupSearchCard(
+                                group = groupResult,
                                 searchQuery = searchQuery,
-                                onClick = { onNavigateToGroup(groupResult.id) },
-                                modifier = Modifier.semantics {
-                                    contentDescription = "Group result: ${groupResult.name}, ${groupResult.memberCount} members. Tap to view group details."
-                                }
+                                onClick = { onNavigateToGroup(groupResult.id) }
                             )
                         }
                     }
@@ -367,13 +368,10 @@ fun SearchScreen(
                         }
                         
                         items(expenseResults) { expenseResult ->
-                            ExpenseSearchResultCardOld(
-                                expenseResult = expenseResult,
+                            ExpenseSearchCard(
+                                expense = expenseResult,
                                 searchQuery = searchQuery,
-                                onClick = { onNavigateToExpense(expenseResult.id) },
-                                modifier = Modifier.semantics {
-                                    contentDescription = "Expense result: ${expenseResult.description}, ${CurrencyFormatter.format("USD", expenseResult.amount)}, in group ${expenseResult.groupName}. Tap to view expense details."
-                                }
+                                onClick = { onNavigateToExpense(expenseResult.id) }
                             )
                         }
                     }
@@ -564,6 +562,7 @@ fun FilterSection(
 @Composable
 fun ExpenseSearchCard(
     expense: SearchResult.ExpenseResult,
+    searchQuery: String = "",
     onClick: () -> Unit
 ) {
     Card(
@@ -599,7 +598,7 @@ fun ExpenseSearchCard(
             
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = expense.description,
+                    text = highlightSearchTerm(expense.description, searchQuery),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = TextPrimary,
@@ -674,6 +673,7 @@ fun ExpenseSearchCard(
 @Composable
 fun GroupSearchCard(
     group: SearchResult.GroupResult,
+    searchQuery: String = "",
     onClick: () -> Unit
 ) {
     Card(
@@ -709,7 +709,7 @@ fun GroupSearchCard(
             
             Column(modifier = Modifier.weight(1f)) {
                 Text(
-                    text = group.name,
+                    text = highlightSearchTerm(group.name, searchQuery),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.SemiBold,
                     color = TextPrimary,
@@ -983,149 +983,6 @@ fun SearchScreenPreview() {
 }
 
 @Composable
-private fun GroupSearchResultCardOld(
-    groupResult: SearchResult.GroupResult,
-    searchQuery: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable { onClick() },
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = NeutralWhite),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Group icon
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .background(Primary.copy(alpha = 0.1f), CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    Icons.Default.Group,
-                    contentDescription = "Group",
-                    tint = Primary,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-            
-            Spacer(modifier = Modifier.width(16.dp))
-            
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = highlightSearchTerm(groupResult.name, searchQuery),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = TextPrimary
-                )
-                Text(
-                    text = "${groupResult.memberCount} members • ${groupResult.expenseCount} expenses",
-                    fontSize = 14.sp,
-                    color = TextSecondary
-                )
-                if (groupResult.balance != 0.0) {
-                    val balanceText = if (groupResult.balance > 0) "You are owed" else "You owe"
-                    val balanceColor = if (groupResult.balance > 0) SuccessGreen else ErrorRed
-                    Text(
-                        text = "$balanceText ${CurrencyFormatter.format("USD", kotlin.math.abs(groupResult.balance))}",
-                        fontSize = 12.sp,
-                        color = balanceColor,
-                        fontWeight = FontWeight.Medium
-                    )
-                }
-            }
-            
-            Icon(
-                Icons.Default.ChevronRight,
-                contentDescription = "View group",
-                tint = TextSecondary,
-                modifier = Modifier.size(20.dp)
-            )
-        }
-    }
-}
-
-@Composable
-private fun ExpenseSearchResultCardOld(
-    expenseResult: SearchResult.ExpenseResult,
-    searchQuery: String,
-    onClick: () -> Unit,
-    modifier: Modifier = Modifier
-) {
-    Card(
-        modifier = modifier
-            .fillMaxWidth()
-            .clickable { onClick() },
-        shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(containerColor = NeutralWhite),
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
-    ) {
-        Row(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.CenterVertically
-        ) {
-            // Category icon placeholder
-            Box(
-                modifier = Modifier
-                    .size(48.dp)
-                    .background(AccentBlue.copy(alpha = 0.1f), CircleShape),
-                contentAlignment = Alignment.Center
-            ) {
-                Icon(
-                    Icons.Default.Receipt,
-                    contentDescription = "Expense",
-                    tint = AccentBlue,
-                    modifier = Modifier.size(24.dp)
-                )
-            }
-            
-            Spacer(modifier = Modifier.width(16.dp))
-            
-            Column(modifier = Modifier.weight(1f)) {
-                Text(
-                    text = highlightSearchTerm(expenseResult.description, searchQuery),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Medium,
-                    color = TextPrimary,
-                    maxLines = 1,
-                    overflow = TextOverflow.Ellipsis
-                )
-                Text(
-                    text = "In ${expenseResult.groupName}",
-                    fontSize = 14.sp,
-                    color = TextSecondary
-                )
-                Text(
-                    text = "${expenseResult.category} • ${expenseResult.date}",
-                    fontSize = 12.sp,
-                    color = TextSecondary
-                )
-            }
-            
-            Column(horizontalAlignment = Alignment.End) {
-                Text(
-                    text = CurrencyFormatter.format("USD", expenseResult.amount),
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextPrimary
-                )
-            }
-        }
-    }
-}
-
-@Composable
 private fun SearchSuggestionsSection(
     onSuggestionClick: (String) -> Unit,
     modifier: Modifier = Modifier
@@ -1269,9 +1126,32 @@ private fun SuggestionChip(
     )
 }
 
-private fun highlightSearchTerm(text: String, searchQuery: String): String {
-    // Simple highlighting - in a real app you might use AnnotatedString
-    return text
+private fun highlightSearchTerm(text: String, searchQuery: String): AnnotatedString {
+    if (searchQuery.isBlank()) return AnnotatedString(text)
+    
+    return buildAnnotatedString {
+        val lowerText = text.lowercase()
+        val lowerQuery = searchQuery.lowercase()
+        var lastIndex = 0
+        
+        while (lastIndex < text.length) {
+            val index = lowerText.indexOf(lowerQuery, lastIndex)
+            if (index == -1) {
+                append(text.substring(lastIndex))
+                break
+            }
+            
+            // Add text before the match
+            append(text.substring(lastIndex, index))
+            
+            // Add highlighted match
+            withStyle(SpanStyle(color = Primary, fontWeight = FontWeight.Bold)) {
+                append(text.substring(index, index + searchQuery.length))
+            }
+            
+            lastIndex = index + searchQuery.length
+        }
+    }
 }
 
 private fun formatDate(date: Date): String {

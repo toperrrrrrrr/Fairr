@@ -42,9 +42,9 @@ This master list consolidates all UX quality issues found during the comprehensi
 ### **Data & Business Logic Issues**
 | ID | Issue | Impact | Component | Time Est. |
 |----|-------|--------|-----------|-----------|
-| H01 | SearchPage layout broken | Search unusable | `SearchScreen.kt` | 4h |
-| H02 | Group member list spacing issues | Poor UX | `GroupDetailScreen.kt` | 2h |
-| H03 | Emoji display corrupted in names | Visual bugs | Multiple components | 3h |
+| H01 | SearchPage layout broken | Search unusable | `SearchScreen.kt` | 4h ✅ |
+| H02 | Group member list spacing issues | Poor UX | `GroupDetailScreen.kt` | 2h ✅ |
+| H03 | Emoji display corrupted in names | Visual bugs | Multiple components | 3h ✅ |
 | H04 | Settings not persisting (dark mode) | User preferences lost | `SettingsDataStore.kt` | 6h |
 
 ### **UI/UX Problems**

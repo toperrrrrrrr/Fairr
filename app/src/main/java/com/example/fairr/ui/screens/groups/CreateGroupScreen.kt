@@ -40,6 +40,9 @@ import androidx.compose.foundation.clickable
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.items
+import com.example.fairr.ui.components.EmojiPickerItem
+import com.example.fairr.ui.components.GroupEmojiAvatar
+import com.example.fairr.ui.components.EmojiCollections
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -392,12 +395,7 @@ private fun GroupAvatarPicker(
     onAvatarSelected: (String) -> Unit,
     modifier: Modifier = Modifier
 ) {
-    val emojiOptions = listOf(
-        "👥", "🏠", "🎉", "💰", "🍕", "☕", "🎬", "✈️", 
-        "🏖️", "🎸", "📚", "💡", "🎯", "🌟", "❤️", "🔥",
-        "🎨", "🏃", "🍔", "🍻", "🎮", "📱", "💻", "🚗",
-        "🎭", "🏆", "🎪", "🎨", "🌈", "⚽", "🏀", "🎳"
-    )
+    val emojiOptions = EmojiCollections.groupEmojis
     
     Card(
         modifier = modifier,
@@ -418,29 +416,11 @@ private fun GroupAvatarPicker(
                 verticalAlignment = Alignment.CenterVertically,
                 modifier = Modifier.padding(bottom = 16.dp)
             ) {
-                Box(
-                    modifier = Modifier
-                        .size(60.dp)
-                        .background(
-                            color = MaterialTheme.colorScheme.primaryContainer,
-                            shape = CircleShape
-                        ),
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (selectedAvatar.isNotEmpty()) {
-                        Text(
-                            text = selectedAvatar,
-                            fontSize = 28.sp
-                        )
-                    } else {
-                        Icon(
-                            Icons.Default.Group,
-                            contentDescription = "Default Group Icon",
-                            tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                            modifier = Modifier.size(24.dp)
-                        )
-                    }
-                }
+                GroupEmojiAvatar(
+                    avatar = selectedAvatar,
+                    groupName = "Group",
+                    size = 60.dp
+                )
                 
                 Spacer(modifier = Modifier.width(12.dp))
                 
@@ -460,24 +440,12 @@ private fun GroupAvatarPicker(
                 modifier = Modifier.height(200.dp)
             ) {
                 items(emojiOptions) { emoji ->
-                    Box(
-                        modifier = Modifier
-                            .size(40.dp)
-                            .clip(CircleShape)
-                            .background(
-                                color = if (selectedAvatar == emoji) 
-                                    MaterialTheme.colorScheme.primaryContainer 
-                                else 
-                                    Color.Transparent
-                            )
-                            .clickable { onAvatarSelected(emoji) },
-                        contentAlignment = Alignment.Center
-                    ) {
-                        Text(
-                            text = emoji,
-                            fontSize = 20.sp
-                        )
-                    }
+                    EmojiPickerItem(
+                        emoji = emoji,
+                        isSelected = selectedAvatar == emoji,
+                        onClick = { onAvatarSelected(emoji) },
+                        size = 40.dp
+                    )
                 }
             }
         }

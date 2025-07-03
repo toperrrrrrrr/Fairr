@@ -35,6 +35,9 @@ import com.example.fairr.ui.viewmodel.GroupSettingsEvent
 import com.example.fairr.ui.viewmodel.GroupSettingsViewModel
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.google.firebase.auth.FirebaseAuth
+import com.example.fairr.ui.components.ModernCard
+import com.example.fairr.ui.components.GroupEmojiAvatar
+import com.example.fairr.ui.components.UserEmojiAvatar
 
 @Composable
 private fun DetailItem(
@@ -122,7 +125,9 @@ fun GroupSettingsScreen(
         LazyColumn(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(padding)
+                .padding(padding),
+            verticalArrangement = Arrangement.spacedBy(8.dp),
+            contentPadding = PaddingValues(bottom = 16.dp)
         ) {
             // Group Info Section
             item {
@@ -142,29 +147,11 @@ fun GroupSettingsScreen(
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             // Group Avatar
-                            Box(
-                                modifier = Modifier
-                                    .size(60.dp)
-                                    .background(
-                                        color = MaterialTheme.colorScheme.primaryContainer,
-                                        shape = CircleShape
-                                    ),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                if (group.avatar.isNotEmpty()) {
-                                    Text(
-                                        text = group.avatar,
-                                        fontSize = 28.sp
-                                    )
-                                } else {
-                                    Icon(
-                                        Icons.Default.Group,
-                                        contentDescription = "Group Icon",
-                                        tint = MaterialTheme.colorScheme.onPrimaryContainer,
-                                        modifier = Modifier.size(24.dp)
-                                    )
-                                }
-                            }
+                            GroupEmojiAvatar(
+                                avatar = group.avatar,
+                                groupName = group.name,
+                                size = 60.dp
+                            )
                             
                             Spacer(modifier = Modifier.width(16.dp))
                             
@@ -512,11 +499,8 @@ fun MemberCard(
 ) {
     val currentUserId = FirebaseAuth.getInstance().currentUser?.uid
     
-    Card(
-        modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = MaterialTheme.colorScheme.surface
-        )
+    ModernCard(
+        modifier = modifier.fillMaxWidth()
     ) {
         Row(
             modifier = Modifier
@@ -525,59 +509,92 @@ fun MemberCard(
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Column {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = member.name,
-                        style = MaterialTheme.typography.titleMedium
-                    )
-                    if (member.role == GroupRole.ADMIN) {
-                        Spacer(modifier = Modifier.width(6.dp))
-                        Text(
-                            text = "Admin",
-                            color = MaterialTheme.colorScheme.primary,
-                            style = MaterialTheme.typography.labelMedium,
-                            modifier = Modifier
-                                .background(
-                                    color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
-                                    shape = RoundedCornerShape(6.dp)
-                                )
-                                .padding(horizontal = 6.dp, vertical = 2.dp)
-                        )
-                    }
-                }
-                Text(
-                    text = member.email,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.onSurfaceVariant
+            Row(
+                verticalAlignment = Alignment.CenterVertically,
+                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                modifier = Modifier.weight(1f)
+            ) {
+                // User Avatar
+                UserEmojiAvatar(
+                    name = member.name,
+                    size = 40.dp
                 )
+                
+                Column {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = member.name,
+                            style = MaterialTheme.typography.titleMedium,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                        if (member.role == GroupRole.ADMIN) {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Surface(
+                                color = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f),
+                                shape = RoundedCornerShape(8.dp),
+                                modifier = Modifier
+                            ) {
+                                Text(
+                                    text = "Admin",
+                                    color = MaterialTheme.colorScheme.primary,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Medium,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                )
+                            }
+                        }
+                        if (member.userId == currentUserId) {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Surface(
+                                color = MaterialTheme.colorScheme.secondaryContainer,
+                                shape = RoundedCornerShape(8.dp)
+                            ) {
+                                Text(
+                                    text = "You",
+                                    color = MaterialTheme.colorScheme.onSecondaryContainer,
+                                    style = MaterialTheme.typography.labelSmall,
+                                    fontWeight = FontWeight.Medium,
+                                    modifier = Modifier.padding(horizontal = 8.dp, vertical = 4.dp)
+                                )
+                            }
+                        }
+                    }
+                    Text(
+                        text = member.email,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
             }
-            Row {
-                if (isUserAdmin && member.role != GroupRole.ADMIN) {
-                    IconButton(onClick = { onPromote(member) }) {
-                        Icon(
-                            Icons.Default.Star,
-                            contentDescription = "Promote to Admin",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
-                if (isUserAdmin && member.role == GroupRole.ADMIN && member.userId != currentUserId) {
-                    IconButton(onClick = { onDemote(member) }) {
-                        Icon(
-                            Icons.Default.StarOutline,
-                            contentDescription = "Demote from Admin",
-                            tint = MaterialTheme.colorScheme.primary
-                        )
-                    }
-                }
-                if (isUserAdmin && member.role != GroupRole.ADMIN) {
-                    IconButton(onClick = { onRemoveMember(member) }) {
-                        Icon(
-                            Icons.Default.PersonRemove,
-                            contentDescription = "Remove Member",
-                            tint = MaterialTheme.colorScheme.error
-                        )
+            
+            // Action buttons
+            if (isUserAdmin && member.userId != currentUserId) {
+                Row(
+                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                ) {
+                    if (member.role != GroupRole.ADMIN) {
+                        IconButton(onClick = { onPromote(member) }) {
+                            Icon(
+                                Icons.Default.Star,
+                                contentDescription = "Promote to Admin",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
+                        IconButton(onClick = { onRemoveMember(member) }) {
+                            Icon(
+                                Icons.Default.PersonRemove,
+                                contentDescription = "Remove Member",
+                                tint = MaterialTheme.colorScheme.error
+                            )
+                        }
+                    } else {
+                        IconButton(onClick = { onDemote(member) }) {
+                            Icon(
+                                Icons.Default.StarOutline,
+                                contentDescription = "Demote from Admin",
+                                tint = MaterialTheme.colorScheme.primary
+                            )
+                        }
                     }
                 }
             }

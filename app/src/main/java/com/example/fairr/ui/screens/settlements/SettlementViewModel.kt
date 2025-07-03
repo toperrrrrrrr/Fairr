@@ -1,5 +1,6 @@
 package com.example.fairr.ui.screens.settlements
 
+import android.util.Log
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
@@ -130,10 +131,19 @@ class SettlementViewModel @Inject constructor(
                     paymentMethod = paymentMethod
                 )
 
-                // Refresh settlements after recording
-                loadSettlements(groupId)
-                
+                // Settlement was recorded successfully, emit success event
                 _events.emit(SettlementEvent.SettlementRecorded)
+                
+                // Refresh settlements after recording - handle separately from recording
+                try {
+                    loadSettlements(groupId)
+                } catch (refreshError: Exception) {
+                    // If refresh fails, just log it but don't show error to user
+                    // since the settlement was actually recorded successfully
+                    Log.w("SettlementViewModel", "Failed to refresh after settlement: ${refreshError.message}")
+                    // Still update loading state
+                    state = state.copy(isLoading = false)
+                }
                 
             } catch (e: Exception) {
                 state = state.copy(isLoading = false)
