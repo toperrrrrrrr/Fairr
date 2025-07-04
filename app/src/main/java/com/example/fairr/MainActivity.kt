@@ -25,6 +25,7 @@ import com.example.fairr.data.notifications.RecurringExpenseNotificationService
 import com.example.fairr.data.repository.RecurringExpenseScheduler
 import com.example.fairr.data.analytics.RecurringExpenseAnalytics
 import com.example.fairr.data.auth.AuthService
+import com.example.fairr.data.settings.SettingsDataStore
 import dagger.hilt.android.AndroidEntryPoint
 import kotlinx.coroutines.delay
 import androidx.core.view.WindowCompat
@@ -46,6 +47,9 @@ class MainActivity : ComponentActivity() {
     @Inject
     lateinit var authService: AuthService
     
+    @Inject
+    lateinit var settingsDataStore: SettingsDataStore
+    
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         // Set navigation bar background to white and icons to dark before Compose content
@@ -53,7 +57,10 @@ class MainActivity : ComponentActivity() {
         window.navigationBarColor = android.graphics.Color.WHITE
         WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightNavigationBars = true
         setContent {
-            FairrTheme {
+            // Collect dark mode setting
+            val isDarkMode by settingsDataStore.darkModeEnabled.collectAsState(initial = false)
+            
+            FairrTheme(darkTheme = isDarkMode) {
                 Surface(
                     modifier = Modifier.fillMaxSize(),
                     color = MaterialTheme.colorScheme.background
@@ -94,6 +101,16 @@ class MainActivity : ComponentActivity() {
                             delay(1000)
                             recurringExpenseNotificationService.triggerNotificationCheck()
                         }
+                    }
+
+                    // Update navigation bar based on theme
+                    LaunchedEffect(isDarkMode) {
+                        window.navigationBarColor = if (isDarkMode) {
+                            android.graphics.Color.BLACK
+                        } else {
+                            android.graphics.Color.WHITE
+                        }
+                        WindowInsetsControllerCompat(window, window.decorView).isAppearanceLightNavigationBars = !isDarkMode
                     }
 
                     // Function to handle complete app reset

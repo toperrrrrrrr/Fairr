@@ -37,6 +37,8 @@ import coil.compose.AsyncImage
 import com.example.fairr.ui.components.*
 import com.example.fairr.ui.components.dialogs.GDPRAccountDeletionDialog
 import com.example.fairr.ui.theme.*
+import androidx.hilt.navigation.compose.hiltViewModel
+import com.example.fairr.ui.viewmodels.ProfileViewModel
 
 data class UserProfile(
     val id: String,
@@ -55,7 +57,8 @@ data class UserProfile(
 fun UserProfileScreen(
     navController: NavController,
     userId: String? = null,
-    onProfileUpdated: () -> Unit = {}
+    onProfileUpdated: () -> Unit = {},
+    profileViewModel: ProfileViewModel = hiltViewModel()
 ) {
     var isEditing by remember { mutableStateOf(false) }
     var showChangePasswordDialog by remember { mutableStateOf(false) }
@@ -63,24 +66,68 @@ fun UserProfileScreen(
     var showSuccessMessage by remember { mutableStateOf(false) }
     var successMessage by remember { mutableStateOf("") }
     
-    // Sample user data - in a real app, this would be fetched using userId
-    var userProfile by remember {
-        mutableStateOf(
-            UserProfile(
-                id = userId ?: "1",
-                fullName = "Alex Johnson",
-                email = "alex.johnson@email.com",
-                profileImageUrl = null,
-                phoneNumber = "+1 (555) 123-4567",
-                joinDate = "March 2024",
-                totalGroups = 8,
-                totalExpenses = 45,
-                isEmailVerified = true
-            )
+    // Use real data from ProfileViewModel
+    val userState by profileViewModel.userState.collectAsState()
+    
+    // Convert ProfileViewModel's UserState to UserProfile for existing components
+    val userProfile = remember(userState) {
+        UserProfile(
+            id = userId ?: "current",
+            fullName = userState.displayName ?: "User",
+            email = userState.email ?: "",
+            profileImageUrl = userState.photoUrl,
+            phoneNumber = userState.phoneNumber,
+            joinDate = userState.joinDate ?: "Recently",
+            totalGroups = userState.totalGroups,
+            totalExpenses = userState.totalExpenses,
+            isEmailVerified = userState.isEmailVerified
         )
     }
     
     val scrollState = rememberScrollState()
+
+    // Show loading state
+    if (userState.isLoading) {
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            CircularProgressIndicator(color = Primary)
+        }
+        return
+    }
+
+    // Show error state
+    userState.error?.let { errorMessage ->
+        Box(
+            modifier = Modifier.fillMaxSize(),
+            contentAlignment = Alignment.Center
+        ) {
+            Column(
+                horizontalAlignment = Alignment.CenterHorizontally,
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                Text(
+                    text = "Error loading profile",
+                    style = MaterialTheme.typography.headlineSmall,
+                    color = ErrorRed
+                )
+                Text(
+                    text = errorMessage,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = TextSecondary,
+                    textAlign = TextAlign.Center
+                )
+                Button(
+                    onClick = { profileViewModel.refreshUserData() },
+                    colors = ButtonDefaults.buttonColors(containerColor = Primary)
+                ) {
+                    Text("Retry", color = PureWhite)
+                }
+            }
+        }
+        return
+    }
 
     Scaffold(
         topBar = {
@@ -148,7 +195,10 @@ fun UserProfileScreen(
                     userProfile = userProfile,
                     isEditing = isEditing,
                     onProfileUpdated = { updatedProfile ->
-                        userProfile = updatedProfile
+                        // Refresh user data to get updated info from Firebase
+                        profileViewModel.refreshUserData()
+                        successMessage = "Profile updated successfully"
+                        showSuccessMessage = true
                     }
                 )
                 

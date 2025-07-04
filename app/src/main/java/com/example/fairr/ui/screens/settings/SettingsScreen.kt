@@ -38,9 +38,10 @@ fun SettingsScreen(
     modifier: Modifier = Modifier,
     viewModel: SettingsViewModel = hiltViewModel()
 ) {
-    var notificationsEnabled by remember { mutableStateOf(true) }
-    var soundEnabled by remember { mutableStateOf(true) }
-    var isDarkMode by remember { mutableStateOf(false) }
+    // Use ViewModel state instead of local remember state
+    val isDarkMode = viewModel.isDarkModeEnabled
+    val notificationsEnabled = viewModel.isNotificationsEnabled
+    val soundEnabled = viewModel.isSoundEnabled
     val profileViewModel: ProfileViewModel = hiltViewModel()
     val userState by profileViewModel.userState.collectAsState()
 
@@ -142,7 +143,7 @@ fun SettingsScreen(
                             trailingContent = {
                                 Switch(
                                     checked = isDarkMode,
-                                    onCheckedChange = { isDarkMode = it }
+                                    onCheckedChange = { viewModel.updateDarkMode(it) }
                                 )
                             }
                         )
@@ -214,7 +215,7 @@ fun SettingsScreen(
                             trailingContent = {
                                 Switch(
                                     checked = soundEnabled,
-                                    onCheckedChange = { soundEnabled = it }
+                                    onCheckedChange = { viewModel.updateSound(it) }
                                 )
                             }
                         )

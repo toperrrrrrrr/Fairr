@@ -1,0 +1,781 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Fairr Firebase Admin Panel</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+            background: white;
+            border-radius: 15px;
+            box-shadow: 0 20px 40px rgba(0,0,0,0.1);
+            overflow: hidden;
+        }
+
+        .header {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            padding: 30px;
+            text-align: center;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            opacity: 0.9;
+            font-size: 1.1rem;
+        }
+
+        .main-content {
+            padding: 30px;
+        }
+
+        .auth-section {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            margin-bottom: 30px;
+            border-left: 4px solid #667eea;
+        }
+
+        .auth-section h3 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.3rem;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            font-weight: 600;
+            color: #555;
+        }
+
+        .form-group input, .form-group textarea {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e1e5e9;
+            border-radius: 8px;
+            font-size: 1rem;
+            transition: border-color 0.3s ease;
+        }
+
+        .form-group input:focus, .form-group textarea:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.1);
+        }
+
+        .form-group textarea {
+            min-height: 120px;
+            resize: vertical;
+            font-family: 'Courier New', monospace;
+            font-size: 0.9rem;
+        }
+
+        .btn {
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            color: white;
+            border: none;
+            padding: 12px 30px;
+            border-radius: 8px;
+            cursor: pointer;
+            font-size: 1rem;
+            font-weight: 600;
+            transition: transform 0.2s ease, box-shadow 0.2s ease;
+            margin-right: 10px;
+            margin-bottom: 10px;
+        }
+
+        .btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-danger {
+            background: linear-gradient(135deg, #ff6b6b 0%, #ee5a24 100%);
+        }
+
+        .btn-danger:hover {
+            box-shadow: 0 5px 15px rgba(255, 107, 107, 0.4);
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, #00d2d3 0%, #54a0ff 100%);
+        }
+
+        .btn-success:hover {
+            box-shadow: 0 5px 15px rgba(0, 210, 211, 0.4);
+        }
+
+        .actions-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(300px, 1fr));
+            gap: 25px;
+            margin-top: 30px;
+        }
+
+        .action-card {
+            background: #f8f9fa;
+            padding: 25px;
+            border-radius: 10px;
+            border-left: 4px solid #667eea;
+        }
+
+        .action-card h4 {
+            color: #333;
+            margin-bottom: 15px;
+            font-size: 1.2rem;
+        }
+
+        .action-card p {
+            color: #666;
+            margin-bottom: 20px;
+            line-height: 1.5;
+        }
+
+        .status {
+            padding: 10px 20px;
+            border-radius: 8px;
+            margin: 15px 0;
+            font-weight: 600;
+        }
+
+        .status.success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .status.error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .status.info {
+            background: #cce7ff;
+            color: #004085;
+            border: 1px solid #b3d7ff;
+        }
+
+        .loading {
+            display: inline-block;
+            width: 20px;
+            height: 20px;
+            border: 3px solid #f3f3f3;
+            border-top: 3px solid #667eea;
+            border-radius: 50%;
+            animation: spin 1s linear infinite;
+            margin-right: 10px;
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .collection-stats {
+            background: #e8f4fd;
+            padding: 20px;
+            border-radius: 10px;
+            margin: 20px 0;
+        }
+
+        .stats-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+            gap: 15px;
+            text-align: center;
+        }
+
+        .stat-item {
+            background: white;
+            padding: 15px;
+            border-radius: 8px;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .stat-number {
+            font-size: 2rem;
+            font-weight: bold;
+            color: #667eea;
+        }
+
+        .stat-label {
+            color: #666;
+            font-size: 0.9rem;
+            margin-top: 5px;
+        }
+
+        .cred-section {
+            background: #e8f5e8;
+            padding: 20px;
+            border-radius: 10px;
+            margin-bottom: 20px;
+            border-left: 4px solid #28a745;
+        }
+
+        .config-info {
+            background: #e3f2fd;
+            padding: 15px;
+            border-radius: 8px;
+            margin-bottom: 20px;
+            border-left: 4px solid #2196f3;
+        }
+
+        .config-info code {
+            background: #f5f5f5;
+            padding: 2px 6px;
+            border-radius: 4px;
+            font-family: 'Courier New', monospace;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>🔥 Fairr Firebase Admin Panel</h1>
+            <p>Manage your Firebase collections with ease</p>
+        </div>
+
+        <div class="main-content">
+            <!-- Firebase Status Section -->
+            <div class="config-info">
+                <h3>🔗 Firebase Connection</h3>
+                <p>Connected to project: <code>fairr-c71bb</code></p>
+                <p>Status: <span id="connectionStatus">🔄 Initializing...</span></p>
+                <div id="authStatus"></div>
+            </div>
+
+            <!-- Credentials Section -->
+            <div id="credSection" class="cred-section">
+                <h3>🔑 Authentication Options</h3>
+                <p>Choose how to authenticate with Firebase:</p>
+                <div class="form-group">
+                    <label for="userEmail">Your Email:</label>
+                    <input type="email" id="userEmail" placeholder="Enter your account email">
+                </div>
+                <div class="form-group">
+                    <label for="userPassword">Your Password:</label>
+                    <input type="password" id="userPassword" placeholder="Enter your password">
+                </div>
+                <button class="btn btn-success" onclick="signInWithCredentials()">Sign In with Your Account</button>
+                <button class="btn" onclick="signInAnonymously()">Use Anonymous Access</button>
+            </div>
+
+            <!-- Collection Statistics -->
+            <div id="statsSection" class="hidden">
+                <div class="collection-stats">
+                    <h3>📊 Collection Statistics</h3>
+                    <div class="stats-grid" id="statsGrid">
+                        <!-- Stats will be populated here -->
+                    </div>
+                    <button class="btn btn-success" onclick="loadStats()">Refresh Stats</button>
+                </div>
+            </div>
+
+            <!-- Actions Grid -->
+            <div id="actionsSection" class="hidden">
+                <div class="actions-grid">
+                    <!-- Settlement Management -->
+                    <div class="action-card">
+                        <h4>💰 Settlement Management</h4>
+                        <p>Delete all settlement records or view settlement data</p>
+                        <button class="btn btn-danger" onclick="deleteAllSettlements()">Delete All Settlements</button>
+                        <button class="btn btn-success" onclick="exportSettlements()">Export Settlements</button>
+                        <button class="btn" onclick="viewSettlements()">View Settlements</button>
+                    </div>
+
+                    <!-- Expense Management -->
+                    <div class="action-card">
+                        <h4>💸 Expense Management</h4>
+                        <p>Manage expense records and data</p>
+                        <button class="btn btn-danger" onclick="deleteAllExpenses()">Delete All Expenses</button>
+                        <button class="btn btn-success" onclick="exportExpenses()">Export Expenses</button>
+                        <button class="btn" onclick="viewExpenses()">View Expenses</button>
+                    </div>
+
+                    <!-- Group Management -->
+                    <div class="action-card">
+                        <h4>👥 Group Management</h4>
+                        <p>Manage groups and memberships</p>
+                        <button class="btn btn-danger" onclick="deleteAllGroups()">Delete All Groups</button>
+                        <button class="btn btn-success" onclick="exportGroups()">Export Groups</button>
+                        <button class="btn" onclick="viewGroups()">View Groups</button>
+                    </div>
+
+                    <!-- User Management -->
+                    <div class="action-card">
+                        <h4>👤 User Management</h4>
+                        <p>View and manage user accounts</p>
+                        <button class="btn btn-success" onclick="exportUsers()">Export Users</button>
+                        <button class="btn" onclick="viewUsers()">View Users</button>
+                    </div>
+
+                    <!-- Notification Management -->
+                    <div class="action-card">
+                        <h4>🔔 Notification Management</h4>
+                        <p>Clean up old notifications</p>
+                        <button class="btn btn-danger" onclick="deleteAllNotifications()">Delete All Notifications</button>
+                        <button class="btn btn-success" onclick="exportNotifications()">Export Notifications</button>
+                    </div>
+
+                    <!-- Custom Query -->
+                    <div class="action-card">
+                        <h4>🔍 Custom Operations</h4>
+                        <p>Run custom queries and operations</p>
+                        <div class="form-group">
+                            <label for="customCollection">Collection Name:</label>
+                            <input type="text" id="customCollection" placeholder="e.g., settlements">
+                        </div>
+                        <button class="btn" onclick="countDocuments()">Count Documents</button>
+                        <button class="btn btn-danger" onclick="deleteCustomCollection()">Delete All in Collection</button>
+                    </div>
+                </div>
+            </div>
+
+            <div id="output"></div>
+        </div>
+    </div>
+
+    <!-- Firebase SDK -->
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-app-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-auth-compat.js"></script>
+    <script src="https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore-compat.js"></script>
+
+    <script>
+        let db;
+        let auth;
+
+        // Hardcoded Firebase configuration from your project
+        const firebaseConfig = {
+            apiKey: "AIzaSyBW78VffucYlkQWiW8OzdKl025UU5k3T3w",
+            authDomain: "fairr-c71bb.firebaseapp.com",
+            projectId: "fairr-c71bb",
+            storageBucket: "fairr-c71bb.firebasestorage.app",
+            messagingSenderId: "670995472503",
+            appId: "1:670995472503:android:4b214130216d7ada652672"
+        };
+
+        // Initialize Firebase automatically when page loads
+        window.addEventListener('DOMContentLoaded', async () => {
+            try {
+                // Initialize Firebase
+                firebase.initializeApp(firebaseConfig);
+                db = firebase.firestore();
+                auth = firebase.auth();
+
+                document.getElementById('connectionStatus').innerHTML = '✅ Connected successfully!';
+                showStatus('🔥 Firebase initialized automatically with your project config!', 'success');
+                
+                // Check if user is already signed in
+                auth.onAuthStateChanged((user) => {
+                    if (user) {
+                        onAuthSuccess(user);
+                    }
+                });
+                
+            } catch (error) {
+                document.getElementById('connectionStatus').innerHTML = '❌ Connection failed';
+                showStatus(`❌ Error initializing Firebase: ${error.message}`, 'error');
+            }
+        });
+
+        function showStatus(message, type = 'info') {
+            const output = document.getElementById('output');
+            const statusDiv = document.createElement('div');
+            statusDiv.className = `status ${type}`;
+            statusDiv.innerHTML = message;
+            output.appendChild(statusDiv);
+            
+            // Auto-remove after 5 seconds for success messages
+            if (type === 'success') {
+                setTimeout(() => {
+                    if (statusDiv.parentNode) {
+                        statusDiv.parentNode.removeChild(statusDiv);
+                    }
+                }, 5000);
+            }
+        }
+
+        function clearOutput() {
+            document.getElementById('output').innerHTML = '';
+        }
+
+        async function signInWithCredentials() {
+            try {
+                const email = document.getElementById('userEmail').value.trim();
+                const password = document.getElementById('userPassword').value.trim();
+                
+                if (!email || !password) {
+                    showStatus('Please enter both email and password', 'error');
+                    return;
+                }
+
+                if (!auth) {
+                    showStatus('Firebase not initialized', 'error');
+                    return;
+                }
+
+                showStatus('<span class="loading"></span>Signing in with your credentials...', 'info');
+                const userCredential = await auth.signInWithEmailAndPassword(email, password);
+                onAuthSuccess(userCredential.user);
+                
+            } catch (error) {
+                let errorMessage = 'Authentication failed';
+                
+                switch (error.code) {
+                    case 'auth/user-not-found':
+                        errorMessage = 'No account found with this email';
+                        break;
+                    case 'auth/wrong-password':
+                        errorMessage = 'Incorrect password';
+                        break;
+                    case 'auth/invalid-email':
+                        errorMessage = 'Invalid email format';
+                        break;
+                    case 'auth/too-many-requests':
+                        errorMessage = 'Too many failed attempts. Try again later';
+                        break;
+                    default:
+                        errorMessage = error.message;
+                }
+                
+                showStatus(`❌ ${errorMessage}`, 'error');
+            }
+        }
+
+        async function signInAnonymously() {
+            try {
+                if (!auth) {
+                    showStatus('Firebase not initialized', 'error');
+                    return;
+                }
+
+                showStatus('<span class="loading"></span>Signing in anonymously...', 'info');
+                const userCredential = await auth.signInAnonymously();
+                onAuthSuccess(userCredential.user);
+                
+            } catch (error) {
+                showStatus(`❌ Anonymous authentication error: ${error.message}`, 'error');
+            }
+        }
+
+        function onAuthSuccess(user) {
+            const isAnonymous = user.isAnonymous;
+            const userInfo = isAnonymous ? 'Anonymous User' : (user.email || 'Authenticated User');
+            
+            showStatus(`✅ Signed in successfully as ${userInfo}!`, 'success');
+            document.getElementById('authStatus').innerHTML = `
+                <div class="status success">
+                    🟢 Authenticated: ${userInfo}
+                    ${!isAnonymous ? '<br/>👑 Full Access' : '<br/>⚠️ Limited Access'}
+                </div>
+            `;
+            
+            // Hide credentials section and show admin panel
+            document.getElementById('credSection').classList.add('hidden');
+            document.getElementById('statsSection').classList.remove('hidden');
+            document.getElementById('actionsSection').classList.remove('hidden');
+            
+            // Load initial stats
+            loadStats();
+        }
+
+        async function loadStats() {
+            if (!db) {
+                showStatus('Firebase not initialized', 'error');
+                return;
+            }
+
+            const collections = ['settlements', 'expenses', 'groups', 'users', 'notifications', 'friendRequests'];
+            const statsGrid = document.getElementById('statsGrid');
+            statsGrid.innerHTML = '';
+
+            for (const collection of collections) {
+                try {
+                    const snapshot = await db.collection(collection).get();
+                    const count = snapshot.size;
+                    
+                    const statItem = document.createElement('div');
+                    statItem.className = 'stat-item';
+                    statItem.innerHTML = `
+                        <div class="stat-number">${count}</div>
+                        <div class="stat-label">${collection}</div>
+                    `;
+                    statsGrid.appendChild(statItem);
+                } catch (error) {
+                    console.log(`Could not load ${collection}: ${error.message}`);
+                    // Add a stat item showing error
+                    const statItem = document.createElement('div');
+                    statItem.className = 'stat-item';
+                    statItem.innerHTML = `
+                        <div class="stat-number">❌</div>
+                        <div class="stat-label">${collection}</div>
+                    `;
+                    statsGrid.appendChild(statItem);
+                }
+            }
+        }
+
+        async function deleteAllSettlements() {
+            if (!confirm('⚠️ Are you sure you want to delete ALL settlements? This action cannot be undone!')) {
+                return;
+            }
+
+            if (!confirm('🚨 FINAL WARNING: This will permanently delete all settlement records!')) {
+                return;
+            }
+
+            try {
+                showStatus('<span class="loading"></span>Deleting all settlements...', 'info');
+                
+                const batch = db.batch();
+                const snapshot = await db.collection('settlements').get();
+                
+                if (snapshot.empty) {
+                    showStatus('No settlements found to delete', 'info');
+                    return;
+                }
+
+                snapshot.docs.forEach(doc => {
+                    batch.delete(doc.ref);
+                });
+
+                await batch.commit();
+                showStatus(`✅ Successfully deleted ${snapshot.size} settlement records!`, 'success');
+                loadStats(); // Refresh stats
+                
+            } catch (error) {
+                showStatus(`❌ Error deleting settlements: ${error.message}`, 'error');
+            }
+        }
+
+        async function deleteAllExpenses() {
+            if (!confirm('⚠️ Are you sure you want to delete ALL expenses? This action cannot be undone!')) {
+                return;
+            }
+
+            try {
+                showStatus('<span class="loading"></span>Deleting all expenses...', 'info');
+                await deleteCollection('expenses');
+                loadStats();
+            } catch (error) {
+                showStatus(`❌ Error deleting expenses: ${error.message}`, 'error');
+            }
+        }
+
+        async function deleteAllGroups() {
+            if (!confirm('⚠️ Are you sure you want to delete ALL groups? This action cannot be undone!')) {
+                return;
+            }
+
+            try {
+                showStatus('<span class="loading"></span>Deleting all groups...', 'info');
+                await deleteCollection('groups');
+                loadStats();
+            } catch (error) {
+                showStatus(`❌ Error deleting groups: ${error.message}`, 'error');
+            }
+        }
+
+        async function deleteAllNotifications() {
+            if (!confirm('⚠️ Are you sure you want to delete ALL notifications?')) {
+                return;
+            }
+
+            try {
+                showStatus('<span class="loading"></span>Deleting all notifications...', 'info');
+                await deleteCollection('notifications');
+                loadStats();
+            } catch (error) {
+                showStatus(`❌ Error deleting notifications: ${error.message}`, 'error');
+            }
+        }
+
+        async function deleteCollection(collectionName) {
+            const batch = db.batch();
+            const snapshot = await db.collection(collectionName).get();
+            
+            if (snapshot.empty) {
+                showStatus(`No ${collectionName} found to delete`, 'info');
+                return;
+            }
+
+            snapshot.docs.forEach(doc => {
+                batch.delete(doc.ref);
+            });
+
+            await batch.commit();
+            showStatus(`✅ Successfully deleted ${snapshot.size} ${collectionName} records!`, 'success');
+        }
+
+        async function deleteCustomCollection() {
+            const collectionName = document.getElementById('customCollection').value.trim();
+            if (!collectionName) {
+                showStatus('Please enter a collection name', 'error');
+                return;
+            }
+
+            if (!confirm(`⚠️ Are you sure you want to delete ALL documents in "${collectionName}"?`)) {
+                return;
+            }
+
+            try {
+                showStatus(`<span class="loading"></span>Deleting all documents in ${collectionName}...`, 'info');
+                await deleteCollection(collectionName);
+                loadStats();
+            } catch (error) {
+                showStatus(`❌ Error deleting ${collectionName}: ${error.message}`, 'error');
+            }
+        }
+
+        async function countDocuments() {
+            const collectionName = document.getElementById('customCollection').value.trim();
+            if (!collectionName) {
+                showStatus('Please enter a collection name', 'error');
+                return;
+            }
+
+            try {
+                const snapshot = await db.collection(collectionName).get();
+                showStatus(`📊 Collection "${collectionName}" has ${snapshot.size} documents`, 'info');
+            } catch (error) {
+                showStatus(`❌ Error counting documents: ${error.message}`, 'error');
+            }
+        }
+
+        async function exportSettlements() {
+            await exportCollection('settlements');
+        }
+
+        async function exportExpenses() {
+            await exportCollection('expenses');
+        }
+
+        async function exportGroups() {
+            await exportCollection('groups');
+        }
+
+        async function exportUsers() {
+            await exportCollection('users');
+        }
+
+        async function exportNotifications() {
+            await exportCollection('notifications');
+        }
+
+        async function exportCollection(collectionName) {
+            try {
+                showStatus(`<span class="loading"></span>Exporting ${collectionName}...`, 'info');
+                
+                const snapshot = await db.collection(collectionName).get();
+                const data = [];
+                
+                snapshot.docs.forEach(doc => {
+                    data.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+
+                const jsonString = JSON.stringify(data, null, 2);
+                const blob = new Blob([jsonString], { type: 'application/json' });
+                const url = URL.createObjectURL(blob);
+                
+                const a = document.createElement('a');
+                a.href = url;
+                a.download = `${collectionName}_export_${new Date().toISOString().split('T')[0]}.json`;
+                document.body.appendChild(a);
+                a.click();
+                document.body.removeChild(a);
+                URL.revokeObjectURL(url);
+
+                showStatus(`✅ Exported ${data.length} ${collectionName} records!`, 'success');
+            } catch (error) {
+                showStatus(`❌ Error exporting ${collectionName}: ${error.message}`, 'error');
+            }
+        }
+
+        async function viewSettlements() {
+            await viewCollection('settlements');
+        }
+
+        async function viewExpenses() {
+            await viewCollection('expenses');
+        }
+
+        async function viewGroups() {
+            await viewCollection('groups');
+        }
+
+        async function viewUsers() {
+            await viewCollection('users');
+        }
+
+        async function viewCollection(collectionName) {
+            try {
+                showStatus(`<span class="loading"></span>Loading ${collectionName}...`, 'info');
+                
+                const snapshot = await db.collection(collectionName).limit(20).get();
+                const data = [];
+                
+                snapshot.docs.forEach(doc => {
+                    data.push({
+                        id: doc.id,
+                        ...doc.data()
+                    });
+                });
+
+                const output = document.getElementById('output');
+                const viewDiv = document.createElement('div');
+                viewDiv.className = 'status info';
+                viewDiv.innerHTML = `
+                    <h4>📋 ${collectionName.toUpperCase()} (showing first 20)</h4>
+                    <pre style="background: #f5f5f5; padding: 15px; border-radius: 5px; overflow-x: auto; max-height: 400px;">${JSON.stringify(data, null, 2)}</pre>
+                `;
+                output.appendChild(viewDiv);
+                
+            } catch (error) {
+                showStatus(`❌ Error viewing ${collectionName}: ${error.message}`, 'error');
+            }
+        }
+
+        // Auto-clear old status messages
+        setInterval(() => {
+            const output = document.getElementById('output');
+            const statusElements = output.querySelectorAll('.status');
+            if (statusElements.length > 5) {
+                output.removeChild(statusElements[0]);
+            }
+        }, 10000);
+    </script>
+</body>
+</html> 

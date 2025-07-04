@@ -19,10 +19,41 @@ class SettingsViewModel @Inject constructor(
     var selectedCurrency by mutableStateOf("")
         private set
 
+    var isDarkModeEnabled by mutableStateOf(false)
+        private set
+
+    var isNotificationsEnabled by mutableStateOf(true)
+        private set
+
+    var isSoundEnabled by mutableStateOf(true)
+        private set
+
     init {
         viewModelScope.launch {
+            // Collect currency changes
             settingsDataStore.defaultCurrency.collectLatest { currency ->
                 selectedCurrency = currency
+            }
+        }
+
+        viewModelScope.launch {
+            // Collect dark mode changes
+            settingsDataStore.darkModeEnabled.collectLatest { enabled ->
+                isDarkModeEnabled = enabled
+            }
+        }
+
+        viewModelScope.launch {
+            // Collect notifications changes
+            settingsDataStore.notificationsEnabled.collectLatest { enabled ->
+                isNotificationsEnabled = enabled
+            }
+        }
+
+        viewModelScope.launch {
+            // Collect sound changes
+            settingsDataStore.soundEnabled.collectLatest { enabled ->
+                isSoundEnabled = enabled
             }
         }
     }
@@ -30,6 +61,24 @@ class SettingsViewModel @Inject constructor(
     fun updateDefaultCurrency(currency: String) {
         viewModelScope.launch {
             settingsDataStore.setDefaultCurrency(currency)
+        }
+    }
+
+    fun updateDarkMode(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsDataStore.setDarkModeEnabled(enabled)
+        }
+    }
+
+    fun updateNotifications(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsDataStore.setNotificationsEnabled(enabled)
+        }
+    }
+
+    fun updateSound(enabled: Boolean) {
+        viewModelScope.launch {
+            settingsDataStore.setSoundEnabled(enabled)
         }
     }
 } 
