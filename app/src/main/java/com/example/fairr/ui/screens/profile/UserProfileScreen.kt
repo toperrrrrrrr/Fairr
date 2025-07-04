@@ -1,5 +1,7 @@
 package com.example.fairr.ui.screens.profile
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -39,6 +41,12 @@ import com.example.fairr.ui.components.dialogs.GDPRAccountDeletionDialog
 import com.example.fairr.ui.theme.*
 import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fairr.ui.viewmodels.ProfileViewModel
+import com.example.fairr.utils.PhotoUtils
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.launch
+import com.example.fairr.ui.components.ErrorType
+import com.example.fairr.ui.components.ErrorUtils
+import com.example.fairr.ui.components.StandardErrorState
 
 data class UserProfile(
     val id: String,
@@ -99,33 +107,12 @@ fun UserProfileScreen(
 
     // Show error state
     userState.error?.let { errorMessage ->
-        Box(
-            modifier = Modifier.fillMaxSize(),
-            contentAlignment = Alignment.Center
-        ) {
-            Column(
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.spacedBy(16.dp)
-            ) {
-                Text(
-                    text = "Error loading profile",
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = ErrorRed
-                )
-                Text(
-                    text = errorMessage,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = TextSecondary,
-                    textAlign = TextAlign.Center
-                )
-                Button(
-                    onClick = { profileViewModel.refreshUserData() },
-                    colors = ButtonDefaults.buttonColors(containerColor = Primary)
-                ) {
-                    Text("Retry", color = PureWhite)
-                }
-            }
-        }
+        StandardErrorState(
+            errorType = ErrorUtils.getErrorType(errorMessage),
+            customMessage = ErrorUtils.getUserFriendlyMessage(errorMessage),
+            onRetry = { profileViewModel.refreshUserData() },
+            modifier = Modifier.fillMaxSize()
+        )
         return
     }
 
@@ -312,38 +299,80 @@ fun UserProfileScreen(
 fun ProfileHeaderCard(
     userProfile: UserProfile,
     isEditing: Boolean,
-    onProfileUpdated: (UserProfile) -> Unit
+    onProfileUpdated: (UserProfile) -> Unit,
+    modifier: Modifier = Modifier
 ) {
     var editedName by remember { mutableStateOf(userProfile.fullName) }
     var editedPhone by remember { mutableStateOf(userProfile.phoneNumber ?: "") }
+    var showImagePicker by remember { mutableStateOf(false) }
+    var isUploadingImage by remember { mutableStateOf(false) }
     
-    // Effect to update the profile when editing is finished
-    LaunchedEffect(isEditing) {
-        if (!isEditing && (editedName != userProfile.fullName || editedPhone != userProfile.phoneNumber)) {
-            onProfileUpdated(
-                userProfile.copy(
-                    fullName = editedName,
-                    phoneNumber = editedPhone.takeIf { it.isNotBlank() }
-                )
-            )
+    val context = LocalContext.current
+    
+    // Image picker launcher for gallery
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let { selectedUri ->
+            isUploadingImage = true
+            // TODO: Implement actual image upload to Firebase Storage
+            // For now, we'll simulate the upload
+            val imageFile = PhotoUtils.createImageFile(context)
+            try {
+                // Compress and save the image
+                val compressedBitmap = PhotoUtils.compressImage(context, selectedUri)
+                compressedBitmap?.let { bitmap ->
+                    PhotoUtils.saveBitmapToFile(bitmap, imageFile)
+                    // Simulate upload completion
+                    MainScope().launch {
+                        kotlinx.coroutines.delay(2000) // Simulate upload time
+                        isUploadingImage = false
+                        onProfileUpdated(userProfile.copy(profileImageUrl = selectedUri.toString()))
+                    }
+                }
+            } catch (e: Exception) {
+                isUploadingImage = false
+                // Handle error
+            }
+        }
+    }
+    
+    // Camera launcher
+    val cameraImageFile = remember { PhotoUtils.createImageFile(context) }
+    val cameraUri = remember { PhotoUtils.getImageUri(context, cameraImageFile) }
+    
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success) {
+            isUploadingImage = true
+            try {
+                // Compress the captured image
+                val compressedBitmap = PhotoUtils.compressImageFromFile(cameraImageFile)
+                compressedBitmap?.let { bitmap ->
+                    PhotoUtils.saveBitmapToFile(bitmap, cameraImageFile)
+                    // Simulate upload completion
+                    MainScope().launch {
+                        kotlinx.coroutines.delay(2000) // Simulate upload time
+                        isUploadingImage = false
+                        onProfileUpdated(userProfile.copy(profileImageUrl = cameraUri.toString()))
+                    }
+                }
+            } catch (e: Exception) {
+                isUploadingImage = false
+                // Handle error
+            }
         }
     }
 
-    Card(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(16.dp)
-            .shadow(2.dp, RoundedCornerShape(16.dp)),
-        shape = RoundedCornerShape(16.dp),
-        colors = CardDefaults.cardColors(containerColor = NeutralWhite)
-    ) {
+    ModernCard(modifier = modifier) {
         Column(
             modifier = Modifier
                 .fillMaxWidth()
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Profile Image
+            // Profile Image with upload functionality
             Box(
                 modifier = Modifier.size(100.dp),
                 contentAlignment = Alignment.Center
@@ -375,13 +404,29 @@ fun ProfileHeaderCard(
                     }
                 }
                 
-                if (isEditing) {
+                // Loading overlay for image upload
+                if (isUploadingImage) {
+                    Box(
+                        modifier = Modifier
+                            .size(100.dp)
+                            .background(Color.Black.copy(alpha = 0.5f), CircleShape),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(24.dp),
+                            color = NeutralWhite,
+                            strokeWidth = 2.dp
+                        )
+                    }
+                }
+                
+                if (isEditing && !isUploadingImage) {
                     Box(
                         modifier = Modifier
                             .size(28.dp)
                             .background(DarkGreen, CircleShape)
                             .align(Alignment.BottomEnd)
-                            .clickable { /* Handle image change */ },
+                            .clickable { showImagePicker = true },
                         contentAlignment = Alignment.Center
                     ) {
                         Icon(
@@ -392,6 +437,31 @@ fun ProfileHeaderCard(
                         )
                     }
                 }
+            }
+            
+            // Image picker dialog
+            if (showImagePicker) {
+                AlertDialog(
+                    onDismissRequest = { showImagePicker = false },
+                    title = { Text("Change Profile Picture") },
+                    text = { Text("Choose how you'd like to update your profile picture") },
+                    confirmButton = {
+                        TextButton(onClick = {
+                            showImagePicker = false
+                            galleryLauncher.launch("image/*")
+                        }) {
+                            Text("Gallery")
+                        }
+                    },
+                    dismissButton = {
+                        TextButton(onClick = {
+                            showImagePicker = false
+                            cameraLauncher.launch(cameraUri)
+                        }) {
+                            Text("Camera")
+                        }
+                    }
+                )
             }
             
             Spacer(modifier = Modifier.height(16.dp))

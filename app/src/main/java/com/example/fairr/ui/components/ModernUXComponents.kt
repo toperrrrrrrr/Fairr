@@ -262,12 +262,13 @@ fun ModernLoadingCard(
 fun ModernSkeletonLoader(
     modifier: Modifier = Modifier
 ) {
+    // OPTIMIZED: Reduced animation intensity for better performance
     val infiniteTransition = rememberInfiniteTransition(label = "skeleton")
     val alpha by infiniteTransition.animateFloat(
-        initialValue = 0.3f,
-        targetValue = 0.8f,
+        initialValue = 0.4f,
+        targetValue = 0.7f, // Reduced range
         animationSpec = infiniteRepeatable(
-            animation = tween(durationMillis = 1000),
+            animation = tween(durationMillis = 800, easing = EaseInOutCubic), // Faster animation
             repeatMode = RepeatMode.Reverse
         ),
         label = "alpha"

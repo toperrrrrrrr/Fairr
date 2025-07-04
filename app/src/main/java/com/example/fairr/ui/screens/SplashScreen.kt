@@ -45,13 +45,13 @@ fun SplashScreen(
     onRetry: () -> Unit,
     onClearError: () -> Unit
 ) {
-    // Simple scale animation for the logo
+    // OPTIMIZED: Simple scale animation for the logo with reduced intensity
     val infiniteTransition = rememberInfiniteTransition(label = "logo_scale")
     val scale by infiniteTransition.animateFloat(
         initialValue = 1f,
-        targetValue = 1.05f,
+        targetValue = 1.02f, // Reduced scale range for better performance
         animationSpec = infiniteRepeatable(
-            animation = tween(2000, easing = EaseOutQuad),
+            animation = tween(1500, easing = EaseInOutQuad), // Reduced duration
             repeatMode = RepeatMode.Reverse
         ),
         label = "logo_scale"

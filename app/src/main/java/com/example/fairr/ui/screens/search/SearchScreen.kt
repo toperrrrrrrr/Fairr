@@ -46,6 +46,9 @@ import androidx.compose.ui.text.AnnotatedString
 import androidx.compose.ui.text.SpanStyle
 import androidx.compose.ui.text.buildAnnotatedString
 import androidx.compose.ui.text.withStyle
+import com.example.fairr.ui.components.ErrorType
+import com.example.fairr.ui.components.ErrorBanner
+import com.example.fairr.ui.components.StandardErrorState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -241,52 +244,15 @@ fun SearchScreen(
                 // Error state with accessibility
                 else if (uiState.error != null) {
                     item {
-                        Card(
+                        ErrorBanner(
+                            errorType = ErrorType.GENERIC,
+                            message = "Search failed: ${uiState.error}",
                             modifier = Modifier
                                 .fillMaxWidth()
                                 .semantics {
                                     contentDescription = "Search error: ${uiState.error}"
-                                },
-                            colors = CardDefaults.cardColors(containerColor = ErrorRed.copy(alpha = 0.1f))
-                        ) {
-                            Column(
-                                modifier = Modifier.padding(16.dp),
-                                horizontalAlignment = Alignment.CenterHorizontally
-                            ) {
-                                Icon(
-                                    Icons.Default.Error,
-                                    contentDescription = "Error",
-                                    tint = ErrorRed,
-                                    modifier = Modifier.size(32.dp)
-                                )
-                                Spacer(modifier = Modifier.height(8.dp))
-                                Text(
-                                    text = "Search Failed",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    color = ErrorRed
-                                )
-                                Text(
-                                    text = uiState.error,
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = TextSecondary,
-                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                                )
-                                Spacer(modifier = Modifier.height(12.dp))
-                                Button(
-                                    onClick = { 
-                                        if (searchQuery.isNotBlank()) {
-                                            viewModel.search(searchQuery, selectedFilter, selectedCategory, selectedDateRange, sortBy)
-                                        }
-                                    },
-                                    colors = ButtonDefaults.buttonColors(containerColor = ErrorRed),
-                                    modifier = Modifier.semantics {
-                                        contentDescription = "Retry search"
-                                    }
-                                ) {
-                                    Text("Retry")
                                 }
-                            }
-                        }
+                        )
                     }
                 }
                 // Empty state

@@ -31,6 +31,9 @@ import com.example.fairr.data.model.Comment
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.ui.text.input.ImeAction
+import com.example.fairr.ui.components.ErrorType
+import com.example.fairr.ui.components.ErrorUtils
+import com.example.fairr.ui.components.StandardErrorState
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -122,31 +125,14 @@ fun ExpenseDetailScreen(
                 }
             }
             is ExpenseDetailUiState.Error -> {
-                Box(
+                StandardErrorState(
+                    errorType = ErrorUtils.getErrorType(uiState.message),
+                    customMessage = ErrorUtils.getUserFriendlyMessage(uiState.message),
+                    onRetry = { viewModel.refresh() },
                     modifier = Modifier
                         .fillMaxSize()
-                        .padding(padding),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
-                    ) {
-                        Text(
-                            text = "Error",
-                            style = MaterialTheme.typography.headlineSmall,
-                            color = ErrorRed
-                        )
-                        Text(
-                            text = uiState.message,
-                            style = MaterialTheme.typography.bodyMedium,
-                            color = TextSecondary
-                        )
-                        Button(onClick = { viewModel.refresh() }) {
-                            Text("Retry")
-                        }
-                    }
-                }
+                        .padding(padding)
+                )
             }
             is ExpenseDetailUiState.Success -> {
                 val expense = uiState.expense

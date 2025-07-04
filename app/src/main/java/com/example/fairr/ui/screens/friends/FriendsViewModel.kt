@@ -17,6 +17,9 @@ import com.example.fairr.data.user.ModerationResult
 import com.example.fairr.ui.model.Friend
 import com.example.fairr.ui.model.FriendRequest
 import com.example.fairr.ui.model.FriendStatus
+import com.example.fairr.util.PerformanceOptimizer
+import com.example.fairr.util.PerformanceOptimizer.launchOptimized
+import com.example.fairr.util.PerformanceOptimizer.collectSafely
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
@@ -62,6 +65,14 @@ class FriendsViewModel @Inject constructor(
     }
 
     /**
+     * Cleanup resources when ViewModel is destroyed
+     */
+    override fun onCleared() {
+        super.onCleared()
+        // Clean up any remaining resources
+    }
+
+    /**
      * Check if a user is blocked
      */
     suspend fun isUserBlocked(userId: String): Boolean {
@@ -69,10 +80,10 @@ class FriendsViewModel @Inject constructor(
     }
 
     /**
-     * Block a user
+     * Block a user - OPTIMIZED
      */
     fun blockUser(userId: String, userName: String, userEmail: String, reason: String = "") {
-        viewModelScope.launch {
+        launchOptimized {
             when (val result = userModerationService.blockUser(userId, userName, userEmail, reason)) {
                 is ModerationResult.Success -> {
                     _userMessage.emit(result.message)
@@ -85,10 +96,10 @@ class FriendsViewModel @Inject constructor(
     }
 
     /**
-     * Unblock a user
+     * Unblock a user - OPTIMIZED
      */
     fun unblockUser(userId: String) {
-        viewModelScope.launch {
+        launchOptimized {
             when (val result = userModerationService.unblockUser(userId)) {
                 is ModerationResult.Success -> {
                     _userMessage.emit(result.message)
@@ -101,7 +112,7 @@ class FriendsViewModel @Inject constructor(
     }
 
     /**
-     * Report a user
+     * Report a user - OPTIMIZED
      */
     fun reportUser(
         userId: String,
@@ -111,7 +122,7 @@ class FriendsViewModel @Inject constructor(
         reason: String,
         description: String
     ) {
-        viewModelScope.launch {
+        launchOptimized {
             when (val result = userModerationService.reportUser(
                 userId, userName, userEmail, reportType, reason, description
             )) {

@@ -401,6 +401,58 @@ object PhotoUtils {
             0
         }
     }
+    
+    /**
+     * Compress image from URI and return Bitmap
+     */
+    fun compressImage(context: Context, imageUri: Uri): Bitmap? {
+        return try {
+            val inputStream = context.contentResolver.openInputStream(imageUri)
+            val bitmap = BitmapFactory.decodeStream(inputStream)
+            inputStream?.close()
+            
+            // Scale down if too large
+            if (bitmap.width > MAX_IMAGE_WIDTH || bitmap.height > MAX_IMAGE_HEIGHT) {
+                scaleBitmapSafely(bitmap, MAX_IMAGE_WIDTH, MAX_IMAGE_HEIGHT)
+            } else {
+                bitmap
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+    
+    /**
+     * Compress image from file and return Bitmap
+     */
+    fun compressImageFromFile(file: File): Bitmap? {
+        return try {
+            val bitmap = BitmapFactory.decodeFile(file.absolutePath)
+            
+            // Scale down if too large
+            if (bitmap.width > MAX_IMAGE_WIDTH || bitmap.height > MAX_IMAGE_HEIGHT) {
+                scaleBitmapSafely(bitmap, MAX_IMAGE_WIDTH, MAX_IMAGE_HEIGHT)
+            } else {
+                bitmap
+            }
+        } catch (e: Exception) {
+            null
+        }
+    }
+    
+    /**
+     * Save Bitmap to file
+     */
+    fun saveBitmapToFile(bitmap: Bitmap, file: File): Boolean {
+        return try {
+            FileOutputStream(file).use { out ->
+                bitmap.compress(Bitmap.CompressFormat.JPEG, DEFAULT_JPEG_QUALITY, out)
+            }
+            true
+        } catch (e: Exception) {
+            false
+        }
+    }
 }
 
 /**

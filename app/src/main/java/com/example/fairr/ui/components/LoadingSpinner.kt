@@ -17,6 +17,8 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import com.example.fairr.ui.theme.*
+import kotlin.math.PI
+import kotlin.math.sin
 
 /**
  * Enhanced loading system with modern UX patterns
@@ -190,7 +192,7 @@ fun SkeletonCard(
 }
 
 /**
- * Animated loading dots with wave effect
+ * Animated loading dots with wave effect - OPTIMIZED VERSION
  */
 @Composable
 fun AnimatedLoadingDots(
@@ -198,27 +200,31 @@ fun AnimatedLoadingDots(
     dotCount: Int = 3,
     color: Color = Primary
 ) {
+    // Use single transition instead of multiple transitions for better performance
+    val transition = rememberInfiniteTransition(label = "loading_dots")
+    
+    val animationProgress by transition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(
+                durationMillis = 1200,
+                easing = EaseInOutCubic
+            ),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "dots_progress"
+    )
+
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(8.dp),
         verticalAlignment = Alignment.CenterVertically
     ) {
         repeat(dotCount) { index ->
-            val transition = rememberInfiniteTransition(label = "dot_$index")
-            
-            val scale by transition.animateFloat(
-                initialValue = 0.8f,
-                targetValue = 1.2f,
-                animationSpec = infiniteRepeatable(
-                    animation = tween(
-                        durationMillis = 600,
-                        delayMillis = index * 200,
-                        easing = EaseInOutCubic
-                    ),
-                    repeatMode = RepeatMode.Reverse
-                ),
-                label = "dot_scale_$index"
-            )
+            // Calculate individual dot scale based on progress and index
+            val dotProgress = ((animationProgress * dotCount) - index).coerceIn(0f, 1f)
+            val scale = 0.8f + (0.4f * sin(dotProgress * PI).toFloat())
             
             Box(
                 modifier = Modifier

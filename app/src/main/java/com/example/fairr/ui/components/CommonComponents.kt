@@ -518,7 +518,7 @@ fun FairrSuccessMessage(
 }
 
 /**
- * Animated Components
+ * Animated Components - OPTIMIZED FOR PERFORMANCE
  */
 @Composable
 fun FairrAnimatedCounter(
@@ -530,7 +530,7 @@ fun FairrAnimatedCounter(
     var oldCount by remember { mutableStateOf(count) }
     val animatedCount by animateIntAsState(
         targetValue = count,
-        animationSpec = tween(durationMillis = 500, easing = EaseOutCubic),
+        animationSpec = tween(durationMillis = 400, easing = EaseOutCubic),
         label = "counter_animation"
     )
 
@@ -557,9 +557,9 @@ fun FairrPulsingIcon(
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
     val scale by infiniteTransition.animateFloat(
         initialValue = 1f,
-        targetValue = 1.2f,
+        targetValue = 1.1f,
         animationSpec = infiniteRepeatable(
-            animation = tween(1000, easing = EaseInOutCubic),
+            animation = tween(800, easing = EaseInOutCubic),
             repeatMode = RepeatMode.Reverse
         ), label = "pulse_scale"
     )
@@ -678,7 +678,7 @@ fun FairrScaleInAnimation(
 }
 
 /**
- * Loading Animation Components
+ * Loading Animation Components - OPTIMIZED
  */
 @Composable
 fun FairrPulsingDot(
@@ -687,10 +687,10 @@ fun FairrPulsingDot(
 ) {
     val infiniteTransition = rememberInfiniteTransition(label = "pulse")
     val scale by infiniteTransition.animateFloat(
-        initialValue = 0.8f,
-        targetValue = 1.2f,
+        initialValue = 0.9f,
+        targetValue = 1.1f,
         animationSpec = infiniteRepeatable(
-            animation = tween(1000, easing = EaseInOutCubic),
+            animation = tween(800, easing = EaseInOutCubic),
             repeatMode = RepeatMode.Reverse
         ),
         label = "pulse_scale"
@@ -709,23 +709,25 @@ fun FairrLoadingDots(
     modifier: Modifier = Modifier,
     color: Color = DarkGreen
 ) {
+    val infiniteTransition = rememberInfiniteTransition(label = "wave_dots")
+    val waveProgress by infiniteTransition.animateFloat(
+        initialValue = 0f,
+        targetValue = 1f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(1000, easing = EaseInOutCubic),
+            repeatMode = RepeatMode.Restart
+        ),
+        label = "wave_progress"
+    )
+
     Row(
         modifier = modifier,
         horizontalArrangement = Arrangement.spacedBy(4.dp)
     ) {
         repeat(3) { index ->
-            val delay = index * 200
-            val infiniteTransition = rememberInfiniteTransition(label = "dot_$index")
-            val scale by infiniteTransition.animateFloat(
-                initialValue = 0.8f,
-                targetValue = 1.2f,
-                animationSpec = infiniteRepeatable(
-                    animation = tween(1000, delayMillis = delay, easing = EaseInOutCubic),
-                    repeatMode = RepeatMode.Reverse
-                ),
-                label = "dot_scale_$index"
-            )
-
+            val dotPhase = (waveProgress * 3 - index).coerceIn(0f, 1f)
+            val scale = 0.8f + (0.4f * kotlin.math.sin(dotPhase * kotlin.math.PI).toFloat())
+            
             Box(
                 modifier = Modifier
                     .size(8.dp)

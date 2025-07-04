@@ -1,5 +1,7 @@
 package com.example.fairr.ui.screens.profile
 
+import androidx.activity.compose.rememberLauncherForActivityResult
+import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -18,6 +20,8 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.tooling.preview.Preview
@@ -26,6 +30,10 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.fairr.ui.theme.*
+import com.example.fairr.utils.PhotoUtils
+import kotlinx.coroutines.MainScope
+import kotlinx.coroutines.delay
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -38,10 +46,46 @@ fun EditProfileScreen(
     var phone by remember { mutableStateOf("+1 (555) 123-4567") }
     var isLoading by remember { mutableStateOf(false) }
     var hasChanges by remember { mutableStateOf(false) }
+    var showImagePicker by remember { mutableStateOf(false) }
+    var isUploadingImage by remember { mutableStateOf(false) }
+    
+    val context = LocalContext.current
 
     // Track changes
     LaunchedEffect(name, email, phone) {
         hasChanges = true
+    }
+    
+    // Image picker launcher for gallery
+    val galleryLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.GetContent()
+    ) { uri ->
+        uri?.let {
+            isUploadingImage = true
+            // TODO: Implement actual image upload to Firebase Storage
+            // Simulate upload completion
+            MainScope().launch {
+                delay(2000)
+                isUploadingImage = false
+            }
+        }
+    }
+    
+    // Camera launcher
+    val cameraImageFile = remember { PhotoUtils.createImageFile(context) }
+    val cameraUri = remember { PhotoUtils.getImageUri(context, cameraImageFile) }
+    
+    val cameraLauncher = rememberLauncherForActivityResult(
+        contract = ActivityResultContracts.TakePicture()
+    ) { success ->
+        if (success) {
+            isUploadingImage = true
+            // TODO: Implement actual image upload to Firebase Storage
+            MainScope().launch {
+                delay(2000)
+                isUploadingImage = false
+            }
+        }
     }
 
     Scaffold(
@@ -133,9 +177,9 @@ fun EditProfileScreen(
                             )
                         }
                         
-                        // Camera button
+                        // Camera button with functionality
                         Surface(
-                            onClick = { /* TODO: Open camera/gallery */ },
+                            onClick = { showImagePicker = true },
                             modifier = Modifier
                                 .align(Alignment.BottomEnd)
                                 .size(32.dp),
@@ -143,15 +187,53 @@ fun EditProfileScreen(
                             color = DarkGreen,
                             shadowElevation = 2.dp
                         ) {
-                            Icon(
-                                Icons.Default.CameraAlt,
-                                contentDescription = "Change photo",
-                                tint = NeutralWhite,
-                                modifier = Modifier
-                                    .padding(8.dp)
-                                    .size(16.dp)
-                            )
+                            if (isUploadingImage) {
+                                Box(
+                                    modifier = Modifier.fillMaxSize(),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    CircularProgressIndicator(
+                                        modifier = Modifier.size(16.dp),
+                                        color = NeutralWhite,
+                                        strokeWidth = 2.dp
+                                    )
+                                }
+                            } else {
+                                Icon(
+                                    Icons.Default.CameraAlt,
+                                    contentDescription = "Change photo",
+                                    tint = NeutralWhite,
+                                    modifier = Modifier
+                                        .padding(8.dp)
+                                        .size(16.dp)
+                                )
+                            }
                         }
+                    }
+                    
+                    // Image picker dialog
+                    if (showImagePicker) {
+                        AlertDialog(
+                            onDismissRequest = { showImagePicker = false },
+                            title = { Text("Change Profile Picture") },
+                            text = { Text("Choose how you'd like to update your profile picture") },
+                            confirmButton = {
+                                TextButton(onClick = {
+                                    showImagePicker = false
+                                    galleryLauncher.launch("image/*")
+                                }) {
+                                    Text("Gallery")
+                                }
+                            },
+                            dismissButton = {
+                                TextButton(onClick = {
+                                    showImagePicker = false
+                                    cameraLauncher.launch(cameraUri)
+                                }) {
+                                    Text("Camera")
+                                }
+                            }
+                        )
                     }
                     
                     Spacer(modifier = Modifier.height(16.dp))

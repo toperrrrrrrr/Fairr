@@ -13,7 +13,7 @@ import kotlin.system.measureTimeMillis
 
 /**
  * Performance optimization utility for Fairr app
- * Handles memory management, coroutine cleanup, and performance monitoring
+ * Handles memory management, coroutine cleanup, animation optimization, and performance monitoring
  */
 object PerformanceOptimizer {
     
@@ -23,6 +23,48 @@ object PerformanceOptimizer {
     private val activeCoroutines = AtomicLong(0)
     private val activeListeners = ConcurrentHashMap<String, ListenerRegistration>()
     private val performanceMetrics = ConcurrentHashMap<String, Long>()
+    private val animationRegistry = ConcurrentHashMap<String, Boolean>()
+    
+    // Animation optimization settings
+    private var reducedMotionEnabled = false
+    private var animationScaleFactor = 1.0f
+    
+    /**
+     * Enable reduced motion for performance optimization
+     */
+    fun enableReducedMotion(enabled: Boolean) {
+        reducedMotionEnabled = enabled
+        animationScaleFactor = if (enabled) 0.5f else 1.0f
+        Log.i(TAG, "Reduced motion: $enabled, Animation scale: $animationScaleFactor")
+    }
+    
+    /**
+     * Get optimized animation duration based on performance settings
+     */
+    fun getOptimizedAnimationDuration(originalDuration: Int): Int {
+        return (originalDuration * animationScaleFactor).toInt()
+    }
+    
+    /**
+     * Register an animation for performance tracking
+     */
+    fun registerAnimation(animationId: String) {
+        animationRegistry[animationId] = true
+        Log.d(TAG, "Registered animation: $animationId (Total: ${animationRegistry.size})")
+        
+        // Warn if too many animations are active
+        if (animationRegistry.size > 10) {
+            Log.w(TAG, "High number of active animations: ${animationRegistry.size}")
+        }
+    }
+    
+    /**
+     * Unregister an animation
+     */
+    fun unregisterAnimation(animationId: String) {
+        animationRegistry.remove(animationId)
+        Log.d(TAG, "Unregistered animation: $animationId (Remaining: ${animationRegistry.size})")
+    }
     
     /**
      * Creates a memory-safe coroutine scope for ViewModels
