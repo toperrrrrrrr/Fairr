@@ -38,6 +38,7 @@ import com.example.fairr.navigation.Screen
 import com.example.fairr.ui.components.FairrEmptyState
 import com.example.fairr.ui.components.FairrFilterChip
 import com.example.fairr.ui.theme.*
+import com.example.fairr.ui.components.FairrTopAppBar
 
 data class HelpCategory(
     val id: String,
@@ -86,26 +87,9 @@ fun HelpSupportScreen(
 
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { 
-                    Text(
-                        "Help & Support",
-                        fontWeight = FontWeight.SemiBold,
-                        color = TextPrimary
-                    ) 
-                },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = TextPrimary
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = NeutralWhite
-                )
+            com.example.fairr.ui.components.FairrTopAppBar(
+                title = "Help & Support",
+                navController = navController
             )
         }
     ) { padding ->

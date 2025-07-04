@@ -35,7 +35,7 @@ import androidx.compose.material.icons.filled.Error
 import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.Icon
 import androidx.compose.material3.Button
-import androidx.compose.ui.graphics.Color
+import androidx.compose.material3.ButtonDefaults
 
 @Composable
 fun SplashScreen(
@@ -51,7 +51,7 @@ fun SplashScreen(
         initialValue = 1f,
         targetValue = 1.05f,
         animationSpec = infiniteRepeatable(
-            animation = tween(2000, easing = EaseInOutQuad),
+            animation = tween(2000, easing = EaseOutQuad),
             repeatMode = RepeatMode.Reverse
         ),
         label = "logo_scale"
@@ -87,6 +87,65 @@ fun SplashScreen(
                 fontWeight = FontWeight.Bold,
                 color = MaterialTheme.colorScheme.primary
             )
+            
+            Spacer(modifier = Modifier.height(48.dp))
+            
+            // Enhanced loading state with contextual messages
+            if (authError != null) {
+                // Error state
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    Icon(
+                        Icons.Default.Error,
+                        contentDescription = "Error",
+                        tint = MaterialTheme.colorScheme.error,
+                        modifier = Modifier.size(32.dp)
+                    )
+                    Text(
+                        text = "Oops! Something went wrong",
+                        style = MaterialTheme.typography.titleMedium,
+                        color = MaterialTheme.colorScheme.error
+                    )
+                    Text(
+                        text = authError,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                        textAlign = TextAlign.Center
+                    )
+                    Button(
+                        onClick = onRetry,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = MaterialTheme.colorScheme.primary
+                        )
+                    ) {
+                        Text("Retry")
+                    }
+                }
+            } else {
+                // Loading state with contextual message
+                val loadingMessage = when (startupState) {
+                    StartupState.Loading -> "Initializing..."
+                    StartupState.Authentication -> "Preparing sign in..."
+                    StartupState.Main -> "Setting up your workspace..."
+                    else -> "Loading..."
+                }
+                
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally,
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                ) {
+                    // Animated loading dots
+                    com.example.fairr.ui.components.AnimatedLoadingDots()
+                    
+                    Text(
+                        text = loadingMessage,
+                        style = MaterialTheme.typography.bodyLarge,
+                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                    )
+                }
+            }
         }
     }
 }

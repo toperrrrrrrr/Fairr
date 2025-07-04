@@ -17,6 +17,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.fairr.ui.theme.*
+import com.example.fairr.ui.components.FairrTopAppBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -25,25 +26,9 @@ fun PrivacyPolicyScreen(
 ) {
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { 
-                    Text(
-                        "Privacy Policy",
-                        fontWeight = FontWeight.SemiBold
-                    ) 
-                },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = MaterialTheme.colorScheme.onSurface
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface
-                )
+            com.example.fairr.ui.components.FairrTopAppBar(
+                title = "Privacy Policy",
+                navController = navController
             )
         },
         containerColor = MaterialTheme.colorScheme.background

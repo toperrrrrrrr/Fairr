@@ -33,6 +33,8 @@ import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
+import com.example.fairr.ui.components.EnhancedLoadingState
+import com.example.fairr.ui.components.LoadingMessages
 
 // Data classes for overview
 data class GroupBalance(
@@ -156,7 +158,10 @@ fun SettlementsOverviewScreen(
                     .padding(padding),
                 contentAlignment = Alignment.Center
             ) {
-                CircularProgressIndicator(color = Primary)
+                com.example.fairr.ui.components.EnhancedLoadingState(
+                    message = "Calculating settlements...",
+                    subtitle = "We're analyzing your group balances and optimizing payments"
+                )
             }
         } else {
             LazyColumn(

@@ -28,6 +28,7 @@ import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.fairr.ui.theme.*
+import com.example.fairr.ui.components.FairrActionTopAppBar
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -43,40 +44,15 @@ fun CategoryManagementScreen(
     
     Scaffold(
         topBar = {
-            TopAppBar(
-                title = { 
-                    Text(
-                        "Manage Categories",
-                        fontWeight = FontWeight.SemiBold,
-                        color = TextPrimary
-                    ) 
-                },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = TextPrimary
-                        )
-                    }
-                },
-                actions = {
-                    TextButton(
-                        onClick = { 
-                            onSaveCategories(categories)
-                            navController.popBackStack()
-                        }
-                    ) {
-                        Text(
-                            "Save",
-                            color = DarkGreen,
-                            fontWeight = FontWeight.Medium
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = NeutralWhite
-                )
+            com.example.fairr.ui.components.FairrActionTopAppBar(
+                title = "Manage Categories",
+                navController = navController,
+                actionIcon = Icons.Default.Save,
+                actionContentDescription = "Save Categories",
+                onActionClick = { 
+                    onSaveCategories(categories)
+                    navController.popBackStack()
+                }
             )
         },
         floatingActionButton = {

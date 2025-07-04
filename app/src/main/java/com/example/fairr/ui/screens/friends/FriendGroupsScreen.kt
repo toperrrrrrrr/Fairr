@@ -260,11 +260,38 @@ fun FriendGroupsScreen(
         ) {
             when {
                 uiState.isLoading -> {
-                    Box(
+                    LazyColumn(
                         modifier = Modifier.fillMaxSize(),
-                        contentAlignment = Alignment.Center
+                        verticalArrangement = Arrangement.spacedBy(12.dp),
+                        contentPadding = PaddingValues(vertical = 16.dp)
                     ) {
-                        FairrLoadingCard()
+                        item {
+                            Text(
+                                text = "Organize your friends into groups for easier management",
+                                style = MaterialTheme.typography.bodyMedium,
+                                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                modifier = Modifier.padding(bottom = 8.dp)
+                            )
+                        }
+                        
+                        // Show skeleton loaders while loading
+                        items(5) {
+                            com.example.fairr.ui.components.SkeletonCard()
+                        }
+                        
+                        item {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                com.example.fairr.ui.components.EnhancedLoadingState(
+                                    message = "Loading your friend groups...",
+                                    subtitle = "Organizing your social connections"
+                                )
+                            }
+                        }
                     }
                 }
                 

@@ -349,7 +349,21 @@ fun FairrNavGraph(
             )
         }
 
-        composable(Screen.Settings.route) {
+        composable(
+            route = Screen.Settings.route,
+            enterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                    animationSpec = tween(300, easing = EaseInOut)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                    animationSpec = tween(300, easing = EaseInOut)
+                )
+            }
+        ) {
             SettingsScreen(
                 navController = navController,
                 onSignOut = {
@@ -443,7 +457,19 @@ fun FairrNavGraph(
             route = Screen.GroupSettings.route,
             arguments = listOf(
                 navArgument("groupId") { type = NavType.StringType }
-            )
+            ),
+            enterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                    animationSpec = tween(300, easing = EaseInOut)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                    animationSpec = tween(300, easing = EaseInOut)
+                )
+            }
         ) { backStackEntry ->
             val groupId = backStackEntry.arguments?.getString("groupId")
                 ?: return@composable
@@ -458,7 +484,19 @@ fun FairrNavGraph(
             route = Screen.GroupActivity.route,
             arguments = listOf(
                 navArgument("groupId") { type = NavType.StringType }
-            )
+            ),
+            enterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                    animationSpec = tween(300, easing = EaseInOut)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                    animationSpec = tween(300, easing = EaseInOut)
+                )
+            }
         ) { backStackEntry ->
             val groupId = backStackEntry.arguments?.getString("groupId")
                 ?: return@composable
@@ -473,7 +511,19 @@ fun FairrNavGraph(
             route = Screen.Settlement.route,
             arguments = listOf(
                 navArgument("groupId") { type = NavType.StringType }
-            )
+            ),
+            enterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                    animationSpec = tween(300, easing = EaseInOut)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                    animationSpec = tween(300, easing = EaseInOut)
+                )
+            }
         ) { backStackEntry ->
             val groupId = backStackEntry.arguments?.getString("groupId")
                 ?: return@composable
@@ -541,12 +591,40 @@ fun FairrNavGraph(
         }
 
         // Search screen
-        composable(Screen.Search.route) {
+        composable(
+            route = Screen.Search.route,
+            enterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                    animationSpec = tween(300, easing = EaseInOut)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                    animationSpec = tween(300, easing = EaseInOut)
+                )
+            }
+        ) {
             SearchScreen(navController = navController)
         }
 
         // Notifications screen
-        composable(Screen.Notifications.route) {
+        composable(
+            route = Screen.Notifications.route,
+            enterTransition = {
+                slideIntoContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
+                    animationSpec = tween(300, easing = EaseInOut)
+                )
+            },
+            exitTransition = {
+                slideOutOfContainer(
+                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
+                    animationSpec = tween(300, easing = EaseInOut)
+                )
+            }
+        ) {
             NotificationsScreen(navController = navController)
         }
 
@@ -626,4 +704,68 @@ fun NavHostController.handleAuthRedirect(
             }
         }
     }
+}
+
+/**
+ * Standardized navigation helper for handling successful operations
+ * Ensures consistent navigation patterns across the app
+ */
+fun NavHostController.navigateWithResult(
+    destinationRoute: String,
+    popUpToRoute: String? = null,
+    inclusive: Boolean = false
+) {
+    navigate(destinationRoute) {
+        popUpToRoute?.let { route ->
+            popUpTo(route) { this.inclusive = inclusive }
+        }
+    }
+}
+
+/**
+ * Helper for navigating back with proper stack management
+ */
+fun NavHostController.navigateBackSafely(): Boolean {
+    return if (previousBackStackEntry != null) {
+        popBackStack()
+    } else {
+        // If no previous entry, navigate to main screen
+        navigate(Screen.Main.route) {
+            popUpTo(0) { inclusive = true }
+        }
+        true
+    }
+}
+
+/**
+ * Helper for deep linking to group screens with proper back stack
+ */
+fun NavHostController.navigateToGroup(
+    groupId: String,
+    clearBackStack: Boolean = false
+) {
+    navigate(Screen.GroupDetail.createRoute(groupId)) {
+        if (clearBackStack) {
+            popUpTo(Screen.Main.route) { inclusive = false }
+        }
+    }
+}
+
+/**
+ * Helper for navigating to expense screens with proper context
+ */
+fun NavHostController.navigateToExpense(
+    expenseId: String,
+    fromGroup: String? = null
+) {
+    navigate(Screen.ExpenseDetail.createRoute(expenseId))
+}
+
+/**
+ * Helper for settings navigation patterns
+ */
+fun NavHostController.navigateToSettings(
+    fromScreen: String? = null
+) {
+    navigate(Screen.Settings.route)
 } 

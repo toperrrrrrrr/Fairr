@@ -38,6 +38,7 @@ import com.google.firebase.auth.FirebaseAuth
 import com.example.fairr.ui.components.ModernCard
 import com.example.fairr.ui.components.GroupEmojiAvatar
 import com.example.fairr.ui.components.UserEmojiAvatar
+import com.example.fairr.navigation.Screen
 
 @Composable
 private fun DetailItem(
@@ -96,8 +97,10 @@ fun GroupSettingsScreen(
                 }
                 is GroupSettingsEvent.GroupDeleted -> {
                     // Navigate to main screen and clear back stack
-                    navController.navigate("main") {
-                        popUpTo("main") { inclusive = true }
+                    navController.navigate(Screen.Main.route) {
+                        popUpTo(Screen.Main.route) { 
+                            this.inclusive = true 
+                        }
                     }
                 }
                 is GroupSettingsEvent.GroupUpdated -> {

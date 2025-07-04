@@ -24,6 +24,10 @@ import androidx.navigation.NavController
 import com.example.fairr.ui.theme.*
 import java.text.SimpleDateFormat
 import java.util.*
+import androidx.hilt.navigation.compose.hiltViewModel
+import androidx.compose.runtime.collectAsState
+import androidx.compose.runtime.LaunchedEffect
+import com.example.fairr.ui.screens.notifications.NotificationsViewModel
 
 data class NotificationItem(
     val id: String,

@@ -219,15 +219,23 @@ fun SearchScreen(
             ) {
                 // Loading state with accessibility
                 if (uiState.isLoading) {
+                    // Show skeleton loaders for search results
+                    items(4) {
+                        com.example.fairr.ui.components.SkeletonCard()
+                    }
+                    
                     item {
-                        FairrLoadingCard(
-                            message = "Searching through your expenses and groups...",
+                        Box(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .semantics {
-                                    contentDescription = "Loading search results"
-                                }
-                        )
+                                .padding(16.dp),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            com.example.fairr.ui.components.EnhancedLoadingState(
+                                message = "Searching your data...",
+                                subtitle = "Looking through expenses, groups, and transactions"
+                            )
+                        }
                     }
                 }
                 // Error state with accessibility
