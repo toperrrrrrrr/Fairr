@@ -1,3 +1,6 @@
-Groups items on the grouplist doesnt reflect the selected emoji on the logo/avatar. It is only showing the first letter of the title. 
-
-Let's fix it to reflect the emoji instead of the letter. I will then run the app on android studio to check if there is error and I will 
+1. Groups items on the grouplist doesnt reflect the selected emoji on the logo/avatar. It is only showing the first letter of the title on the main page dashboard and group icon on the group list page
+Let's fix it to reflect the emoji instead of the letter. I will then run the app on android studio to check if there is error. 
+2. Get the app to load the necessary data first. to prevent the app to show no data where there is actual data. 
+3. Improve the friends page. Add friend section should be inside a modal to keep the screen clean. 
+4. Friend groups crashes the app. 
+5. Friend request should show up on notification page.

@@ -180,4 +180,16 @@ class CommentService @Inject constructor(
             0
         }
     }
+
+    suspend fun getComment(commentId: String): Comment? {
+        return firestore.collection("expenses").document(commentId).collection("comments").document(commentId).get().await().toObject()
+    }
+
+    suspend fun getComments(expenseId: String): List<Comment> {
+        return firestore.collection("expenses").document(expenseId).collection("comments").get().await().documents.mapNotNull { it.toObject() }
+    }
+
+    suspend fun getGroupComments(groupId: String): List<Comment> {
+        return firestore.collection("expenses").whereEqualTo("groupId", groupId).get().await().documents.mapNotNull { it.toObject() }
+    }
 } 

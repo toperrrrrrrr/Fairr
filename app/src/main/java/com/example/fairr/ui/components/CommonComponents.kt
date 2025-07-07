@@ -38,6 +38,7 @@ import kotlinx.coroutines.delay
 import androidx.compose.foundation.lazy.grid.GridCells
 import androidx.compose.foundation.lazy.grid.LazyVerticalGrid
 import androidx.compose.foundation.lazy.grid.items
+import androidx.compose.ui.graphics.StrokeCap
 
 /**
  * Custom Chip Components
@@ -827,32 +828,34 @@ fun FairrInteractiveChip(
  * Progress Indicators
  */
 @Composable
-fun FairrProgressBar(
+fun FairrLinearProgressIndicator(
     progress: Float,
     modifier: Modifier = Modifier,
-    color: Color = DarkGreen
+    color: Color = Primary,
+    trackColor: Color = Primary.copy(alpha = 0.24f)
 ) {
     LinearProgressIndicator(
-        progress = progress,
+        progress = { progress },
         modifier = modifier,
         color = color,
-        trackColor = color.copy(alpha = 0.2f)
+        trackColor = trackColor
     )
 }
 
 @Composable
-fun FairrCircularProgress(
+fun FairrCircularProgressIndicator(
     progress: Float,
     modifier: Modifier = Modifier,
-    color: Color = DarkGreen,
-    strokeWidth: Dp = 4.dp
+    color: Color = Primary,
+    strokeWidth: Dp = 4.dp,
+    trackColor: Color = Primary.copy(alpha = 0.24f)
 ) {
     CircularProgressIndicator(
-        progress = progress,
+        progress = { progress },
         modifier = modifier,
         color = color,
         strokeWidth = strokeWidth,
-        trackColor = color.copy(alpha = 0.2f)
+        trackColor = trackColor
     )
 }
 
@@ -1131,9 +1134,9 @@ fun ComponentsPreview() {
             
             FairrLoadingDots()
             
-            FairrProgressBar(progress = 0.7f)
+            FairrLinearProgressIndicator(progress = 0.7f)
             
-            FairrCircularProgress(progress = 0.5f)
+            FairrCircularProgressIndicator(progress = 0.5f)
         }
     }
 } 

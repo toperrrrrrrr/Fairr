@@ -28,6 +28,8 @@ import javax.inject.Singleton
 import android.content.Context
 import dagger.hilt.android.qualifiers.ApplicationContext
 import com.example.fairr.data.notifications.SimpleNotificationService
+import com.google.firebase.Firebase
+import com.google.firebase.firestore.MemoryCacheSettings
 
 @Module
 @InstallIn(SingletonComponent::class)
@@ -36,13 +38,13 @@ object AppModule {
     @Provides
     @Singleton
     fun provideFirebaseFirestore(): FirebaseFirestore {
-        val firestore = FirebaseFirestore.getInstance()
         val settings = FirebaseFirestoreSettings.Builder()
             .setPersistenceEnabled(true)
             .setCacheSizeBytes(FirebaseFirestoreSettings.CACHE_SIZE_UNLIMITED)
             .build()
-        firestore.firestoreSettings = settings
-        return firestore
+        return FirebaseFirestore.getInstance().apply {
+            firestoreSettings = settings
+        }
     }
 
     @Provides

@@ -25,7 +25,10 @@ import com.example.fairr.data.model.ExpenseSplit
 import com.example.fairr.ui.theme.*
 import com.example.fairr.util.CurrencyFormatter
 import androidx.compose.ui.draw.shadow
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.CallSplit
+import androidx.compose.material.icons.automirrored.filled.Note
+import androidx.compose.material.icons.automirrored.filled.Send
 import com.example.fairr.ui.screens.expenses.CommentViewModel
 import com.example.fairr.data.model.Comment
 import androidx.compose.foundation.text.KeyboardActions
@@ -60,7 +63,7 @@ fun ExpenseDetailScreen(
                 navigationIcon = {
                     IconButton(onClick = { navController.popBackStack() }) {
                         Icon(
-                            Icons.Filled.ArrowBack,
+                            Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
                             tint = TextPrimary
                         )
@@ -315,7 +318,7 @@ fun ExpenseOverviewCard(
                     EnhancedDetailItem(
                         label = "Split Type",
                         value = expense.splitType,
-                        icon = Icons.Default.CallSplit
+                        icon = Icons.AutoMirrored.Filled.CallSplit
                     )
                 }
                 
@@ -323,7 +326,7 @@ fun ExpenseOverviewCard(
                     EnhancedDetailItem(
                         label = "Notes",
                         value = expense.notes,
-                        icon = Icons.Default.Note,
+                        icon = Icons.AutoMirrored.Filled.Note,
                         modifier = Modifier.fillMaxWidth()
                     )
                 }
@@ -581,7 +584,7 @@ fun CommentsSection(
                             }
                         ) {
                             Icon(
-                                Icons.Default.Send,
+                                Icons.AutoMirrored.Filled.Send,
                                 contentDescription = "Send comment",
                                 tint = Primary
                             )

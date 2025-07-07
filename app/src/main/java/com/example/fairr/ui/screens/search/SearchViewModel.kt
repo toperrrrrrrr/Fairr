@@ -229,4 +229,8 @@ class SearchViewModel @Inject constructor(
     fun clearSearch() {
         uiState = uiState.copy(searchResults = emptyList())
     }
+
+    private fun formatSearchResult(text: String): String {
+        return text.replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
+    }
 } 

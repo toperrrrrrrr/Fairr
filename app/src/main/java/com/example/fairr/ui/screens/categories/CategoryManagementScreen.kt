@@ -37,6 +37,7 @@ import com.example.fairr.ui.components.SuccessBanner
 import com.example.fairr.ui.theme.*
 import com.example.fairr.ui.viewmodel.CategoryManagementViewModel
 import com.example.fairr.util.CurrencyFormatter
+import androidx.compose.material3.HorizontalDivider
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -456,9 +457,10 @@ fun CategoryCard(
             
             // Usage Statistics
             if (usageStats != null && usageStats.totalExpenses > 0) {
-                Divider(
-                    modifier = Modifier.padding(horizontal = 16.dp),
-                    color = LightGray
+                HorizontalDivider(
+                    modifier = Modifier.padding(vertical = 8.dp),
+                    thickness = 1.dp,
+                    color = DividerColor
                 )
                 
                 Row(
