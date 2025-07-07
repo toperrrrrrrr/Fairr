@@ -21,91 +21,114 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.navigation.NavController
-import com.example.fairr.ui.theme.*
-import java.text.SimpleDateFormat
-import java.util.*
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.LaunchedEffect
-import com.example.fairr.ui.screens.notifications.NotificationsViewModel
+import com.example.fairr.ui.theme.*
+import com.example.fairr.data.model.Notification
+import com.example.fairr.data.model.NotificationType
+import com.google.firebase.Timestamp
+import com.google.accompanist.swiperefresh.SwipeRefresh
+import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
+import java.text.SimpleDateFormat
+import java.util.*
 
-data class NotificationItem(
-    val id: String,
-    val title: String,
-    val message: String,
-    val timestamp: Date,
-    val type: NotificationType,
-    val isRead: Boolean = false
+// UI model that extends the data model with display properties
+data class NotificationUiModel(
+    val notification: Notification,
+    val icon: ImageVector,
+    val iconColor: Color,
+    val iconBackgroundColor: Color,
+    val canTakeAction: Boolean = false,
+    val actionLabel: String? = null,
+    val secondaryActionLabel: String? = null
 )
 
-enum class NotificationType(val icon: ImageVector, val color: Color) {
-    EXPENSE_ADDED(Icons.Default.Receipt, DarkGreen),
-    GROUP_INVITE(Icons.Default.Group, Primary),
-    SETTLEMENT_REQUEST(Icons.Default.AccountBalance, WarningOrange),
-    REMINDER(Icons.Default.Notifications, AccentBlue),
-    SYSTEM(Icons.Default.Info, TextSecondary)
+// Extension function to convert data model to UI model
+fun Notification.toUiModel(): NotificationUiModel {
+    return when (type) {
+        NotificationType.GROUP_JOIN_REQUEST -> NotificationUiModel(
+            notification = this,
+            icon = Icons.Default.PersonAdd,
+            iconColor = ComponentColors.Info,
+            iconBackgroundColor = ComponentColors.IconBackgroundInfo,
+            canTakeAction = true,
+            actionLabel = "Accept",
+            secondaryActionLabel = "Decline"
+        )
+        NotificationType.GROUP_INVITATION -> NotificationUiModel(
+            notification = this,
+            icon = Icons.Default.Group,
+            iconColor = ComponentColors.Success,
+            iconBackgroundColor = ComponentColors.IconBackgroundSuccess,
+            canTakeAction = true,
+            actionLabel = "Accept",
+            secondaryActionLabel = "Decline"
+        )
+        NotificationType.FRIEND_REQUEST -> NotificationUiModel(
+            notification = this,
+            icon = Icons.Default.PersonAdd,
+            iconColor = AccentBlue,
+            iconBackgroundColor = AccentBlue.copy(alpha = 0.1f),
+            canTakeAction = true,
+            actionLabel = "Accept",
+            secondaryActionLabel = "Decline"
+        )
+        NotificationType.EXPENSE_ADDED -> NotificationUiModel(
+            notification = this,
+            icon = Icons.Default.Receipt,
+            iconColor = ComponentColors.Success,
+            iconBackgroundColor = ComponentColors.IconBackgroundSuccess
+        )
+        NotificationType.SETTLEMENT_REMINDER -> NotificationUiModel(
+            notification = this,
+            icon = Icons.Default.AccountBalance,
+            iconColor = ComponentColors.Warning,
+            iconBackgroundColor = ComponentColors.IconBackgroundWarning
+        )
+        NotificationType.UNKNOWN -> NotificationUiModel(
+            notification = this,
+            icon = Icons.Default.Info,
+            iconColor = TextSecondary,
+            iconBackgroundColor = TextSecondary.copy(alpha = 0.1f)
+        )
+    }
 }
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationsScreen(
-    navController: NavController
+    navController: NavController,
+    viewModel: NotificationsViewModel = hiltViewModel()
 ) {
-    // Sample notifications data - in real app this would come from ViewModel
-    val notifications = remember {
-        listOf(
-            NotificationItem(
-                id = "1",
-                title = "New Expense Added",
-                message = "John added \"Dinner at Restaurant\" (₱850.00) to Family Trip",
-                timestamp = Date(System.currentTimeMillis() - 1000 * 60 * 30), // 30 min ago
-                type = NotificationType.EXPENSE_ADDED,
-                isRead = false
-            ),
-            NotificationItem(
-                id = "2",
-                title = "Group Invitation",
-                message = "Sarah invited you to join \"Office Lunch Group\"",
-                timestamp = Date(System.currentTimeMillis() - 1000 * 60 * 60 * 2), // 2 hours ago
-                type = NotificationType.GROUP_INVITE,
-                isRead = false
-            ),
-            NotificationItem(
-                id = "3",
-                title = "Settlement Request",
-                message = "You owe ₱425.50 to Alex for shared expenses",
-                timestamp = Date(System.currentTimeMillis() - 1000 * 60 * 60 * 24), // 1 day ago
-                type = NotificationType.SETTLEMENT_REQUEST,
-                isRead = true
-            ),
-            NotificationItem(
-                id = "4",
-                title = "Reminder",
-                message = "Don't forget to add your coffee expenses from this morning",
-                timestamp = Date(System.currentTimeMillis() - 1000 * 60 * 60 * 24 * 2), // 2 days ago
-                type = NotificationType.REMINDER,
-                isRead = true
-            ),
-            NotificationItem(
-                id = "5",
-                title = "System Update",
-                message = "Fairr has been updated with new features and improvements",
-                timestamp = Date(System.currentTimeMillis() - 1000 * 60 * 60 * 24 * 3), // 3 days ago
-                type = NotificationType.SYSTEM,
-                isRead = true
-            )
-        )
+    val uiState by viewModel.uiState.collectAsState()
+    val snackbarMessage = viewModel.snackbarMessage
+    val snackbarHostState = remember { SnackbarHostState() }
+
+    // Handle snackbar messages
+    LaunchedEffect(snackbarMessage) {
+        snackbarMessage?.let {
+            snackbarHostState.showSnackbar(it)
+        }
     }
 
-    val unreadCount = notifications.count { !it.isRead }
+    val notificationUiModels = remember(uiState.notifications) {
+        uiState.notifications.map { it.toUiModel() }
+    }
+
+    val unreadCount = remember(uiState.notifications) {
+        uiState.notifications.count { !it.isRead }
+    }
 
     Scaffold(
+        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
                 title = { 
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Text(
                             "Notifications",
+                            style = MaterialTheme.typography.titleLarge,
                             fontWeight = FontWeight.SemiBold,
                             color = TextPrimary
                         )
@@ -116,8 +139,8 @@ fun NotificationsScreen(
                                 modifier = Modifier.size(20.dp)
                             ) {
                                 Text(
-                                    text = unreadCount.toString(),
-                                    fontSize = 10.sp,
+                                    text = if (unreadCount > 99) "99+" else unreadCount.toString(),
+                                    style = MaterialTheme.typography.labelSmall,
                                     color = Color.White
                                 )
                             }
@@ -134,80 +157,92 @@ fun NotificationsScreen(
                     }
                 },
                 actions = {
-                    if (unreadCount > 0) {
+                    if (unreadCount > 0 && !uiState.isLoading) {
                         TextButton(
-                            onClick = { /* Mark all as read */ }
+                            onClick = { 
+                                // Mark all as read functionality
+                                uiState.notifications
+                                    .filter { !it.isRead }
+                                    .forEach { viewModel.markAsRead(it.id) }
+                            }
                         ) {
                             Text(
                                 "Mark all read",
-                                color = Primary,
-                                fontSize = 12.sp
+                                style = MaterialTheme.typography.labelMedium,
+                                color = Primary
                             )
                         }
                     }
                 },
                 colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = NeutralWhite
+                    containerColor = BackgroundPrimary
                 )
             )
         }
     ) { paddingValues ->
-        if (notifications.isEmpty()) {
-            // Empty state
-            Column(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .padding(paddingValues)
-                    .padding(32.dp),
-                horizontalAlignment = Alignment.CenterHorizontally,
-                verticalArrangement = Arrangement.Center
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Notifications,
-                    contentDescription = "No notifications",
-                    modifier = Modifier.size(64.dp),
-                    tint = TextSecondary.copy(alpha = 0.6f)
-                )
-                
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                Text(
-                    text = "No Notifications Yet",
-                    style = MaterialTheme.typography.headlineSmall,
-                    color = TextPrimary,
-                    fontWeight = FontWeight.SemiBold,
-                    textAlign = TextAlign.Center
-                )
-                
-                Spacer(modifier = Modifier.height(8.dp))
-                
-                Text(
-                    text = "You'll see notifications about group activities, new expenses, and settlement requests here.",
-                    style = MaterialTheme.typography.bodyMedium,
-                    textAlign = TextAlign.Center,
-                    color = TextSecondary,
-                    lineHeight = 20.sp
-                )
-            }
-        } else {
-            // Notifications list
-            LazyColumn(
-                modifier = Modifier
-                    .fillMaxSize()
-                    .background(LightBackground)
-                    .padding(paddingValues),
-                contentPadding = PaddingValues(16.dp),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
-            ) {
-                items(notifications) { notification ->
-                    NotificationCard(
-                        notification = notification,
-                        onClick = { /* Handle notification click */ }
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(BackgroundSecondary)
+                .padding(paddingValues)
+        ) {
+            when {
+                uiState.isLoading && uiState.notifications.isEmpty() -> {
+                    // Initial loading state
+                    LoadingState()
+                }
+                uiState.error != null -> {
+                    // Error state
+                    ErrorState(
+                        error = uiState.error ?: "Unknown error",
+                        onRetry = { viewModel.retry() }
                     )
                 }
-                
-                item {
-                    Spacer(modifier = Modifier.height(16.dp))
+                uiState.notifications.isEmpty() -> {
+                    // Empty state
+                    EmptyState()
+                }
+                else -> {
+                    // Notifications list with pull-to-refresh
+                    val swipeRefreshState = rememberSwipeRefreshState(
+                        isRefreshing = uiState.isLoading && uiState.notifications.isNotEmpty()
+                    )
+                    
+                    SwipeRefresh(
+                        state = swipeRefreshState,
+                        onRefresh = { viewModel.refresh() },
+                        modifier = Modifier.fillMaxSize()
+                    ) {
+                        LazyColumn(
+                            modifier = Modifier.fillMaxSize(),
+                            contentPadding = PaddingValues(16.dp),
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
+                        ) {
+                            items(
+                                items = notificationUiModels,
+                                key = { it.notification.id }
+                            ) { notificationUiModel ->
+                                NotificationCard(
+                                    notificationUiModel = notificationUiModel,
+                                    isProcessing = uiState.processingRequestId == getActionId(notificationUiModel.notification),
+                                    decisionResult = uiState.decisionResults[notificationUiModel.notification.id],
+                                    onMarkAsRead = { viewModel.markAsRead(notificationUiModel.notification.id) },
+                                    onAction = { accept ->
+                                        handleNotificationAction(
+                                            notification = notificationUiModel.notification,
+                                            accept = accept,
+                                            viewModel = viewModel
+                                        )
+                                    },
+                                    onDelete = { viewModel.deleteNotification(notificationUiModel.notification.id) }
+                                )
+                            }
+                            
+                            item {
+                                Spacer(modifier = Modifier.height(16.dp))
+                            }
+                        }
+                    }
                 }
             }
         }
@@ -215,95 +250,310 @@ fun NotificationsScreen(
 }
 
 @Composable
-fun NotificationCard(
-    notification: NotificationItem,
-    onClick: () -> Unit
+private fun LoadingState() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        CircularProgressIndicator(
+            color = Primary,
+            strokeWidth = 3.dp
+        )
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        Text(
+            text = "Loading notifications...",
+            style = MaterialTheme.typography.bodyMedium,
+            color = TextSecondary
+        )
+    }
+}
+
+@Composable
+private fun ErrorState(
+    error: String,
+    onRetry: () -> Unit
 ) {
-    val dateFormat = SimpleDateFormat("MMM dd, h:mm a", Locale.getDefault())
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            imageVector = Icons.Default.Error,
+            contentDescription = "Error",
+            modifier = Modifier.size(64.dp),
+            tint = ComponentColors.Error
+        )
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        Text(
+            text = "Unable to Load Notifications",
+            style = MaterialTheme.typography.headlineSmall,
+            color = TextPrimary,
+            fontWeight = FontWeight.SemiBold,
+            textAlign = TextAlign.Center
+        )
+        
+        Spacer(modifier = Modifier.height(8.dp))
+        
+        Text(
+            text = error,
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center,
+            color = TextSecondary,
+            lineHeight = 20.sp
+        )
+        
+        Spacer(modifier = Modifier.height(24.dp))
+        
+        Button(
+            onClick = onRetry,
+            colors = ButtonDefaults.buttonColors(
+                containerColor = Primary,
+                contentColor = Color.White
+            )
+        ) {
+            Text("Try Again")
+        }
+    }
+}
+
+@Composable
+private fun EmptyState() {
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(32.dp),
+        horizontalAlignment = Alignment.CenterHorizontally,
+        verticalArrangement = Arrangement.Center
+    ) {
+        Icon(
+            imageVector = Icons.Default.Notifications,
+            contentDescription = "No notifications",
+            modifier = Modifier.size(64.dp),
+            tint = TextSecondary.copy(alpha = 0.6f)
+        )
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        Text(
+            text = "No Notifications Yet",
+            style = MaterialTheme.typography.headlineSmall,
+            color = TextPrimary,
+            fontWeight = FontWeight.SemiBold,
+            textAlign = TextAlign.Center
+        )
+        
+        Spacer(modifier = Modifier.height(8.dp))
+        
+        Text(
+            text = "You'll see notifications about group activities, new expenses, and settlement requests here.",
+            style = MaterialTheme.typography.bodyMedium,
+            textAlign = TextAlign.Center,
+            color = TextSecondary,
+            lineHeight = 20.sp
+        )
+    }
+}
+
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+fun NotificationCard(
+    notificationUiModel: NotificationUiModel,
+    isProcessing: Boolean,
+    decisionResult: String?,
+    onMarkAsRead: () -> Unit,
+    onAction: (Boolean) -> Unit,
+    onDelete: () -> Unit
+) {
+    val notification = notificationUiModel.notification
     
     Card(
-        modifier = Modifier
-            .fillMaxWidth(),
-        onClick = onClick,
+        modifier = Modifier.fillMaxWidth(),
+        onClick = { 
+            if (!notification.isRead) {
+                onMarkAsRead()
+            }
+        },
         colors = CardDefaults.cardColors(
-            containerColor = if (notification.isRead) NeutralWhite else Primary.copy(alpha = 0.05f)
+            containerColor = if (notification.isRead) {
+                BackgroundPrimary
+            } else {
+                Primary.copy(alpha = 0.03f)
+            }
         ),
-        elevation = CardDefaults.cardElevation(defaultElevation = 1.dp),
-        shape = RoundedCornerShape(12.dp)
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = if (notification.isRead) 1.dp else 2.dp
+        ),
+        shape = RoundedCornerShape(12.dp),
+        border = if (!notification.isRead) {
+            CardDefaults.outlinedCardBorder()
+        } else null
     ) {
-        Row(
+        Column(
             modifier = Modifier
                 .fillMaxWidth()
-                .padding(16.dp),
-            verticalAlignment = Alignment.Top
+                .padding(16.dp)
         ) {
-            // Icon
-            Box(
-                modifier = Modifier
-                    .size(40.dp)
-                    .clip(CircleShape)
-                    .background(notification.type.color.copy(alpha = 0.1f)),
-                contentAlignment = Alignment.Center
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                verticalAlignment = Alignment.Top
             ) {
-                Icon(
-                    imageVector = notification.type.icon,
-                    contentDescription = null,
-                    tint = notification.type.color,
-                    modifier = Modifier.size(20.dp)
-                )
+                // Icon
+                Box(
+                    modifier = Modifier
+                        .size(40.dp)
+                        .clip(CircleShape)
+                        .background(notificationUiModel.iconBackgroundColor),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Icon(
+                        imageVector = notificationUiModel.icon,
+                        contentDescription = null,
+                        tint = notificationUiModel.iconColor,
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+                
+                Spacer(modifier = Modifier.width(12.dp))
+                
+                // Content
+                Column(
+                    modifier = Modifier.weight(1f)
+                ) {
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.Top
+                    ) {
+                        Text(
+                            text = notification.title,
+                            style = MaterialTheme.typography.titleSmall,
+                            fontWeight = if (notification.isRead) FontWeight.Medium else FontWeight.SemiBold,
+                            color = TextPrimary,
+                            modifier = Modifier.weight(1f)
+                        )
+                        
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = formatRelativeTime(notification.createdAt),
+                                style = MaterialTheme.typography.labelSmall,
+                                color = TextSecondary
+                            )
+                            
+                            if (!notification.isRead) {
+                                Spacer(modifier = Modifier.width(8.dp))
+                                Box(
+                                    modifier = Modifier
+                                        .size(8.dp)
+                                        .clip(CircleShape)
+                                        .background(Primary)
+                                )
+                            }
+                        }
+                    }
+                    
+                    Spacer(modifier = Modifier.height(4.dp))
+                    
+                    Text(
+                        text = notification.message,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = TextSecondary,
+                        lineHeight = 20.sp
+                    )
+                }
             }
             
-            Spacer(modifier = Modifier.width(12.dp))
-            
-            // Content
-            Column(
-                modifier = Modifier.weight(1f)
-            ) {
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.Top
+            // Action buttons or decision result
+            if (decisionResult != null) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Surface(
+                    shape = RoundedCornerShape(8.dp),
+                    color = when (decisionResult) {
+                        "Accepted" -> ComponentColors.SuccessLight
+                        "Declined" -> ComponentColors.ErrorLight
+                        else -> ComponentColors.InfoLight
+                    },
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
-                        text = notification.title,
-                        fontSize = 14.sp,
-                        fontWeight = if (notification.isRead) FontWeight.Medium else FontWeight.SemiBold,
-                        color = TextPrimary,
-                        modifier = Modifier.weight(1f)
+                        text = decisionResult,
+                        style = MaterialTheme.typography.labelMedium,
+                        color = when (decisionResult) {
+                            "Accepted" -> ComponentColors.Success
+                            "Declined" -> ComponentColors.Error
+                            else -> ComponentColors.Info
+                        },
+                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
                     )
+                }
+            } else if (notificationUiModel.canTakeAction && !notification.isRead) {
+                Spacer(modifier = Modifier.height(12.dp))
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
+                ) {
+                    // Accept button
+                    Button(
+                        onClick = { onAction(true) },
+                        enabled = !isProcessing,
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = ComponentColors.Success,
+                            contentColor = Color.White
+                        ),
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        if (isProcessing) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(16.dp),
+                                color = Color.White,
+                                strokeWidth = 2.dp
+                            )
+                        } else {
+                            Text(
+                                text = notificationUiModel.actionLabel ?: "Accept",
+                                style = MaterialTheme.typography.labelMedium
+                            )
+                        }
+                    }
                     
-                    if (!notification.isRead) {
-                        Box(
-                            modifier = Modifier
-                                .size(8.dp)
-                                .clip(CircleShape)
-                                .background(Primary)
+                    // Decline button
+                    OutlinedButton(
+                        onClick = { onAction(false) },
+                        enabled = !isProcessing,
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = ComponentColors.Error
+                        ),
+                        border = androidx.compose.foundation.BorderStroke(
+                            1.dp, ComponentColors.Error
+                        ),
+                        shape = RoundedCornerShape(8.dp),
+                        modifier = Modifier.weight(1f)
+                    ) {
+                        Text(
+                            text = notificationUiModel.secondaryActionLabel ?: "Decline",
+                            style = MaterialTheme.typography.labelMedium
                         )
                     }
                 }
-                
-                Spacer(modifier = Modifier.height(4.dp))
-                
-                Text(
-                    text = notification.message,
-                    fontSize = 13.sp,
-                    color = TextSecondary,
-                    lineHeight = 18.sp
-                )
-                
-                Spacer(modifier = Modifier.height(6.dp))
-                
-                Text(
-                    text = formatRelativeTime(notification.timestamp),
-                    fontSize = 11.sp,
-                    color = TextSecondary.copy(alpha = 0.7f)
-                )
             }
         }
     }
 }
 
-fun formatRelativeTime(date: Date): String {
+private fun formatRelativeTime(timestamp: Timestamp): String {
+    val date = timestamp.toDate()
     val now = Date()
     val diffInMillis = now.time - date.time
     val diffInMinutes = diffInMillis / (1000 * 60)
@@ -312,9 +562,46 @@ fun formatRelativeTime(date: Date): String {
 
     return when {
         diffInMinutes < 1 -> "Just now"
-        diffInMinutes < 60 -> "${diffInMinutes}m ago"
-        diffInHours < 24 -> "${diffInHours}h ago"
-        diffInDays < 7 -> "${diffInDays}d ago"
+        diffInMinutes < 60 -> "${diffInMinutes}m"
+        diffInHours < 24 -> "${diffInHours}h"
+        diffInDays < 7 -> "${diffInDays}d"
+        diffInDays < 30 -> "${diffInDays / 7}w"
         else -> SimpleDateFormat("MMM dd", Locale.getDefault()).format(date)
+    }
+}
+
+private fun getActionId(notification: Notification): String {
+    return when (notification.type) {
+        NotificationType.GROUP_JOIN_REQUEST -> notification.data["requestId"] as? String ?: ""
+        NotificationType.GROUP_INVITATION -> notification.data["inviteId"] as? String ?: ""
+        NotificationType.FRIEND_REQUEST -> notification.data["requestId"] as? String ?: ""
+        else -> ""
+    }
+}
+
+private fun handleNotificationAction(
+    notification: Notification,
+    accept: Boolean,
+    viewModel: NotificationsViewModel
+) {
+    when (notification.type) {
+        NotificationType.GROUP_JOIN_REQUEST -> {
+            val requestId = notification.data["requestId"] as? String
+            if (requestId != null) {
+                viewModel.respondToJoinRequest(notification.id, requestId, accept)
+            }
+        }
+        NotificationType.GROUP_INVITATION -> {
+            val inviteId = notification.data["inviteId"] as? String
+            if (inviteId != null) {
+                viewModel.respondToInvite(notification.id, inviteId, accept)
+            }
+        }
+        NotificationType.FRIEND_REQUEST -> {
+            // TODO: Implement friend request handling
+        }
+        else -> {
+            // No action needed
+        }
     }
 } 

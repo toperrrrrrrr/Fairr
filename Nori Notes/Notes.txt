@@ -5,4 +5,8 @@ Let's fix it to reflect the emoji instead of the letter. I will then run the app
 4. Friend groups crashes the app. 
 5. Friend request should show up on notification page.
 6. notifuication page layoutn doesnt follow ui conventions. Also doesnt have correct data. 
-7. 
+7. settings blocked users can be removed as we dont need to block users. 
+8. Edit profile page doesnt follow ui conventions. John doe dummy data. 
+9. Group details page got huge white screen under manage recurring. 
+10. 
+11.

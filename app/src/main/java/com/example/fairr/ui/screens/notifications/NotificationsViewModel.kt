@@ -208,4 +208,16 @@ class NotificationsViewModel @Inject constructor(
     fun clearSnackbarMessage() {
         snackbarMessage = null
     }
+
+    fun retry() {
+        Log.d(TAG, "Retrying to load notifications")
+        // Clear error state and reload
+        _uiState.value = _uiState.value.copy(error = null)
+        loadNotifications()
+    }
+
+    fun refresh() {
+        Log.d(TAG, "Refreshing notifications")
+        loadNotifications()
+    }
 } 
