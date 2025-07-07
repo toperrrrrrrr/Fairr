@@ -1,0 +1,65 @@
+AI CODEBASE DOCUMENTATION TRAINING PROMPT - PASS 1
+
+OBJECTIVE: Train AI models to understand Android application codebases through systematic analysis with explicit file references and patterns.
+
+TARGET: Modern Android applications using Kotlin, Jetpack Compose, Clean Architecture patterns.
+
+TRAINING FOCUS:
+- Pattern recognition in mobile app architectures  
+- File structure understanding and component relationships
+- Business logic identification in financial/transactional apps
+- Modern Android development stack comprehension
+
+ANALYSIS REQUIREMENTS:
+1. Provide EXPLICIT file paths for every component mentioned
+2. Map relationships between files and their purposes
+3. Identify architectural patterns with specific code examples
+4. Document dependencies and data flow with file references
+5. Create training-ready summaries with file-to-concept mappings
+
+OUTPUT STRUCTURE:
+**1. Component Mapping**
+- File paths → Component types → Architectural roles
+- Dependencies between specific files
+- Pattern examples with exact file locations
+
+**2. Architecture Training Data**  
+- Layer separation with file examples
+- Design pattern implementations with file references
+- Data flow mappings across specific files
+
+**3. Business Logic Identification**
+- Domain-specific logic locations (exact files)
+- Service layer implementations (file paths)
+- Data model definitions (file locations)
+
+**4. AI Training Insights**
+- Key patterns AI should learn from this codebase
+- File naming conventions and their meanings
+- Architecture decisions reflected in file organization
+
+SCOPE: Focus on structure, patterns, and relationships. No code generation - pure analysis for AI training purposes.
+
+### Scope Rules:
+- Do NOT generate or suggest code.
+- Focus only on documentation, summaries, structure, and component identification.
+- Your output must be saved in the `01_Overview/HighLevelSummary.md` file.
+- Your prompt improvements must be saved in the `11_Prompt_Refinement/ImprovedPrompt.md` file.
+
+### Input:
+A full snapshot of the current codebase (or a scoped module/folder for this pass).
+
+### Output Format:
+**1. High-Level Summary**
+- Purpose of the codebase
+- Main modules/components
+- How different parts interact
+- Tech stack
+- Assumptions made
+
+**2. Gaps and Unknowns**
+- What's missing or unclear?
+- What requires developer clarification?
+
+**3. Prompt Improvement**
+- A revised and optimized version of this very prompt, customized for the next pass. 
