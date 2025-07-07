@@ -1,0 +1,3 @@
+Groups items on the grouplist doesnt reflect the selected emoji on the logo/avatar. It is only showing the first letter of the title. 
+
+Let's fix it to reflect the emoji instead of the letter. I will then run the app on android studio to check if there is error and I will 
