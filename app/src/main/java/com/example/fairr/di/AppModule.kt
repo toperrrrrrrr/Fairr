@@ -11,6 +11,7 @@ import com.example.fairr.data.settings.SettingsDataStore
 import com.example.fairr.data.user.UserModerationService
 import com.example.fairr.data.friends.FriendGroupService
 import com.example.fairr.data.comments.CommentService
+import com.example.fairr.data.category.CategoryService
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreSettings
@@ -130,6 +131,13 @@ object AppModule {
         firestore: FirebaseFirestore,
         auth: FirebaseAuth
     ): CommentService = CommentService(firestore, auth)
+
+    @Provides
+    @Singleton
+    fun provideCategoryService(
+        firestore: FirebaseFirestore,
+        auth: FirebaseAuth
+    ): CategoryService = CategoryService(firestore, auth)
 
     @Provides
     @Singleton

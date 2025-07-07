@@ -76,6 +76,21 @@ enum class ExpenseCategory(val displayName: String, val icon: String, val color:
                 OTHER
             }
         }
+        
+        fun getAllCategories(): List<ExpenseCategory> {
+            return values().toList()
+        }
+        
+        fun getDefaultCategories(): List<ExpenseCategory> {
+            return listOf(
+                FOOD, TRANSPORTATION, ENTERTAINMENT, SHOPPING, 
+                UTILITIES, RENT, HEALTHCARE, TRAVEL, OTHER
+            )
+        }
+        
+        fun getCategoryByDisplayName(displayName: String): ExpenseCategory? {
+            return values().find { it.displayName == displayName }
+        }
     }
 }
 

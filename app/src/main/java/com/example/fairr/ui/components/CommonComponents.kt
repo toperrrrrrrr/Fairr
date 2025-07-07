@@ -907,6 +907,67 @@ fun CategoryChip(
     }
 }
 
+// Enhanced CategoryChip for unified system
+@Composable
+fun EnhancedCategoryChip(
+    category: com.example.fairr.data.category.CategoryItem,
+    selected: Boolean,
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    val backgroundColor = if (selected) {
+        Color(android.graphics.Color.parseColor(category.color))
+    } else {
+        MaterialTheme.colorScheme.surface
+    }
+    
+    val textColor = if (selected) {
+        Color.White
+    } else {
+        MaterialTheme.colorScheme.onSurface
+    }
+
+    Card(
+        modifier = modifier
+            .clickable { onClick() }
+            .padding(4.dp),
+        colors = CardDefaults.cardColors(containerColor = backgroundColor),
+        border = if (!selected) {
+            androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+        } else null
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(horizontal = 12.dp, vertical = 8.dp),
+            horizontalArrangement = Arrangement.spacedBy(8.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Text(
+                text = category.icon,
+                fontSize = 16.sp
+            )
+            Text(
+                text = category.name,
+                color = textColor,
+                fontSize = 12.sp,
+                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
+            )
+            
+            // Show indicator for custom categories
+            if (!category.isDefault) {
+                Box(
+                    modifier = Modifier
+                        .size(6.dp)
+                        .background(
+                            if (selected) Color.White.copy(alpha = 0.7f) else DarkBlue,
+                            CircleShape
+                        )
+                )
+            }
+        }
+    }
+}
+
 @Composable
 fun CategorySelectionGrid(
     selectedCategory: com.example.fairr.data.model.ExpenseCategory,
@@ -932,9 +993,92 @@ fun CategorySelectionGrid(
     }
 }
 
+// Enhanced CategorySelectionGrid for unified system
+@Composable
+fun EnhancedCategorySelectionGrid(
+    categories: List<com.example.fairr.data.category.CategoryItem>,
+    selectedCategoryId: String?,
+    onCategorySelected: (com.example.fairr.data.category.CategoryItem) -> Unit,
+    modifier: Modifier = Modifier,
+    onManageCategories: (() -> Unit)? = null
+) {
+    LazyVerticalGrid(
+        columns = GridCells.Fixed(3),
+        modifier = modifier,
+        horizontalArrangement = Arrangement.spacedBy(8.dp),
+        verticalArrangement = Arrangement.spacedBy(8.dp)
+    ) {
+        items(categories) { category ->
+            EnhancedCategoryChip(
+                category = category,
+                selected = selectedCategoryId == category.id,
+                onClick = { onCategorySelected(category) },
+                modifier = Modifier.fillMaxWidth()
+            )
+        }
+        
+        // Add "Manage Categories" button if callback provided
+        if (onManageCategories != null) {
+            item {
+                Card(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .clickable { onManageCategories() }
+                        .padding(4.dp),
+                    colors = CardDefaults.cardColors(containerColor = LightGray),
+                    border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
+                ) {
+                    Row(
+                        modifier = Modifier
+                            .padding(horizontal = 12.dp, vertical = 8.dp),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.Settings,
+                            contentDescription = "Manage",
+                            modifier = Modifier.size(16.dp),
+                            tint = TextSecondary
+                        )
+                        Text(
+                            text = "Manage",
+                            color = TextSecondary,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                    }
+                }
+            }
+        }
+    }
+}
+
 @Composable
 fun CategoryIcon(
     category: com.example.fairr.data.model.ExpenseCategory,
+    modifier: Modifier = Modifier,
+    size: Dp = 24.dp
+) {
+    Box(
+        modifier = modifier
+            .size(size)
+            .background(
+                Color(android.graphics.Color.parseColor(category.color)),
+                CircleShape
+            ),
+        contentAlignment = Alignment.Center
+    ) {
+        Text(
+            text = category.icon,
+            fontSize = (size.value * 0.6).sp
+        )
+    }
+}
+
+// Enhanced CategoryIcon for unified system
+@Composable
+fun EnhancedCategoryIcon(
+    category: com.example.fairr.data.category.CategoryItem,
     modifier: Modifier = Modifier,
     size: Dp = 24.dp
 ) {
