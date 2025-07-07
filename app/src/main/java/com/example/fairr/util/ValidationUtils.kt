@@ -5,8 +5,11 @@ import java.math.BigDecimal
 import java.math.RoundingMode
 
 /**
- * Comprehensive input validation utility for the Fairr app
- * Provides consistent validation across all screens and components
+ * Utility object for comprehensive input validation across the Fairr app.
+ *
+ * Provides consistent validation for emails, passwords, amounts, names, group names,
+ * descriptions, messages, verification codes, and phone numbers. Also includes
+ * sanitization helpers for text and currency input.
  */
 object ValidationUtils {
     

@@ -48,8 +48,10 @@ class ExportService @Inject constructor(
     
     suspend fun exportData(options: ExportOptions): ExportResult {
         return try {
-            val currentUserId = auth.currentUser?.uid
-                ?: return ExportResult(false, errorMessage = "User not authenticated")
+            // Verify user is authenticated before proceeding with export
+            if (auth.currentUser?.uid == null) {
+                return ExportResult(false, errorMessage = "User not authenticated")
+            }
             
             val data = when (options.groupId) {
                 null -> exportAllData(options)

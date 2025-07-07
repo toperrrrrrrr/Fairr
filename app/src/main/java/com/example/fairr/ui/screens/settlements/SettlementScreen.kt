@@ -32,7 +32,6 @@ import com.example.fairr.ui.components.*
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-@Suppress("UNUSED_PARAMETER")
 fun SettlementScreen(
     navController: NavController,
     groupId: String,

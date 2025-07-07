@@ -35,6 +35,7 @@ class GroupService @Inject constructor(
         return UUID.randomUUID().toString().substring(0, 6).uppercase()
     }
 
+    // Firestore returns generic Map<String, Any>; safe cast with try/catch for member parsing
     @Suppress("UNCHECKED_CAST")
     private fun parseGroupData(data: Map<String, Any>): Map<String, Map<String, Any>> {
         return try {
@@ -184,7 +185,6 @@ class GroupService @Inject constructor(
 
                 try {
                     val data = snapshot.data ?: throw IllegalStateException("Group data is null")
-                    val currentUserId = currentUser.uid
                     
                     val group = Group(
                         id = snapshot.id,

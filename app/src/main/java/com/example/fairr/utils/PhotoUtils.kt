@@ -20,6 +20,12 @@ import java.text.SimpleDateFormat
 import java.util.*
 import kotlin.math.min
 
+/**
+ * Utility object for image and photo processing in the Fairr app.
+ *
+ * Provides helpers for image file creation, compression, thumbnail generation,
+ * orientation correction, and receipt OCR processing.
+ */
 object PhotoUtils {
     
     // Image compression constants

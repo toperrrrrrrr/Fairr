@@ -43,6 +43,8 @@ import androidx.compose.foundation.lazy.grid.items
 import com.example.fairr.ui.components.EmojiPickerItem
 import com.example.fairr.ui.components.GroupEmojiAvatar
 import com.example.fairr.ui.components.EmojiCollections
+import com.example.fairr.util.ValidationUtils
+import com.example.fairr.util.ValidationResult
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -153,12 +155,26 @@ fun CreateGroupScreen(
                     ) {
                         // Group name field
                         item {
+                            val groupNameValidation = remember(viewModel.groupName) {
+                                ValidationUtils.validateGroupName(viewModel.groupName)
+                            }
+                            val isGroupNameError = groupNameValidation is ValidationResult.Error && viewModel.groupName.isNotBlank()
+                            
                             OutlinedTextField(
                                 value = viewModel.groupName,
                                 onValueChange = viewModel::onGroupNameChange,
                                 label = { Text("Group Name") },
                                 modifier = Modifier.fillMaxWidth(),
-                                singleLine = true
+                                singleLine = true,
+                                isError = isGroupNameError,
+                                supportingText = if (isGroupNameError) {
+                                    { 
+                                        Text(
+                                            text = (groupNameValidation as ValidationResult.Error).message,
+                                            color = MaterialTheme.colorScheme.error
+                                        )
+                                    }
+                                } else null
                             )
                         }
 
@@ -266,9 +282,15 @@ fun CreateGroupScreen(
 
                         // Create group button
                         item {
+                            val groupNameValidation = remember(viewModel.groupName) {
+                                ValidationUtils.validateGroupName(viewModel.groupName)
+                            }
+                            val isValidToSubmit = groupNameValidation is ValidationResult.Success
+                            
                             Spacer(modifier = Modifier.height(16.dp))
                             Button(
                                 onClick = { viewModel.createGroup() },
+                                enabled = isValidToSubmit,
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .height(56.dp),
@@ -332,20 +354,40 @@ fun CreateGroupScreen(
                         color = MaterialTheme.colorScheme.onSurfaceVariant
                     )
                     Spacer(modifier = Modifier.height(12.dp))
+                    
+                    val emailValidation = remember(newMemberEmail) {
+                        ValidationUtils.validateEmail(newMemberEmail)
+                    }
+                    val isEmailError = emailValidation is ValidationResult.Error && newMemberEmail.isNotBlank()
+                    
                     OutlinedTextField(
                         value = newMemberEmail,
                         onValueChange = { newMemberEmail = it },
                         label = { Text("Email") },
                         singleLine = true,
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email)
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Email),
+                        isError = isEmailError,
+                        supportingText = if (isEmailError) {
+                            { 
+                                Text(
+                                    text = (emailValidation as ValidationResult.Error).message,
+                                    color = MaterialTheme.colorScheme.error
+                                )
+                            }
+                        } else null
                     )
                 }
             },
             confirmButton = {
+                val emailValidation = remember(newMemberEmail) {
+                    ValidationUtils.validateEmail(newMemberEmail)
+                }
+                val isEmailValid = emailValidation is ValidationResult.Success
+                
                 TextButton(
                     onClick = {
                         keyboardController?.hide()
-                        if (newMemberEmail.isNotBlank()) {
+                        if (newMemberEmail.isNotBlank() && isEmailValid) {
                             viewModel.addMember(
                                 GroupMember(
                                     id = "temp_${System.currentTimeMillis()}",
@@ -356,7 +398,8 @@ fun CreateGroupScreen(
                             newMemberEmail = ""
                             showAddMemberDialog = false
                         }
-                    }
+                    },
+                    enabled = isEmailValid && newMemberEmail.isNotBlank()
                 ) {
                     Text("Invite")
                 }

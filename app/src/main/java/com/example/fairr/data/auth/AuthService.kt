@@ -297,23 +297,34 @@ class AuthService @Inject constructor(
         }
     }
 
+    /**
+     * Check if user's email is verified and handle verification process
+     * 
+     * @param code Verification code (currently unused but kept for future custom verification)
+     * @return AuthResult indicating success or failure of verification check
+     */
     suspend fun verifyEmailWithCode(code: String): AuthResult {
-        // Note: Firebase doesn't support custom verification codes
-        // This is a placeholder for future implementation
-        // For now, we'll just check if the user's email is verified
+        // Validate verification code format for future use
+        if (code.isBlank()) {
+            Log.w(TAG, "Empty verification code provided")
+        } else if (code.length != 6 || !code.all { it.isDigit() }) {
+            Log.w(TAG, "Invalid verification code format: $code")
+        }
+        
         val currentUser = auth.currentUser
         if (currentUser == null) {
             return AuthResult.Error("No user is currently signed in")
         }
 
         return try {
-            // Reload user to get latest verification status
+            // Reload user to get latest verification status from Firebase
             currentUser.reload().await()
             
             if (currentUser.isEmailVerified) {
-                Log.d(TAG, "Email verified successfully")
+                Log.d(TAG, "Email verified successfully for user: ${currentUser.email}")
                 AuthResult.Success(currentUser)
             } else {
+                Log.w(TAG, "Email not yet verified for user: ${currentUser.email}")
                 AuthResult.Error("Email not verified. Please check your email and click the verification link.")
             }
         } catch (e: Exception) {

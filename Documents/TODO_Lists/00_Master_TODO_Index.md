@@ -1,5 +1,11 @@
 # MASTER TODO INDEX - FAIRR ANDROID APP
 
+## ✅ RECENTLY COMPLETED
+- Removed unnecessary suppressions in UI screens (AddExpenseScreen, SettlementScreen)
+- Added clarifying comments to justified suppressions in service/repository code (GroupService, ExpenseRepository)
+- Removed unused variables in GroupService.kt and ExpenseRepository.kt
+- Ensured app builds and runs after each change
+
 ## 📋 COMPREHENSIVE TODO SYSTEM OVERVIEW
 
 This directory contains **7 specialized TODO lists** covering every aspect of the Fairr Android app development, based on comprehensive documentation analysis. Each list provides actionable items with priorities, effort estimates, and specific file references.

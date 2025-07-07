@@ -58,7 +58,6 @@ import com.example.fairr.utils.PhotoUtils
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
-@Suppress("UNUSED_PARAMETER")
 fun AddExpenseScreen(
     groupId: String,
     navController: NavController,

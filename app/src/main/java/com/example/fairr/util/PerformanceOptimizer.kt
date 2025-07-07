@@ -12,8 +12,10 @@ import java.util.concurrent.atomic.AtomicLong
 import kotlin.system.measureTimeMillis
 
 /**
- * Performance optimization utility for Fairr app
- * Handles memory management, coroutine cleanup, animation optimization, and performance monitoring
+ * Utility object for performance optimization in the Fairr app.
+ *
+ * Handles memory management, coroutine cleanup, animation optimization, and performance monitoring.
+ * Provides helpers for ViewModel coroutine management, listener cleanup, and flow optimization.
  */
 object PerformanceOptimizer {
     

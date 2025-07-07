@@ -267,6 +267,7 @@ class ExpenseRepositoryImpl @Inject constructor(
     
     /**
      * Optimized expense parsing with user name caching
+     * Firestore returns generic data, so unchecked cast is required and safe here.
      */
     @Suppress("UNCHECKED_CAST")
     private suspend fun parseExpensesOptimized(documents: List<DocumentSnapshot>): List<Expense> = 
@@ -307,6 +308,7 @@ class ExpenseRepositoryImpl @Inject constructor(
     
     /**
      * Parse single expense document with optimizations
+     * Firestore returns generic data, so unchecked cast is required and safe here.
      */
     @Suppress("UNCHECKED_CAST")
     private fun parseExpenseDocument(doc: DocumentSnapshot): Expense? {
@@ -354,7 +356,11 @@ class ExpenseRepositoryImpl @Inject constructor(
         )
     }
 
-    // Keep the old method for backward compatibility but mark as deprecated
+    /**
+     * Deprecated: Use getPaginatedExpenses instead for better performance
+     * Firestore returns generic data, so unchecked cast is required and safe here.
+     */
+    @Deprecated("Use getPaginatedExpenses instead for better performance")
     @Suppress("UNCHECKED_CAST")
     override suspend fun getExpensesByGroupId(groupId: String): List<Expense> {
         Log.w(TAG, "Using deprecated getExpensesByGroupId. Consider using getPaginatedExpenses for better performance.")
@@ -369,6 +375,10 @@ class ExpenseRepositoryImpl @Inject constructor(
         return result.expenses
     }
 
+    /**
+     * Real-time expense flow for a group
+     * Firestore returns generic data, so unchecked cast is required and safe here.
+     */
     @Suppress("UNCHECKED_CAST")
     override fun getExpensesByGroupIdFlow(groupId: String): Flow<List<Expense>> = callbackFlow {
         val query = firestore.collection("expenses")
@@ -423,9 +433,8 @@ class ExpenseRepositoryImpl @Inject constructor(
 
         Log.d("ExpenseRepository", "Adding expense for group: $groupId by user: ${currentUser.uid}")
 
-        // First, verify the user is a member of the group and get member info
+        // Step 1: Verify the user is a member of the group and get member info
         val groupMembers: List<Map<String, Any>>
-        val groupCurrency: String
         try {
             val groupDoc = firestore.collection("groups").document(groupId).get().await()
             if (!groupDoc.exists()) {
@@ -435,13 +444,13 @@ class ExpenseRepositoryImpl @Inject constructor(
             val groupData = groupDoc.data
             val members = groupData?.get("members") as? Map<*, *>
             val createdBy = groupData?.get("createdBy") as? String
-            groupCurrency = groupData?.get("currency") as? String ?: "PHP"
 
+            // Only allow if user is a member or the group creator
             if (members?.containsKey(currentUser.uid) != true && createdBy != currentUser.uid) {
                 throw Exception("User is not a member of this group")
             }
 
-            // Get member details for split calculation
+            // Step 2: Get member details for split calculation
             groupMembers = members?.map { (userId, memberData) ->
                 val memberMap = memberData as? Map<String, Any> ?: emptyMap()
                 mapOf(
@@ -457,9 +466,10 @@ class ExpenseRepositoryImpl @Inject constructor(
             throw Exception("Failed to verify group membership: ${e.message}")
         }
 
-        // Calculate splits based on split type
+        // Step 3: Calculate splits based on split type
         val splitBetween = SplitCalculator.calculateSplits(amount, splitType, groupMembers)
 
+        // Step 4: Prepare expense data for Firestore
         val expenseData = hashMapOf(
             "groupId" to groupId,
             "description" to description,
@@ -480,14 +490,14 @@ class ExpenseRepositoryImpl @Inject constructor(
         Log.d("ExpenseRepository", "Expense data prepared: $expenseData")
 
         try {
-            // Add the expense document
+            // Step 5: Add the expense document to Firestore
             Log.d("ExpenseRepository", "Attempting to add expense document")
             val expenseRef = firestore.collection("expenses")
                 .add(expenseData)
                 .await()
             Log.d("ExpenseRepository", "Expense document added successfully with ID: ${expenseRef.id}")
 
-            // Log activity for expense added
+            // Step 6: Log activity for expense added (for group activity feed)
             try {
                 val currentUser = auth.currentUser
                 if (currentUser != null) {
@@ -514,10 +524,7 @@ class ExpenseRepositoryImpl @Inject constructor(
                 Log.w("ExpenseRepository", "Failed to log activity for expense added: ${e.message}")
             }
 
-            // Try to update group total. If this fails due to permissions (non-admin user),
-            // we simply log the error but do NOT surface it to the UI because the expense
-            // itself has already been saved successfully. A backend function can recompute
-            // totals if needed.
+            // Step 7: Try to update group total (ignore permission errors for non-admins)
             try {
                 Log.d("ExpenseRepository", "Updating group total")
                 val groupRef = firestore.collection("groups").document(groupId)
