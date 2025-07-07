@@ -5,6 +5,8 @@ import androidx.lifecycle.viewModelScope
 import com.example.fairr.data.analytics.RecurringExpenseAnalytics
 import com.example.fairr.data.repository.ExpenseRepository
 import com.example.fairr.data.settings.SettingsDataStore
+import com.example.fairr.data.model.Expense
+import com.example.fairr.data.model.ExpenseCategory
 import com.example.fairr.util.CurrencyFormatter
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableStateFlow
@@ -20,14 +22,13 @@ data class RecurringExpenseAnalyticsState(
     val userCurrency: String = "PHP",
     val stats: RecurringExpenseAnalytics.RecurringExpenseStats = RecurringExpenseAnalytics.RecurringExpenseStats(
         totalRecurringExpenses = 0,
-        totalAmount = 0.0,
-        averageAmount = 0.0,
-        mostCommonFrequency = null,
-        mostCommonCategory = null,
-        upcomingExpenses = 0,
+        totalRecurringAmount = 0.0,
+        averageRecurringAmount = 0.0,
+        recurringExpensesByCategory = emptyMap(),
         totalGeneratedInstances = 0,
         monthlyProjection = 0.0,
-        yearlyProjection = 0.0
+        yearlyProjection = 0.0,
+        upcomingExpenses = emptyList()
     ),
     val frequencyBreakdown: List<RecurringExpenseAnalytics.FrequencyBreakdown> = emptyList(),
     val categoryBreakdown: List<RecurringExpenseAnalytics.CategoryBreakdown> = emptyList(),

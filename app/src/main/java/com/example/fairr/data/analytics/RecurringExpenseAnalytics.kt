@@ -5,12 +5,15 @@ import com.example.fairr.data.model.Expense
 import com.example.fairr.data.model.RecurrenceFrequency
 import com.example.fairr.data.repository.ExpenseRepository
 import com.example.fairr.data.repository.ExpenseQueryParams
+import com.example.fairr.data.model.ExpenseCategory
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
+import kotlinx.coroutines.flow.map
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -23,14 +26,13 @@ class RecurringExpenseAnalytics @Inject constructor(
     
     data class RecurringExpenseStats(
         val totalRecurringExpenses: Int,
-        val totalAmount: Double,
-        val averageAmount: Double,
-        val mostCommonFrequency: RecurrenceFrequency?,
-        val mostCommonCategory: String?,
-        val upcomingExpenses: Int,
-        val totalGeneratedInstances: Int,
-        val monthlyProjection: Double,
-        val yearlyProjection: Double
+        val totalRecurringAmount: Double,
+        val averageRecurringAmount: Double,
+        val recurringExpensesByCategory: Map<ExpenseCategory, Double>,
+        val totalGeneratedInstances: Int = 0,
+        val monthlyProjection: Double = 0.0,
+        val yearlyProjection: Double = 0.0,
+        val upcomingExpenses: List<Expense> = emptyList()
     )
     
     data class FrequencyBreakdown(
@@ -41,7 +43,7 @@ class RecurringExpenseAnalytics @Inject constructor(
     )
     
     data class CategoryBreakdown(
-        val category: String,
+        val category: ExpenseCategory,
         val count: Int,
         val totalAmount: Double,
         val percentage: Double
@@ -58,60 +60,90 @@ class RecurringExpenseAnalytics @Inject constructor(
      * Get comprehensive statistics for recurring expenses in a group
      */
     suspend fun getRecurringExpenseStats(groupId: String): RecurringExpenseStats {
-        val recurringExpenses = expenseRepository.getRecurringExpenses(groupId)
-        
-        if (recurringExpenses.isEmpty()) {
-            return RecurringExpenseStats(
-                totalRecurringExpenses = 0,
-                totalAmount = 0.0,
-                averageAmount = 0.0,
-                mostCommonFrequency = null,
-                mostCommonCategory = null,
-                upcomingExpenses = 0,
-                totalGeneratedInstances = 0,
-                monthlyProjection = 0.0,
-                yearlyProjection = 0.0
-            )
-        }
-        
-        val totalAmount = recurringExpenses.sumOf { it.amount }
-        val averageAmount = totalAmount / recurringExpenses.size
-        
-        // Calculate frequency breakdown
-        val frequencyBreakdown = getFrequencyBreakdown(recurringExpenses)
-        val mostCommonFrequency = frequencyBreakdown.maxByOrNull { it.count }?.frequency
-        
-        // Calculate category breakdown
-        val categoryBreakdown = getCategoryBreakdown(recurringExpenses)
-        val mostCommonCategory = categoryBreakdown.maxByOrNull { it.count }?.category
-        
-        // Get upcoming expenses (next 30 days)
-        val upcomingExpenses = expenseRepository.getUpcomingRecurringExpenses(groupId, 30).size
-        
-        // Calculate projections
-        val monthlyProjection = calculateMonthlyProjection(recurringExpenses)
-        val yearlyProjection = monthlyProjection * 12
-        
-        // Count generated instances (expenses with parentExpenseId)
-        val allExpenses = expenseRepository.getPaginatedExpenses(
+        val expenses = expenseRepository.getPaginatedExpenses(
             ExpenseQueryParams(
                 groupId = groupId,
-                includeRecurring = true
+                startDate = getStartOfMonth(),
+                endDate = Date()
             )
         ).expenses
-        val totalGeneratedInstances = allExpenses.count { it.parentExpenseId != null }
-        
+
+        return analyzeRecurringExpenses(expenses)
+    }
+    
+    private fun analyzeRecurringExpenses(expenses: List<Expense>): RecurringExpenseStats {
+        val recurringExpenses = expenses.filter { it.isRecurring }
+        val totalRecurringAmount = recurringExpenses.sumOf { it.amount }
+        val averageRecurringAmount = if (recurringExpenses.isNotEmpty()) {
+            totalRecurringAmount / recurringExpenses.size
+        } else {
+            0.0
+        }
+
+        val monthlyProjection = calculateMonthlyProjection(recurringExpenses)
+        val yearlyProjection = monthlyProjection * 12
+        val totalGeneratedInstances = expenses.count { it.parentExpenseId != null }
+        val upcomingExpenses = getUpcomingExpenses(recurringExpenses)
+
         return RecurringExpenseStats(
             totalRecurringExpenses = recurringExpenses.size,
-            totalAmount = totalAmount,
-            averageAmount = averageAmount,
-            mostCommonFrequency = mostCommonFrequency,
-            mostCommonCategory = mostCommonCategory,
-            upcomingExpenses = upcomingExpenses,
+            totalRecurringAmount = totalRecurringAmount,
+            averageRecurringAmount = averageRecurringAmount,
+            recurringExpensesByCategory = getRecurringExpensesByCategory(recurringExpenses),
             totalGeneratedInstances = totalGeneratedInstances,
             monthlyProjection = monthlyProjection,
-            yearlyProjection = yearlyProjection
+            yearlyProjection = yearlyProjection,
+            upcomingExpenses = upcomingExpenses
         )
+    }
+    
+    private fun getRecurringExpensesByCategory(expenses: List<Expense>): Map<ExpenseCategory, Double> {
+        return expenses.groupBy { it.category }
+            .mapValues { (_, expenses) -> expenses.sumOf { it.amount } }
+    }
+    
+    private fun getStartOfMonth(): Date {
+        return Calendar.getInstance().apply {
+            set(Calendar.DAY_OF_MONTH, 1)
+            set(Calendar.HOUR_OF_DAY, 0)
+            set(Calendar.MINUTE, 0)
+            set(Calendar.SECOND, 0)
+            set(Calendar.MILLISECOND, 0)
+        }.time
+    }
+    
+    private fun getUpcomingExpenses(expenses: List<Expense>): List<Expense> {
+        val now = Calendar.getInstance()
+        val oneMonthFromNow = Calendar.getInstance().apply {
+            add(Calendar.MONTH, 1)
+        }
+
+        return expenses.filter { expense ->
+            val nextOccurrence = calculateNextOccurrence(expense)
+            nextOccurrence != null && nextOccurrence.time in now.timeInMillis..oneMonthFromNow.timeInMillis
+        }
+    }
+
+    private fun calculateNextOccurrence(expense: Expense): Date? {
+        val rule = expense.recurrenceRule ?: return null
+        val lastDate = expense.date.toDate()
+        val now = Calendar.getInstance().time
+
+        val calendar = Calendar.getInstance().apply {
+            time = lastDate
+        }
+
+        while (calendar.time <= now) {
+            when (rule.frequency) {
+                RecurrenceFrequency.DAILY -> calendar.add(Calendar.DAY_OF_MONTH, rule.interval)
+                RecurrenceFrequency.WEEKLY -> calendar.add(Calendar.WEEK_OF_YEAR, rule.interval)
+                RecurrenceFrequency.MONTHLY -> calendar.add(Calendar.MONTH, rule.interval)
+                RecurrenceFrequency.YEARLY -> calendar.add(Calendar.YEAR, rule.interval)
+                else -> return null
+            }
+        }
+
+        return calendar.time
     }
     
     /**
@@ -146,10 +178,10 @@ class RecurringExpenseAnalytics @Inject constructor(
      * Get category breakdown for recurring expenses
      */
     fun getCategoryBreakdown(expenses: List<Expense>): List<CategoryBreakdown> {
-        val categoryMap = mutableMapOf<String, MutableList<Expense>>()
+        val categoryMap = mutableMapOf<ExpenseCategory, MutableList<Expense>>()
         
         expenses.forEach { expense ->
-            val category = expense.category.displayName
+            val category = expense.category
             categoryMap.getOrPut(category) { mutableListOf() }.add(expense)
         }
         
@@ -226,10 +258,15 @@ class RecurringExpenseAnalytics @Inject constructor(
      * Get expenses for a specific month
      */
     private suspend fun getExpensesForMonth(groupId: String, month: Int, year: Int): List<Expense> {
-        val allExpenses = expenseRepository.getExpensesByGroupId(groupId)
+        val allExpenses = expenseRepository.getPaginatedExpenses(
+            ExpenseQueryParams(
+                groupId = groupId,
+                pageSize = Int.MAX_VALUE
+            )
+        )
         val calendar = Calendar.getInstance()
         
-        return allExpenses.filter { expense ->
+        return allExpenses.expenses.filter { expense ->
             calendar.time = expense.date.toDate()
             calendar.get(Calendar.MONTH) == month && calendar.get(Calendar.YEAR) == year
         }
@@ -247,8 +284,8 @@ class RecurringExpenseAnalytics @Inject constructor(
         }
         
         // High amount insights
-        if (stats.monthlyProjection > 1000) {
-            insights.add("Your monthly recurring expenses are high (${String.format("%.2f", stats.monthlyProjection)}). Consider reviewing for potential savings.")
+        if (stats.totalRecurringAmount > 1000) {
+            insights.add("Your total recurring expenses are high (${String.format("%.2f", stats.totalRecurringAmount)}). Consider reviewing for potential savings.")
         }
         
         // Frequency insights
@@ -258,18 +295,16 @@ class RecurringExpenseAnalytics @Inject constructor(
         }
         
         // Category insights
-        if (stats.mostCommonCategory != null) {
-            insights.add("Most of your recurring expenses are in the ${stats.mostCommonCategory} category.")
-        }
-        
-        // Upcoming expenses
-        if (stats.upcomingExpenses > 0) {
-            insights.add("You have ${stats.upcomingExpenses} recurring expenses coming up in the next 30 days.")
+        if (stats.recurringExpensesByCategory.isNotEmpty()) {
+            val mostCommonCategory = stats.recurringExpensesByCategory.maxByOrNull { it.value }?.key
+            if (mostCommonCategory != null) {
+                insights.add("Most of your recurring expenses are in the ${mostCommonCategory} category.")
+            }
         }
         
         // Savings opportunities
-        if (stats.averageAmount > 100) {
-            insights.add("Your average recurring expense is ${String.format("%.2f", stats.averageAmount)}. Look for bulk discounts or annual plans.")
+        if (stats.averageRecurringAmount > 100) {
+            insights.add("Your average recurring expense is ${String.format("%.2f", stats.averageRecurringAmount)}. Look for bulk discounts or annual plans.")
         }
         
         return insights

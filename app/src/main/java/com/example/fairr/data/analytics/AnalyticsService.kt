@@ -11,6 +11,7 @@ import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.perf.FirebasePerformance
 import com.google.firebase.perf.metrics.Trace
+import com.google.firebase.Timestamp
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.withContext
 import kotlinx.coroutines.tasks.await
@@ -474,11 +475,13 @@ class AnalyticsService @Inject constructor(
             val userStats = getUserStatistics(userId)
             
             // Get recent activity stats
-            val thirtyDaysAgo = System.currentTimeMillis() - (30 * 24 * 60 * 60 * 1000)
+            val calendar = Calendar.getInstance()
+            calendar.add(Calendar.DAY_OF_MONTH, -30)
+            val thirtyDaysAgo = calendar.time
             
             val recentExpensesSnapshot = firestore.collection("expenses")
                 .whereEqualTo("paidBy", userId)
-                .whereGreaterThan("date", com.google.firebase.Timestamp(Date(thirtyDaysAgo)))
+                .whereGreaterThan("date", Timestamp(thirtyDaysAgo))
                 .get()
                 .await()
             

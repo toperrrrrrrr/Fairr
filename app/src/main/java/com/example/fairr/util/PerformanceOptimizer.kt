@@ -17,6 +17,7 @@ import kotlin.system.measureTimeMillis
  * Handles memory management, coroutine cleanup, animation optimization, and performance monitoring.
  * Provides helpers for ViewModel coroutine management, listener cleanup, and flow optimization.
  */
+@OptIn(kotlinx.coroutines.FlowPreview::class)
 object PerformanceOptimizer {
     
     private const val TAG = "PerformanceOptimizer"
@@ -30,6 +31,10 @@ object PerformanceOptimizer {
     // Animation optimization settings
     private var reducedMotionEnabled = false
     private var animationScaleFactor = 1.0f
+    
+    private val defaultErrorHandler = CoroutineExceptionHandler { _, throwable ->
+        Log.e("PerformanceOptimizer", "Coroutine error: ${throwable.message}", throwable)
+    }
     
     /**
      * Enable reduced motion for performance optimization
@@ -373,5 +378,17 @@ object PerformanceOptimizer {
         System.gc()
         
         Log.i(TAG, "Force cleanup completed")
+    }
+
+    @OptIn(kotlinx.coroutines.DelicateCoroutinesApi::class)
+    fun optimizeCoroutineScope(
+        dispatcher: CoroutineDispatcher = Dispatchers.Default,
+        errorHandler: CoroutineExceptionHandler? = null
+    ): CoroutineScope {
+        return CoroutineScope(dispatcher + SupervisorJob() + (errorHandler ?: defaultErrorHandler))
+    }
+
+    fun cleanupResources() {
+        // Add cleanup logic here
     }
 } 

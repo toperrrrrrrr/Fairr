@@ -57,6 +57,7 @@ import androidx.activity.result.contract.ActivityResultContracts
 import androidx.compose.ui.platform.LocalContext
 import android.net.Uri
 import com.example.fairr.utils.PhotoUtils
+import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -347,9 +348,8 @@ fun AddExpenseScreen(
                                     modifier = Modifier.weight(1f)
                                 )
                                 Icon(
-                                    Icons.Default.KeyboardArrowRight,
-                                    contentDescription = "Select category",
-                                    tint = IconTint
+                                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
+                                    contentDescription = "Next"
                                 )
                             }
                         }

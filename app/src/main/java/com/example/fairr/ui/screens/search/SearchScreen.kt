@@ -49,6 +49,7 @@ import androidx.compose.ui.text.withStyle
 import com.example.fairr.ui.components.ErrorType
 import com.example.fairr.ui.components.ErrorBanner
 import com.example.fairr.ui.components.StandardErrorState
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -812,10 +813,8 @@ fun EnhancedSearchSuggestionsState(
                         Spacer(modifier = Modifier.weight(1f))
                         
                         Icon(
-                            Icons.Default.TrendingUp,
-                            contentDescription = "Popular",
-                            tint = TextSecondary.copy(alpha = 0.5f),
-                            modifier = Modifier.size(12.dp)
+                            imageVector = Icons.AutoMirrored.Filled.TrendingUp,
+                            contentDescription = "Trending"
                         )
                     }
                 }

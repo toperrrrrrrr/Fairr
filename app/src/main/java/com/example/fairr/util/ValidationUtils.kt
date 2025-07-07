@@ -22,7 +22,7 @@ object ValidationUtils {
     private const val MAX_DESCRIPTION_LENGTH = 1000
     private const val MAX_GROUP_NAME_LENGTH = 50
     private const val MIN_GROUP_NAME_LENGTH = 1
-    private const val MAX_EXPENSE_AMOUNT = 999999.99
+    private const val MAX_EXPENSE_AMOUNT = 1_000_000.00
     private const val MIN_EXPENSE_AMOUNT = 0.01
     private const val MAX_MESSAGE_LENGTH = 500
     
@@ -182,7 +182,7 @@ object ValidationUtils {
     /**
      * Sanitize and validate currency amount
      */
-    fun sanitizeAndValidateAmount(amount: String): Pair<ValidationResult, Double?> {
+    fun parseAndValidateAmount(amount: String): Pair<ValidationResult, Double?> {
         val sanitized = amount.trim().replace(Regex("[^0-9.]"), "")
         val validation = validateAmount(sanitized)
         val numericValue = if (validation is ValidationResult.Success) sanitized.toDoubleOrNull() else null
@@ -191,10 +191,9 @@ object ValidationUtils {
     
     // Helper methods
     
-    private fun hasMoreThanTwoDecimalPlaces(amount: Double): Boolean {
-        val bd = BigDecimal.valueOf(amount)
-        val scale = bd.setScale(2, RoundingMode.HALF_UP).scale()
-        return bd.scale() > 2 && bd.compareTo(bd.setScale(2, RoundingMode.HALF_UP)) != 0
+    private fun hasMoreThanTwoDecimalPlaces(number: Double): Boolean {
+        val decimalStr = number.toString().split(".").getOrNull(1) ?: return false
+        return decimalStr.length > 2
     }
     
     private fun containsInvalidCharacters(text: String): Boolean {

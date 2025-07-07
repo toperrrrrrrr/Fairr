@@ -7,11 +7,13 @@ import androidx.core.content.FileProvider
 import com.example.fairr.data.model.Expense
 import com.example.fairr.data.model.Group
 import com.example.fairr.data.repository.ExpenseRepository
+import com.example.fairr.data.repository.ExpenseQueryParams
 import com.example.fairr.data.groups.GroupService
 import com.example.fairr.data.settlements.SettlementService
 import com.example.fairr.data.settlements.SettlementSummary
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.Timestamp
+import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.first
 import java.io.File
 import java.io.FileWriter
@@ -20,16 +22,23 @@ import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
 
+enum class ExportFormat {
+    CSV,
+    EXCEL,
+    PDF
+}
+
 data class ExportOptions(
     val format: ExportFormat = ExportFormat.CSV,
+    val dateRange: DateRange? = null,
     val includeSettlements: Boolean = true,
-    val dateRange: String = "All Time",
     val groupId: String? = null
 )
 
-enum class ExportFormat {
-    CSV, EXCEL, PDF
-}
+data class DateRange(
+    val startDate: Date,
+    val endDate: Date
+)
 
 data class ExportResult(
     val success: Boolean,
@@ -52,7 +61,7 @@ class ExportService @Inject constructor(
     private val settlementService: SettlementService,
     private val auth: FirebaseAuth
 ) {
-    
+
     suspend fun exportData(options: ExportOptions): ExportResult {
         return try {
             // Verify user is authenticated before proceeding with export
@@ -62,7 +71,7 @@ class ExportService @Inject constructor(
             
             val data = when (options.groupId) {
                 null -> exportAllData(options)
-                else -> exportGroupData(options.groupId, options)
+                else -> exportGroupData(options.groupId)
             }
             
             val file = when (options.format) {
@@ -89,8 +98,13 @@ class ExportService @Inject constructor(
         val settlements = mutableListOf<SettlementSummary>()
         
         groups.forEach { group ->
-            val expenses = expenseRepository.getExpensesByGroupId(group.id)
-            allExpenses.addAll(expenses)
+            val expenses = expenseRepository.getPaginatedExpenses(
+                ExpenseQueryParams(
+                    groupId = group.id,
+                    pageSize = Int.MAX_VALUE
+                )
+            )
+            allExpenses.addAll(expenses.expenses)
             
             if (options.includeSettlements) {
                 val groupSettlements = settlementService.getSettlementSummary(group.id)
@@ -99,56 +113,33 @@ class ExportService @Inject constructor(
         }
         
         return ExportData(
-            groups = groups,
+            group = null,
             expenses = filterExpensesByDateRange(allExpenses, options.dateRange),
-            settlements = settlements,
-            exportDate = Date()
+            settlements = settlements
         )
     }
     
-    private suspend fun exportGroupData(groupId: String, options: ExportOptions): ExportData {
+    private suspend fun exportGroupData(groupId: String): ExportData {
         val group = groupService.getGroupById(groupId).first()
-        val expenses = expenseRepository.getExpensesByGroupId(groupId)
-        val settlements = if (options.includeSettlements) {
-            settlementService.getSettlementSummary(groupId)
-        } else {
-            emptyList()
-        }
+        val expenses = expenseRepository.getPaginatedExpenses(
+            ExpenseQueryParams(
+                groupId = groupId,
+                pageSize = Int.MAX_VALUE
+            )
+        )
+        val settlements = settlementService.getSettlementSummary(groupId)
         
         return ExportData(
-            groups = listOf(group),
-            expenses = filterExpensesByDateRange(expenses, options.dateRange),
-            settlements = settlements,
-            exportDate = Date()
+            group = group,
+            expenses = expenses.expenses,
+            settlements = settlements
         )
     }
     
-    private fun filterExpensesByDateRange(expenses: List<Expense>, dateRange: String): List<Expense> {
-        val calendar = Calendar.getInstance()
-        
-        val startDate = when (dateRange) {
-            "Last 30 Days" -> {
-                calendar.add(Calendar.DAY_OF_YEAR, -30)
-                calendar.time
-            }
-            "Last 3 Months" -> {
-                calendar.add(Calendar.MONTH, -3)
-                calendar.time
-            }
-            "Last 6 Months" -> {
-                calendar.add(Calendar.MONTH, -6)
-                calendar.time
-            }
-            "This Year" -> {
-                calendar.set(Calendar.DAY_OF_YEAR, 1)
-                calendar.time
-            }
-            else -> Date(0) // All Time
-        }
-        
+    private fun filterExpensesByDateRange(expenses: List<Expense>, dateRange: DateRange?): List<Expense> {
+        if (dateRange == null) return expenses
         return expenses.filter { expense ->
-            val expenseDate = expense.date.toDate()
-            expenseDate.after(startDate) || expenseDate.equals(startDate)
+            expense.date.toDate().time in dateRange.startDate.time..dateRange.endDate.time
         }
     }
     
@@ -162,7 +153,7 @@ class ExportService @Inject constructor(
             
             // Write expense data
             data.expenses.forEach { expense ->
-                val group = data.groups.find { it.id == expense.groupId }
+                val group = data.group
                 val splitNames = expense.splitBetween.joinToString(";") { it.userName }
                 
                 writer.append("${formatDate(expense.date.toDate())},")
@@ -202,14 +193,14 @@ class ExportService @Inject constructor(
         // Create a simple CSV format for now
         FileWriter(file).use { writer ->
             writer.append("Fairr Export Report\n")
-            writer.append("Generated on: ${formatDate(data.exportDate)}\n\n")
+            writer.append("Generated on: ${formatDate(data.expenses.first().date.toDate())}\n\n")
             
             // Write expense data
             writer.append("Expenses\n")
             writer.append("Date,Group,Description,Amount,Currency,Paid By,Split Between,Category,Notes\n")
             
             data.expenses.forEach { expense ->
-                val group = data.groups.find { it.id == expense.groupId }
+                val group = data.group
                 val splitNames = expense.splitBetween.joinToString(";") { it.userName }
                 
                 writer.append("${formatDate(expense.date.toDate())},")
@@ -235,8 +226,8 @@ class ExportService @Inject constructor(
         
         FileWriter(file).use { writer ->
             writer.append("FAIRR EXPORT REPORT\n")
-            writer.append("Generated on: ${formatDate(data.exportDate)}\n")
-            writer.append("Total Groups: ${data.groups.size}\n")
+            writer.append("Generated on: ${formatDate(data.expenses.first().date.toDate())}\n")
+            writer.append("Total Groups: ${data.group?.let { listOf(it) }?.size ?: 0}\n")
             writer.append("Total Expenses: ${data.expenses.size}\n")
             writer.append("Total Amount: ${data.expenses.sumOf { it.amount }}\n\n")
             
@@ -245,7 +236,7 @@ class ExportService @Inject constructor(
             writer.append("=".repeat(50) + "\n")
             
             data.expenses.forEach { expense ->
-                val group = data.groups.find { it.id == expense.groupId }
+                val group = data.group
                 writer.append("Date: ${formatDate(expense.date.toDate())}\n")
                 writer.append("Group: ${group?.name ?: "Unknown"}\n")
                 writer.append("Description: ${expense.description}\n")
@@ -283,13 +274,122 @@ class ExportService @Inject constructor(
         chooser.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
         context.startActivity(chooser)
     }
+
+    private fun generateCSV(data: ExportData): String {
+        val csvBuilder = StringBuilder()
+        
+        // Add headers
+        csvBuilder.append("Type,Date,Amount,Category,Description,Paid By,Split With\n")
+        
+        // Add expense data
+        data.expenses.forEach { expense ->
+            csvBuilder.append("expense,")
+            csvBuilder.append("${formatDate(expense.date.toDate())},")
+            csvBuilder.append("${expense.amount},")
+            csvBuilder.append("${expense.category.displayName},")
+            csvBuilder.append("${expense.description},")
+            csvBuilder.append("${expense.paidByName},")
+            csvBuilder.append("${expense.splitBetween.joinToString("|") { it.userName }}\n")
+        }
+        
+        return csvBuilder.toString()
+    }
+
+    private fun generateJSON(data: ExportData): String {
+        return buildString {
+            append("{\n")
+            append("  \"expenses\": [\n")
+            data.expenses.forEachIndexed { index, expense ->
+                append("    {\n")
+                append("      \"type\": \"expense\",\n")
+                append("      \"date\": \"${formatDate(expense.date.toDate())}\",\n")
+                append("      \"amount\": ${expense.amount},\n")
+                append("      \"category\": \"${expense.category.displayName}\",\n")
+                append("      \"description\": \"${expense.description}\",\n")
+                append("      \"paidBy\": \"${expense.paidByName}\",\n")
+                append("      \"splitWith\": [${expense.splitBetween.joinToString { "\"${it.userName}\"" }}]\n")
+                append("    }${if (index < data.expenses.size - 1) "," else ""}\n")
+            }
+            append("  ]\n")
+            append("}")
+        }
+    }
+
+    /*
+    suspend fun exportGroupExpenses(groupId: String, format: String = "csv"): String {
+        val expenses = expenseRepository.getPaginatedExpenses(
+            ExpenseQueryParams(
+                groupId = groupId,
+                pageSize = Int.MAX_VALUE
+            )
+        )
+
+        val group: Group = groupService.getGroupById(groupId).first()
+
+        return when (format.lowercase()) {
+            "csv" -> generateCSV(ExportData(group = group, expenses = expenses.expenses, settlements = emptyList()))
+            "json" -> generateJSON(ExportData(group = group, expenses = expenses.expenses, settlements = emptyList()))
+            else -> throw IllegalArgumentException("Unsupported format: $format")
+        }
+    }
+    */
+
+    /*
+    suspend fun exportUserExpenses(userId: String, format: String = "csv"): String {
+        val expenses = expenseRepository.getPaginatedExpenses(
+            ExpenseQueryParams(
+                groupId = "", // We need a groupId, but for user expenses we'll need to handle this differently
+                pageSize = Int.MAX_VALUE
+            )
+        )
+
+        return when (format.lowercase()) {
+            "csv" -> generateCSV(ExportData(expenses = expenses.expenses, settlements = emptyList()))
+            "json" -> generateJSON(ExportData(expenses = expenses.expenses, settlements = emptyList()))
+            else -> throw IllegalArgumentException("Unsupported format: $format")
+        }
+    }
+    */
+
+    /*
+    suspend fun exportUserData(options: ExportOptions = ExportOptions()): File {
+        val userId = auth.currentUser?.uid ?: throw IllegalStateException("User not authenticated")
+        val expenses = expenseRepository.getPaginatedExpenses(
+            ExpenseQueryParams(
+                groupId = "", // We need a groupId, but for user expenses we'll need to handle this differently
+                startDate = options.dateRange?.startDate,
+                endDate = options.dateRange?.endDate
+            )
+        )
+        
+        val settlements = if (options.includeSettlements) {
+            emptyList() // getSettlementsByUserId doesn't exist, we'll need to implement it
+        } else {
+            emptyList()
+        }
+        
+        val fileName = "fairr_user_export_${System.currentTimeMillis()}.${options.format.name.lowercase()}"
+        val file = File(context.getExternalFilesDir(null), fileName)
+        
+        val content = when (options.format) {
+            ExportFormat.CSV -> generateCSV(ExportData(expenses = expenses.expenses, settlements = settlements))
+            ExportFormat.EXCEL -> generateCSV(ExportData(expenses = expenses.expenses, settlements = settlements)) // For now, use CSV format
+            ExportFormat.PDF -> generateCSV(ExportData(expenses = expenses.expenses, settlements = settlements)) // For now, use CSV format
+        }
+        
+        FileWriter(file).use { writer ->
+            writer.write(content)
+        }
+        
+        return file
+    }
+    */
 }
 
 data class ExportData(
-    val groups: List<Group>,
-    val expenses: List<Expense>,
-    val settlements: List<SettlementSummary>,
-    val exportDate: Date
+    val group: Group? = null,
+    val expenses: List<Expense> = emptyList(),
+    val settlements: List<SettlementSummary> = emptyList()
 )
 
 data class SettlementSummary(

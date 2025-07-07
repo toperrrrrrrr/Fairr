@@ -17,10 +17,10 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.compose.rememberNavController
 import com.example.fairr.navigation.FairrNavGraph
 import com.example.fairr.navigation.Screen
-import com.example.fairr.navigation.handleAuthRedirect
 import com.example.fairr.ui.screens.SplashScreen
 import com.example.fairr.ui.theme.FairrTheme
 import com.example.fairr.ui.viewmodels.StartupViewModel
+import com.example.fairr.ui.viewmodels.StartupState
 import com.example.fairr.data.notifications.RecurringExpenseNotificationService
 import com.example.fairr.data.repository.RecurringExpenseScheduler
 import com.example.fairr.data.analytics.RecurringExpenseAnalytics
@@ -89,7 +89,11 @@ class MainActivity : ComponentActivity() {
                         if (canNavigate) {
                             // Additional delay to ensure smooth transition
                             delay(500)
-                            navController.handleAuthRedirect(isAuthenticated, startupState)
+                            when {
+                                !isAuthenticated -> navController.navigate(Screen.Welcome.route)
+                                startupState == StartupState.Onboarding -> navController.navigate(Screen.Onboarding.route)
+                                else -> navController.navigate(Screen.Main.route)
+                            }
                             showSplash = false
                         }
                     }
@@ -123,8 +127,8 @@ class MainActivity : ComponentActivity() {
                     }
 
                     // Show splash screen during loading, authentication, or while waiting for minimum time
-                    if (showSplash && (startupState == com.example.fairr.ui.viewmodels.StartupState.Loading ||
-                        startupState == com.example.fairr.ui.viewmodels.StartupState.Authentication ||
+                    if (showSplash && (startupState == StartupState.Loading ||
+                        startupState == StartupState.Authentication ||
                         authLoading || !canNavigate)) {
                         SplashScreen(
                             startupState = startupState,

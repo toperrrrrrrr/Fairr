@@ -35,6 +35,15 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fairr.ui.screens.groups.ActivityViewModel
 import com.example.fairr.data.model.GroupActivity
 import com.example.fairr.data.model.ActivityType
+import androidx.compose.material.icons.automirrored.filled.Chat
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Payment
+import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material.icons.filled.PersonRemove
+import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.material.icons.filled.Warning
 
 // Extension function to get display properties for ActivityType
 fun ActivityType.getDisplayProperties(): Triple<String, ImageVector, Color> {
@@ -47,7 +56,7 @@ fun ActivityType.getDisplayProperties(): Triple<String, ImageVector, Color> {
         ActivityType.SETTLEMENT_MADE -> Triple("Payment Made", Icons.Default.Payment, SuccessGreen)
         ActivityType.GROUP_CREATED -> Triple("Group Created", Icons.Default.Group, DarkGreen)
         ActivityType.GROUP_SETTINGS_UPDATED -> Triple("Group Updated", Icons.Default.Settings, DarkBlue)
-        ActivityType.COMMENT_ADDED -> Triple("Comment Added", Icons.Default.Chat, DarkBlue)
+        ActivityType.COMMENT_ADDED -> Triple("Comment Added", Icons.AutoMirrored.Filled.Chat, DarkBlue)
     }
 }
 

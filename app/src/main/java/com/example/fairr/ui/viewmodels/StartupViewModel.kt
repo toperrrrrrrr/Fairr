@@ -279,13 +279,3 @@ class StartupViewModel @Inject constructor(
         }
     }
 }
-
-/**
- * Represents the different states the app can be in during startup
- */
-sealed class StartupState {
-    object Loading : StartupState()
-    object Onboarding : StartupState()
-    object Authentication : StartupState()
-    object Main : StartupState()
-} 

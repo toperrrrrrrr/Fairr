@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.flow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
+import com.google.firebase.firestore.ktx.toObjects
 
 @Singleton
 class CommentService @Inject constructor(
@@ -181,15 +182,46 @@ class CommentService @Inject constructor(
         }
     }
 
+    private val commentsCollection = firestore.collection("comments")
+
     suspend fun getComment(commentId: String): Comment? {
-        return firestore.collection("expenses").document(commentId).collection("comments").document(commentId).get().await().toObject()
+        return commentsCollection.document(commentId)
+            .get()
+            .await()
+            .toObject<Comment>()
     }
 
     suspend fun getComments(expenseId: String): List<Comment> {
-        return firestore.collection("expenses").document(expenseId).collection("comments").get().await().documents.mapNotNull { it.toObject() }
+        return commentsCollection
+            .whereEqualTo("expenseId", expenseId)
+            .get()
+            .await()
+            .toObjects()
     }
 
     suspend fun getGroupComments(groupId: String): List<Comment> {
-        return firestore.collection("expenses").whereEqualTo("groupId", groupId).get().await().documents.mapNotNull { it.toObject() }
+        return commentsCollection
+            .whereEqualTo("groupId", groupId)
+            .get()
+            .await()
+            .toObjects()
+    }
+
+    suspend fun getLatestComments(groupId: String, limit: Int = 10): List<Comment> {
+        return commentsCollection
+            .whereEqualTo("groupId", groupId)
+            .orderBy("timestamp", com.google.firebase.firestore.Query.Direction.DESCENDING)
+            .limit(limit.toLong())
+            .get()
+            .await()
+            .toObjects()
+    }
+
+    suspend fun getCommentsByUser(userId: String): List<Comment> {
+        return commentsCollection
+            .whereEqualTo("userId", userId)
+            .get()
+            .await()
+            .toObjects()
     }
 } 

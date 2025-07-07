@@ -32,93 +32,65 @@ import java.util.*
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun RecurringExpenseAnalyticsScreen(
+    viewModel: RecurringExpenseAnalyticsViewModel,
     groupId: String,
-    navController: NavController,
-    viewModel: RecurringExpenseAnalyticsViewModel = hiltViewModel()
+    onNavigateBack: () -> Unit
 ) {
     val state by viewModel.state.collectAsState()
-    val scope = rememberCoroutineScope()
-    
-    // Load analytics when screen opens
+    val stats = state.stats
+
     LaunchedEffect(groupId) {
         viewModel.loadAnalytics(groupId)
     }
-    
-    Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { 
-                    Text(
-                        "Recurring Analytics",
-                        fontWeight = FontWeight.Bold,
-                        color = TextPrimary
-                    ) 
-                },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = IconTint
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = BackgroundPrimary
-                )
-            )
-        }
-    ) { padding ->
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(LightBackground)
-                .padding(padding)
-        ) {
-            if (state.isLoading) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(color = Primary)
+
+    Column(
+        modifier = Modifier
+            .fillMaxSize()
+            .padding(16.dp)
+    ) {
+        if (state.isLoading) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = Primary)
+            }
+        } else {
+            LazyColumn(
+                modifier = Modifier.fillMaxSize(),
+                contentPadding = PaddingValues(16.dp),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
+            ) {
+                // Overview Stats
+                item {
+                    OverviewStatsCard(stats = stats, viewModel = viewModel)
                 }
-            } else {
-                LazyColumn(
-                    modifier = Modifier.fillMaxSize(),
-                    contentPadding = PaddingValues(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
-                ) {
-                    // Overview Stats
+                
+                // Insights
+                if (state.insights.isNotEmpty()) {
                     item {
-                        OverviewStatsCard(stats = state.stats, viewModel = viewModel)
+                        InsightsCard(insights = state.insights)
                     }
-                    
-                    // Insights
-                    if (state.insights.isNotEmpty()) {
-                        item {
-                            InsightsCard(insights = state.insights)
-                        }
+                }
+                
+                // Frequency Breakdown
+                if (state.frequencyBreakdown.isNotEmpty()) {
+                    item {
+                        FrequencyBreakdownCard(breakdown = state.frequencyBreakdown)
                     }
-                    
-                    // Frequency Breakdown
-                    if (state.frequencyBreakdown.isNotEmpty()) {
-                        item {
-                            FrequencyBreakdownCard(breakdown = state.frequencyBreakdown)
-                        }
+                }
+                
+                // Category Breakdown
+                if (state.categoryBreakdown.isNotEmpty()) {
+                    item {
+                        CategoryBreakdownCard(breakdown = state.categoryBreakdown, viewModel = viewModel)
                     }
-                    
-                    // Category Breakdown
-                    if (state.categoryBreakdown.isNotEmpty()) {
-                        item {
-                            CategoryBreakdownCard(breakdown = state.categoryBreakdown, viewModel = viewModel)
-                        }
-                    }
-                    
-                    // Monthly Trends
-                    if (state.monthlyTrends.isNotEmpty()) {
-                        item {
-                            MonthlyTrendsCard(trends = state.monthlyTrends, viewModel = viewModel)
-                        }
+                }
+                
+                // Monthly Trends
+                if (state.monthlyTrends.isNotEmpty()) {
+                    item {
+                        MonthlyTrendsCard(trends = state.monthlyTrends, viewModel = viewModel)
                     }
                 }
             }
@@ -181,7 +153,7 @@ private fun OverviewStatsCard(
                 )
             }
             
-            if (stats.upcomingExpenses > 0) {
+            if (stats.upcomingExpenses.isNotEmpty()) {
                 Card(
                     modifier = Modifier.fillMaxWidth(),
                     colors = CardDefaults.cardColors(containerColor = Primary.copy(alpha = 0.1f)),
@@ -199,7 +171,7 @@ private fun OverviewStatsCard(
                         )
                         Spacer(modifier = Modifier.width(8.dp))
                         Text(
-                            text = "${stats.upcomingExpenses} upcoming expenses in next 30 days",
+                            text = "${stats.upcomingExpenses.size} upcoming expenses in next 30 days",
                             style = MaterialTheme.typography.bodyMedium,
                             color = Primary
                         )
@@ -359,7 +331,7 @@ private fun CategoryBreakdownCard(
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
-                        text = item.category,
+                        text = item.category.displayName,
                         style = MaterialTheme.typography.bodyMedium,
                         color = TextPrimary,
                         modifier = Modifier.weight(1f)
@@ -433,8 +405,9 @@ private fun MonthlyTrendsCard(
 fun RecurringExpenseAnalyticsScreenPreview() {
     FairrTheme {
         RecurringExpenseAnalyticsScreen(
+            viewModel = hiltViewModel(),
             groupId = "sample_group_preview",
-            navController = rememberNavController()
+            onNavigateBack = {}
         )
     }
 } 

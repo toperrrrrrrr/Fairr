@@ -4,3 +4,5 @@ Let's fix it to reflect the emoji instead of the letter. I will then run the app
 3. Improve the friends page. Add friend section should be inside a modal to keep the screen clean. 
 4. Friend groups crashes the app. 
 5. Friend request should show up on notification page.
+6. notifuication page layoutn doesnt follow ui conventions. Also doesnt have correct data. 
+7. 

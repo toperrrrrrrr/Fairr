@@ -39,6 +39,15 @@ import com.example.fairr.ui.components.ModernCard
 import com.example.fairr.ui.components.GroupEmojiAvatar
 import com.example.fairr.ui.components.UserEmojiAvatar
 import com.example.fairr.navigation.Screen
+import androidx.compose.material.icons.automirrored.filled.Message
+import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.Payment
+import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material.icons.filled.PersonRemove
+import androidx.compose.material.icons.filled.TrendingUp
+import androidx.compose.material.icons.filled.Warning
 
 @Composable
 private fun DetailItem(
@@ -810,7 +819,7 @@ fun InviteGroupDialog(
                     maxLines = 3,
                     leadingIcon = {
                         Icon(
-                            Icons.Default.Message,
+                            Icons.AutoMirrored.Filled.Message,
                             contentDescription = "Message"
                         )
                     }

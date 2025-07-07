@@ -44,267 +44,71 @@ import com.example.fairr.ui.screens.auth.WelcomeScreen
 import com.example.fairr.ui.screens.auth.ForgotPasswordScreen
 import com.example.fairr.ui.screens.auth.AccountVerificationScreen
 import androidx.navigation.NavHostController
-
-sealed class Screen(val route: String) {
-    object Splash : Screen("splash")
-    object Onboarding : Screen("onboarding")
-    object Welcome : Screen("welcome")
-    object Login : Screen("login")
-    object SignUp : Screen("signup")
-    object ForgotPassword : Screen("forgot_password")
-    object AccountVerification : Screen("account_verification")
-    object Main : Screen("main?tab={tab}") {
-        fun createRoute(tab: Int = 0) = "main?tab=$tab"
-    }
-    object CreateGroup : Screen("create_group")
-    object JoinGroup : Screen("join_group")
-    object Search : Screen("search")
-    object Notifications : Screen("notifications")
-    object GroupDetail : Screen("group_detail/{groupId}") {
-        fun createRoute(groupId: String) = "group_detail/$groupId"
-    }
-    object Settings : Screen("settings")
-    object EditProfile : Screen("edit_profile")
-    object HelpSupport : Screen("help_support")
-    object UserProfile : Screen("user_profile")
-    object CategoryManagement : Screen("category_management")
-    object ExportData : Screen("export_data")
-    object GroupSettings : Screen("group_settings/{groupId}") {
-        fun createRoute(groupId: String) = "group_settings/$groupId"
-    }
-    object GroupActivity : Screen("group_activity/{groupId}") {
-        fun createRoute(groupId: String) = "group_activity/$groupId"
-    }
-    object Settlement : Screen("settlement/{groupId}") {
-        fun createRoute(groupId: String) = "settlement/$groupId"
-    }
-    object SettlementsOverview : Screen("settlements_overview")
-    object ExpenseDetail : Screen("expense_detail/{expenseId}") {
-        fun createRoute(expenseId: String) = "expense_detail/$expenseId"
-    }
-    object EditExpense : Screen("edit_expense/{expenseId}") {
-        fun createRoute(expenseId: String) = "edit_expense/$expenseId"
-    }
-    object CurrencySelection : Screen("currency_selection")
-    object AddExpense : Screen("add_expense/{groupId}") {
-        fun createRoute(groupId: String) = "add_expense/$groupId"
-    }
-    object Friends : Screen("friends")
-    object PrivacyPolicy : Screen("privacy_policy")
-    object ContactSupport : Screen("contact_support")
-    object RecurringExpenseManagement : Screen("recurring_expense_management/{groupId}") {
-        fun createRoute(groupId: String) = "recurring_expense_management/$groupId"
-    }
-    object RecurringExpenseAnalytics : Screen("recurring_analytics/{groupId}") {
-        fun createRoute(groupId: String) = "recurring_analytics/$groupId"
-    }
-}
+import com.example.fairr.ui.screens.SplashScreen
+import com.example.fairr.ui.screens.home.HomeScreen
+import com.example.fairr.ui.screens.groups.GroupDetailScreen
+import com.example.fairr.ui.screens.auth.ModernLoginScreen as LoginScreen
+import com.example.fairr.ui.screens.onboarding.OnboardingScreen
+import com.example.fairr.ui.screens.settings.SettingsScreen
+import com.example.fairr.ui.screens.MainScreen
+import com.example.fairr.ui.screens.groups.CreateGroupScreen
+import com.example.fairr.ui.screens.groups.JoinGroupScreen
+import com.example.fairr.ui.screens.settlements.SettlementsOverviewScreen as SettlementsScreen
+import com.example.fairr.ui.screens.expenses.RecurringExpenseManagementScreen
+import com.example.fairr.ui.screens.expenses.RecurringExpenseAnalyticsScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun FairrNavGraph(
     navController: NavHostController,
     startupViewModel: StartupViewModel,
-    onAppReset: () -> Unit = {}
+    onAppReset: () -> Unit
 ) {
-    val hasCompletedOnboarding by startupViewModel.isOnboardingCompleted.collectAsState()
+    val startupState = startupViewModel.startupState.value
 
     NavHost(
         navController = navController,
-        startDestination = Screen.Splash.route
+        startDestination = when (startupState) {
+            StartupState.Welcome -> Screen.Welcome.route
+            StartupState.Login -> Screen.Login.route
+            StartupState.Onboarding -> Screen.Onboarding.route
+            else -> Screen.Main.route
+        }
     ) {
-        composable(Screen.Splash.route) {
-            // Splash screen is now handled in MainActivity
-            // This route is kept for compatibility but not used
-        }
-
-        composable(
-            route = Screen.Onboarding.route,
-            enterTransition = {
-                slideIntoContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
-                    animationSpec = tween(300, easing = EaseInOut)
-                )
-            },
-            exitTransition = {
-                slideOutOfContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
-                    animationSpec = tween(300, easing = EaseInOut)
-                )
-            }
-        ) {
-            OnboardingScreen(
-                onGetStarted = {
-                    startupViewModel.setOnboardingCompleted()
-                    navController.navigate(Screen.Welcome.route) {
-                        popUpTo(Screen.Onboarding.route) { inclusive = true }
-                    }
-                }
-            )
-        }
-
-        composable(
-            route = Screen.Welcome.route,
-            enterTransition = {
-                slideIntoContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Up,
-                    animationSpec = tween(400, easing = EaseInOut)
-                )
-            },
-            exitTransition = {
-                slideOutOfContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Up,
-                    animationSpec = tween(400, easing = EaseInOut)
-                )
-            }
-        ) {
-            val authViewModel: AuthViewModel = hiltViewModel()
+        composable(Screen.Welcome.route) {
             WelcomeScreen(
-                onNavigateToLogin = {
-                    navController.navigate(Screen.Login.route)
-                },
-                onNavigateToSignUp = {
-                    navController.navigate(Screen.SignUp.route)
-                },
-                viewModel = authViewModel
+                onNavigateToHome = { navController.navigate(Screen.Main.route) },
+                onNavigateToAuth = { navController.navigate(Screen.Login.route) }
             )
         }
 
-        composable(
-            route = Screen.Login.route,
-            enterTransition = {
-                slideIntoContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
-                    animationSpec = tween(350, easing = EaseInOut)
-                )
-            },
-            exitTransition = {
-                slideOutOfContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
-                    animationSpec = tween(350, easing = EaseInOut)
-                )
-            }
-        ) {
-            val authViewModel: AuthViewModel = hiltViewModel()
-            ModernLoginScreen(
+        composable(Screen.Login.route) {
+            LoginScreen(
                 navController = navController,
-                onLoginSuccess = {
-                    navController.navigate(Screen.Main.route) {
-                        popUpTo(Screen.Welcome.route) { inclusive = true }
-                    }
-                },
-                onNavigateToRegister = {
-                    navController.navigate(Screen.SignUp.route) {
-                        popUpTo(Screen.Login.route) { inclusive = true }
-                    }
-                },
-                onNavigateToForgotPassword = {
-                    navController.navigate(Screen.ForgotPassword.route)
-                },
-                viewModel = authViewModel
+                onLoginSuccess = { navController.navigate(Screen.Main.route) },
+                onNavigateToRegister = { navController.navigate(Screen.Onboarding.route) },
+                onNavigateToForgotPassword = { navController.navigate(Screen.ForgotPassword.route) }
             )
         }
 
-        composable(
-            route = Screen.SignUp.route,
-            enterTransition = {
-                slideIntoContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
-                    animationSpec = tween(350, easing = EaseInOut)
-                )
-            },
-            exitTransition = {
-                slideOutOfContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
-                    animationSpec = tween(350, easing = EaseInOut)
-                )
-            }
-        ) {
-            val authViewModel: AuthViewModel = hiltViewModel()
-            ModernSignUpScreen(
-                navController = navController,
-                onNavigateBack = {
-                    navController.popBackStack()
-                },
-                onSignUpSuccess = {
-                    navController.navigate(Screen.Main.route) {
-                        popUpTo(Screen.Welcome.route) { inclusive = true }
-                    }
-                },
-                onNavigateToLogin = {
-                    navController.navigate(Screen.Login.route) {
-                        popUpTo(Screen.SignUp.route) { inclusive = true }
-                    }
-                },
-                viewModel = authViewModel
-            )
-        }
-
-        composable(Screen.ForgotPassword.route) {
-            ForgotPasswordScreen(
-                navController = navController,
-                onNavigateBack = {
-                    navController.popBackStack()
-                },
-                onResetSent = {
-                    navController.popBackStack()
-                }
-            )
-        }
-
-        composable(Screen.AccountVerification.route) {
-            AccountVerificationScreen(
-                navController = navController,
-                onNavigateBack = {
-                    navController.popBackStack()
-                },
-                onVerificationComplete = {
-                    navController.navigate(Screen.Main.route) {
-                        popUpTo(Screen.Welcome.route) { inclusive = true }
-                    }
-                }
-            )
-        }
-
-        composable(
-            route = Screen.Main.route,
-            arguments = listOf(
-                navArgument("tab") {
-                    type = NavType.IntType
-                    defaultValue = 0
-                }
-            )
-        ) { backStackEntry ->
-            val tab = backStackEntry.arguments?.getInt("tab") ?: 0
+        composable(Screen.Main.route) {
             MainScreen(
                 navController = navController,
-                onNavigateToAddExpense = { groupId: String ->
-                    navController.navigate(Screen.AddExpense.createRoute(groupId))
-                },
-                onNavigateToCreateGroup = {
-                    navController.navigate(Screen.CreateGroup.route)
-                },
-                onNavigateToJoinGroup = {
-                    navController.navigate(Screen.JoinGroup.route)
-                },
-                onNavigateToSearch = {
-                    navController.navigate(Screen.Search.route)
-                },
-                onNavigateToNotifications = {
-                    navController.navigate(Screen.Notifications.route)
-                },
-                onNavigateToGroupDetail = { groupId: String ->
-                    navController.navigate(Screen.GroupDetail.createRoute(groupId))
-                },
-                onNavigateToSettlements = {
-                    navController.navigate(Screen.SettlementsOverview.route)
-                },
-                onNavigateToFriends = {
-                    navController.navigate(Screen.Friends.route)
-                },
-                onSignOut = {
-                    onAppReset()
-                }
+                onNavigateToAddExpense = { groupId -> navController.navigate(Screen.AddExpense.createRoute(groupId)) },
+                onNavigateToCreateGroup = { navController.navigate(Screen.CreateGroup.route) },
+                onNavigateToJoinGroup = { navController.navigate(Screen.JoinGroup.route) },
+                onNavigateToSearch = { navController.navigate(Screen.Search.route) },
+                onNavigateToNotifications = { navController.navigate(Screen.Notifications.route) },
+                onNavigateToGroupDetail = { groupId -> navController.navigate(Screen.GroupDetail.createRoute(groupId)) },
+                onNavigateToSettlements = { navController.navigate(Screen.Settlements.route) },
+                onNavigateToFriends = { navController.navigate(Screen.Friends.route) },
+                onSignOut = onAppReset
+            )
+        }
+
+        composable(Screen.Onboarding.route) {
+            OnboardingScreen(
+                onGetStarted = { navController.navigate(Screen.Main.route) }
             )
         }
 
@@ -321,54 +125,79 @@ fun FairrNavGraph(
         }
 
         composable(
-            route = Screen.GroupDetail.route,
-            arguments = listOf(
-                navArgument("groupId") { type = NavType.StringType }
-            ),
-            enterTransition = {
-                slideIntoContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
-                    animationSpec = tween(300, easing = EaseInOut)
-                )
-            },
-            exitTransition = {
-                slideOutOfContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
-                    animationSpec = tween(300, easing = EaseInOut)
-                )
-            }
+            route = Screen.ExpenseDetail.route,
+            arguments = listOf(navArgument("expenseId") { type = NavType.StringType })
         ) { backStackEntry ->
-            val groupId = backStackEntry.arguments?.getString("groupId")
-                ?: return@composable
-            GroupDetailScreen(
-                groupId = groupId,
+            val expenseId = backStackEntry.arguments?.getString("expenseId") ?: return@composable
+            ExpenseDetailScreen(
                 navController = navController,
-                onNavigateToAddExpense = {
-                    navController.navigate(Screen.AddExpense.createRoute(groupId))
-                }
+                expenseId = expenseId
+            )
+        }
+
+        composable(Screen.Settings.route) {
+            SettingsScreen(
+                navController = navController,
+                onSignOut = onAppReset
+            )
+        }
+
+        composable(Screen.Settlements.route) {
+            SettlementsScreen(
+                navController = navController
+            )
+        }
+
+        composable(Screen.Search.route) {
+            SearchScreen(
+                navController = navController
+            )
+        }
+
+        composable(Screen.Notifications.route) {
+            NotificationsScreen(
+                navController = navController
             )
         }
 
         composable(
-            route = Screen.Settings.route,
-            enterTransition = {
-                slideIntoContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
-                    animationSpec = tween(300, easing = EaseInOut)
-                )
-            },
-            exitTransition = {
-                slideOutOfContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
-                    animationSpec = tween(300, easing = EaseInOut)
-                )
-            }
-        ) {
-            SettingsScreen(
+            route = Screen.GroupDetail.route,
+            arguments = listOf(navArgument("groupId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val groupId = backStackEntry.arguments?.getString("groupId") ?: return@composable
+            GroupDetailScreen(
+                groupId = groupId,
                 navController = navController,
-                onSignOut = {
-                    onAppReset()
-                }
+                onNavigateToAddExpense = { navController.navigate(Screen.AddExpense.createRoute(groupId)) }
+            )
+        }
+
+        composable(
+            route = Screen.GroupSettings.route,
+            arguments = listOf(navArgument("groupId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val groupId = backStackEntry.arguments?.getString("groupId") ?: return@composable
+            GroupSettingsScreen(
+                navController = navController,
+                groupId = groupId
+            )
+        }
+
+        composable(
+            route = Screen.Settlement.route,
+            arguments = listOf(navArgument("settlementId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val settlementId = backStackEntry.arguments?.getString("settlementId") ?: return@composable
+            SettlementScreen(
+                navController = navController,
+                groupId = settlementId, // Using settlementId as groupId for now
+                onSettlementComplete = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.EditProfile.route) {
+            EditProfileScreen(
+                navController = navController
             )
         }
 
@@ -378,300 +207,74 @@ fun FairrNavGraph(
             )
         }
 
-        composable(Screen.Friends.route) {
-            FriendsScreen(
-                navController = navController,
-                onNavigateBack = {
-                    navController.popBackStack()
-                }
-            )
-        }
-
-        // AddExpense screen implementation
-        composable(
-            route = Screen.AddExpense.route,
-            arguments = listOf(
-                navArgument("groupId") { type = NavType.StringType }
-            ),
-            enterTransition = {
-                slideIntoContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Up,
-                    animationSpec = tween(400, easing = EaseInOut)
-                )
-            },
-            exitTransition = {
-                slideOutOfContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Down,
-                    animationSpec = tween(400, easing = EaseInOut)
-                )
-            }
-        ) { backStackEntry ->
-            val groupId = backStackEntry.arguments?.getString("groupId")
-                ?: return@composable
-            AddExpenseScreen(
-                groupId = groupId,
-                navController = navController,
-                onExpenseAdded = {
-                    navController.popBackStack()
-                }
-            )
-        }
-
-        // Edit Profile screen
-        composable(Screen.EditProfile.route) {
-            EditProfileScreen(
-                navController = navController
-            )
-        }
-
-        // Help & Support screen
-        composable(Screen.HelpSupport.route) {
-            HelpSupportScreen(
-                navController = navController
-            )
-        }
-
-        // User Profile screen (Advanced profile)
-        composable(Screen.UserProfile.route) {
-            UserProfileScreen(
-                navController = navController
-            )
-        }
-
-        // Category Management screen
         composable(Screen.CategoryManagement.route) {
             CategoryManagementScreen(
                 navController = navController
             )
         }
 
-        // Export Data screen
         composable(Screen.ExportData.route) {
             ExportDataScreen(
                 navController = navController
             )
         }
 
-        // Group Settings screen
-        composable(
-            route = Screen.GroupSettings.route,
-            arguments = listOf(
-                navArgument("groupId") { type = NavType.StringType }
-            ),
-            enterTransition = {
-                slideIntoContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
-                    animationSpec = tween(300, easing = EaseInOut)
-                )
-            },
-            exitTransition = {
-                slideOutOfContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
-                    animationSpec = tween(300, easing = EaseInOut)
-                )
-            }
-        ) { backStackEntry ->
-            val groupId = backStackEntry.arguments?.getString("groupId")
-                ?: return@composable
-            GroupSettingsScreen(
-                groupId = groupId,
+        composable(Screen.HelpSupport.route) {
+            HelpSupportScreen(
                 navController = navController
             )
         }
 
-        // Group Activity screen
-        composable(
-            route = Screen.GroupActivity.route,
-            arguments = listOf(
-                navArgument("groupId") { type = NavType.StringType }
-            ),
-            enterTransition = {
-                slideIntoContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
-                    animationSpec = tween(300, easing = EaseInOut)
-                )
-            },
-            exitTransition = {
-                slideOutOfContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
-                    animationSpec = tween(300, easing = EaseInOut)
-                )
-            }
-        ) { backStackEntry ->
-            val groupId = backStackEntry.arguments?.getString("groupId")
-                ?: return@composable
-            GroupActivityScreen(
-                groupId = groupId,
-                navController = navController
-            )
-        }
-
-        // Settlement screen
-        composable(
-            route = Screen.Settlement.route,
-            arguments = listOf(
-                navArgument("groupId") { type = NavType.StringType }
-            ),
-            enterTransition = {
-                slideIntoContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
-                    animationSpec = tween(300, easing = EaseInOut)
-                )
-            },
-            exitTransition = {
-                slideOutOfContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
-                    animationSpec = tween(300, easing = EaseInOut)
-                )
-            }
-        ) { backStackEntry ->
-            val groupId = backStackEntry.arguments?.getString("groupId")
-                ?: return@composable
-            SettlementScreen(
-                groupId = groupId,
-                navController = navController
-            )
-        }
-
-        // Expense Detail screen
-        composable(
-            route = Screen.ExpenseDetail.route,
-            arguments = listOf(
-                navArgument("expenseId") { type = NavType.StringType }
-            ),
-            enterTransition = {
-                slideIntoContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
-                    animationSpec = tween(300, easing = EaseInOut)
-                )
-            },
-            exitTransition = {
-                slideOutOfContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
-                    animationSpec = tween(300, easing = EaseInOut)
-                )
-            }
-        ) { backStackEntry ->
-            val expenseId = backStackEntry.arguments?.getString("expenseId")
-                ?: return@composable
-            ExpenseDetailScreen(
-                expenseId = expenseId,
-                navController = navController,
-                onEditExpense = {
-                    navController.navigate(Screen.EditExpense.createRoute(expenseId))
-                }
-            )
-        }
-
-        // Edit Expense screen
-        composable(
-            route = Screen.EditExpense.route,
-            arguments = listOf(
-                navArgument("expenseId") { type = NavType.StringType }
-            ),
-            enterTransition = {
-                slideIntoContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
-                    animationSpec = tween(300, easing = EaseInOut)
-                )
-            },
-            exitTransition = {
-                slideOutOfContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
-                    animationSpec = tween(300, easing = EaseInOut)
-                )
-            }
-        ) { backStackEntry ->
-            val expenseId = backStackEntry.arguments?.getString("expenseId")
-                ?: return@composable
-            EditExpenseScreen(
-                expenseId = expenseId,
-                navController = navController
-            )
-        }
-
-        // Search screen
-        composable(
-            route = Screen.Search.route,
-            enterTransition = {
-                slideIntoContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
-                    animationSpec = tween(300, easing = EaseInOut)
-                )
-            },
-            exitTransition = {
-                slideOutOfContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
-                    animationSpec = tween(300, easing = EaseInOut)
-                )
-            }
-        ) {
-            SearchScreen(navController = navController)
-        }
-
-        // Notifications screen
-        composable(
-            route = Screen.Notifications.route,
-            enterTransition = {
-                slideIntoContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Left,
-                    animationSpec = tween(300, easing = EaseInOut)
-                )
-            },
-            exitTransition = {
-                slideOutOfContainer(
-                    towards = AnimatedContentTransitionScope.SlideDirection.Right,
-                    animationSpec = tween(300, easing = EaseInOut)
-                )
-            }
-        ) {
-            NotificationsScreen(navController = navController)
-        }
-
-        // Privacy Policy screen
-        composable(Screen.PrivacyPolicy.route) {
-            PrivacyPolicyScreen(navController = navController)
-        }
-
-        // Contact Support screen
         composable(Screen.ContactSupport.route) {
-            ContactSupportScreen(navController = navController)
-        }
-
-        // Settlements Overview screen
-        composable(Screen.SettlementsOverview.route) {
-            SettlementsOverviewScreen(
+            ContactSupportScreen(
                 navController = navController
             )
         }
 
-        // Recurring Expense Management screen
+        composable(Screen.PrivacyPolicy.route) {
+            PrivacyPolicyScreen(
+                navController = navController
+            )
+        }
+
+        composable(Screen.Friends.route) {
+            FriendsScreen(
+                navController = navController,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(
+            route = Screen.AddExpense.route,
+            arguments = listOf(navArgument("groupId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val groupId = backStackEntry.arguments?.getString("groupId") ?: return@composable
+            AddExpenseScreen(
+                groupId = groupId,
+                navController = navController
+            )
+        }
+
         composable(
             route = Screen.RecurringExpenseManagement.route,
-            arguments = listOf(
-                navArgument("groupId") { type = NavType.StringType }
-            )
+            arguments = listOf(navArgument("groupId") { type = NavType.StringType })
         ) { backStackEntry ->
-            val groupId = backStackEntry.arguments?.getString("groupId")
-                ?: return@composable
+            val groupId = backStackEntry.arguments?.getString("groupId") ?: return@composable
             RecurringExpenseManagementScreen(
                 groupId = groupId,
                 navController = navController
             )
         }
 
-        // Recurring Expense Analytics screen
         composable(
             route = Screen.RecurringExpenseAnalytics.route,
-            arguments = listOf(
-                navArgument("groupId") { type = NavType.StringType }
-            )
+            arguments = listOf(navArgument("groupId") { type = NavType.StringType })
         ) { backStackEntry ->
-            val groupId = backStackEntry.arguments?.getString("groupId")
-                ?: return@composable
+            val groupId = backStackEntry.arguments?.getString("groupId") ?: return@composable
             RecurringExpenseAnalyticsScreen(
+                viewModel = hiltViewModel(),
                 groupId = groupId,
-                navController = navController
+                onNavigateBack = { navController.popBackStack() }
             )
         }
     }
@@ -688,19 +291,25 @@ fun NavHostController.handleAuthRedirect(
         !isAuthenticated && startupState == StartupState.Authentication -> {
             // User is not authenticated, redirect to login
             navigate(Screen.Login.route) {
-                popUpTo(Screen.Splash.route) { inclusive = true }
+                popUpTo(Screen.Splash.route) { 
+                    this.inclusive = true 
+                }
             }
         }
         isAuthenticated && startupState == StartupState.Main -> {
             // User is authenticated, redirect to main app
             navigate(Screen.Main.route) {
-                popUpTo(Screen.Splash.route) { inclusive = true }
+                popUpTo(Screen.Splash.route) { 
+                    this.inclusive = true 
+                }
             }
         }
         startupState == StartupState.Onboarding -> {
             // User needs to complete onboarding
             navigate(Screen.Onboarding.route) {
-                popUpTo(Screen.Splash.route) { inclusive = true }
+                popUpTo(Screen.Splash.route) { 
+                    this.inclusive = true 
+                }
             }
         }
     }
