@@ -37,6 +37,13 @@ data class ExportResult(
     val errorMessage: String? = null
 )
 
+/**
+ * Export Service for the Fairr app.
+ *
+ * Handles exporting user and group data (expenses, settlements, groups) to CSV, Excel, or PDF formats.
+ * Integrates with Firestore, Storage, and authentication to ensure secure, privacy-compliant exports.
+ * Provides helpers for filtering, formatting, and packaging export data for user download or sharing.
+ */
 @Singleton
 class ExportService @Inject constructor(
     private val context: Context,

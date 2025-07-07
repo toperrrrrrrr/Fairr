@@ -4,11 +4,13 @@ import android.util.Log
 import com.example.fairr.data.model.Expense
 import com.example.fairr.data.model.RecurrenceFrequency
 import com.example.fairr.data.repository.ExpenseRepository
+import com.example.fairr.data.repository.ExpenseQueryParams
 import kotlinx.coroutines.CoroutineScope
 import kotlinx.coroutines.Dispatchers
 import kotlinx.coroutines.SupervisorJob
 import kotlinx.coroutines.cancel
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.flow.first
 import java.util.*
 import javax.inject.Inject
 import javax.inject.Singleton
@@ -91,7 +93,12 @@ class RecurringExpenseAnalytics @Inject constructor(
         val yearlyProjection = monthlyProjection * 12
         
         // Count generated instances (expenses with parentExpenseId)
-        val allExpenses = expenseRepository.getExpensesByGroupId(groupId)
+        val allExpenses = expenseRepository.getPaginatedExpenses(
+            ExpenseQueryParams(
+                groupId = groupId,
+                includeRecurring = true
+            )
+        ).expenses
         val totalGeneratedInstances = allExpenses.count { it.parentExpenseId != null }
         
         return RecurringExpenseStats(

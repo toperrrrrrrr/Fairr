@@ -28,6 +28,13 @@ sealed class AuthState {
     data class Error(val message: String) : AuthState()
 }
 
+/**
+ * Authentication Service for the Fairr app.
+ *
+ * Handles user authentication, session management, token refresh, and account actions.
+ * Integrates with Firebase Auth and provides helpers for sign-in, sign-up, password reset,
+ * email verification, and session validation.
+ */
 @Singleton
 class AuthService @Inject constructor(
     private val auth: FirebaseAuth

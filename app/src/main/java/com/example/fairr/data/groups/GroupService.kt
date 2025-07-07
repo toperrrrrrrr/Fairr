@@ -120,8 +120,9 @@ class GroupService @Inject constructor(
     }
 
     fun getGroupById(groupId: String): Flow<Group> = callbackFlow {
-        val currentUser = auth.currentUser
-            ?: throw IllegalStateException("User not authenticated")
+        if (auth.currentUser == null) {
+            throw IllegalStateException("User not authenticated")
+        }
 
         val subscription = groupsCollection.document(groupId)
             .addSnapshotListener { snapshot, error ->
@@ -168,8 +169,9 @@ class GroupService @Inject constructor(
     }
 
     fun getGroup(groupId: String): Flow<Group> = callbackFlow {
-        val currentUser = auth.currentUser
-            ?: throw IllegalStateException("User not authenticated")
+        if (auth.currentUser == null) {
+            throw IllegalStateException("User not authenticated")
+        }
 
         val subscription = groupsCollection.document(groupId)
             .addSnapshotListener { snapshot, error ->

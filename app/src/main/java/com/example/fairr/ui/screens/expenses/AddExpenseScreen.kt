@@ -19,6 +19,7 @@ import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.shadow
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.font.FontWeight
@@ -27,6 +28,7 @@ import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.window.DialogProperties
 import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import androidx.hilt.navigation.compose.hiltViewModel
@@ -323,18 +325,40 @@ fun AddExpenseScreen(
                             fontWeight = FontWeight.SemiBold,
                             color = TextPrimary
                         )
-                        CategoryChip(
-                            category = selectedCategory,
-                            selected = true,
-                            onClick = { showCategorySheet = true },
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                        Surface(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(min = 48.dp)
+                                .clickable { showCategorySheet = true },
+                            shape = RoundedCornerShape(8.dp),
+                            border = BorderStroke(1.dp, Primary.copy(alpha = 0.5f)),
+                            color = BackgroundPrimary
+                        ) {
+                            Row(
+                                modifier = Modifier
+                                    .padding(horizontal = 16.dp, vertical = 8.dp),
+                                verticalAlignment = Alignment.CenterVertically,
+                                horizontalArrangement = Arrangement.spacedBy(8.dp)
+                            ) {
+                                CategoryChip(
+                                    category = selectedCategory,
+                                    selected = true,
+                                    onClick = { },
+                                    modifier = Modifier.weight(1f)
+                                )
+                                Icon(
+                                    Icons.Default.KeyboardArrowRight,
+                                    contentDescription = "Select category",
+                                    tint = IconTint
+                                )
+                            }
+                        }
                     }
 
                     // Recurrence section
                     Column(
                         modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
                         Text(
                             text = "Recurrence",
@@ -342,21 +366,37 @@ fun AddExpenseScreen(
                             fontWeight = FontWeight.SemiBold,
                             color = TextPrimary
                         )
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically,
-                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        Column(
+                            verticalArrangement = Arrangement.spacedBy(12.dp)
                         ) {
                             // Frequency dropdown
                             var expanded by remember { mutableStateOf(false) }
-                            Box {
+                            Box(
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
                                 OutlinedButton(
-                                    onClick = { expanded = true }
+                                    onClick = { expanded = true },
+                                    modifier = Modifier
+                                        .fillMaxWidth()
+                                        .heightIn(min = 48.dp),
+                                    contentPadding = PaddingValues(horizontal = 16.dp)
                                 ) {
-                                    Text(recurrenceFrequency.displayName)
+                                    Row(
+                                        modifier = Modifier.fillMaxWidth(),
+                                        horizontalArrangement = Arrangement.SpaceBetween,
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(recurrenceFrequency.displayName)
+                                        Icon(
+                                            Icons.Default.ArrowDropDown,
+                                            contentDescription = "Select frequency"
+                                        )
+                                    }
                                 }
                                 DropdownMenu(
                                     expanded = expanded,
-                                    onDismissRequest = { expanded = false }
+                                    onDismissRequest = { expanded = false },
+                                    modifier = Modifier.width(IntrinsicSize.Max)
                                 ) {
                                     com.example.fairr.data.model.RecurrenceFrequency.values().forEach { freq ->
                                         DropdownMenuItem(
@@ -364,241 +404,312 @@ fun AddExpenseScreen(
                                             onClick = {
                                                 recurrenceFrequency = freq
                                                 expanded = false
-                                            }
+                                            },
+                                            modifier = Modifier.heightIn(min = 48.dp)
                                         )
                                     }
                                 }
                             }
-                            // Interval input
+                            
+                            // Interval input and frequency label
                             if (recurrenceFrequency != com.example.fairr.data.model.RecurrenceFrequency.NONE) {
-                                OutlinedTextField(
-                                    value = recurrenceInterval.toString(),
-                                    onValueChange = { val v = it.toIntOrNull(); if (v != null && v > 0) recurrenceInterval = v },
-                                    label = { Text("Every") },
-                                    singleLine = true,
-                                    modifier = Modifier.width(80.dp)
-                                )
-                                Text(text = recurrenceFrequency.displayName.lowercase())
-                            }
-                        }
-                        // End date picker
-                        if (recurrenceFrequency != com.example.fairr.data.model.RecurrenceFrequency.NONE) {
-                            Row(
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                OutlinedButton(onClick = { showEndDatePicker = true }) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    OutlinedTextField(
+                                        value = recurrenceInterval.toString(),
+                                        onValueChange = { val v = it.toIntOrNull(); if (v != null && v > 0) recurrenceInterval = v },
+                                        label = { Text("Every") },
+                                        singleLine = true,
+                                        modifier = Modifier
+                                            .width(100.dp)
+                                            .heightIn(min = 48.dp),
+                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
+                                    )
                                     Text(
-                                        text = recurrenceEndDate?.let { java.text.SimpleDateFormat("MMM dd, yyyy").format(it) } ?: "No end date"
+                                        text = recurrenceFrequency.displayName.lowercase(),
+                                        style = MaterialTheme.typography.bodyLarge
                                     )
                                 }
-                                if (recurrenceEndDate != null) {
-                                    IconButton(onClick = { recurrenceEndDate = null }) {
-                                        Icon(Icons.Default.Close, contentDescription = "Clear end date")
+                            }
+                            
+                            // End date picker
+                            if (recurrenceFrequency != com.example.fairr.data.model.RecurrenceFrequency.NONE) {
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    OutlinedButton(
+                                        onClick = { showEndDatePicker = true },
+                                        modifier = Modifier
+                                            .weight(1f)
+                                            .heightIn(min = 48.dp)
+                                    ) {
+                                        Text(
+                                            text = recurrenceEndDate?.let { 
+                                                java.text.SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(it) 
+                                            } ?: "No end date"
+                                        )
+                                    }
+                                    if (recurrenceEndDate != null) {
+                                        IconButton(
+                                            onClick = { recurrenceEndDate = null },
+                                            modifier = Modifier.size(48.dp)
+                                        ) {
+                                            Icon(
+                                                Icons.Default.Close,
+                                                contentDescription = "Clear end date",
+                                                modifier = Modifier.size(24.dp)
+                                            )
+                                        }
                                     }
                                 }
                             }
-                        }
-                        // Recurrence summary
-                        if (recurrenceFrequency != com.example.fairr.data.model.RecurrenceFrequency.NONE) {
-                            val summary = buildString {
-                                append("Repeats every $recurrenceInterval ")
-                                append(recurrenceFrequency.displayName.lowercase())
-                                recurrenceEndDate?.let { endDate ->
-                                    append(" until ")
-                                    append(java.text.SimpleDateFormat("MMM dd, yyyy").format(endDate))
-                                }
-                            }
-                            Text(text = summary, style = MaterialTheme.typography.bodySmall, color = TextSecondary)
                         }
                     }
 
                     // Conversational sentence row
-                    Row(
+                    Surface(
                         modifier = Modifier
                             .fillMaxWidth()
-                            .padding(vertical = 8.dp),
-                        horizontalArrangement = Arrangement.Center,
-                        verticalAlignment = Alignment.CenterVertically
+                            .padding(vertical = 12.dp),
+                        color = BackgroundPrimary,
+                        shape = RoundedCornerShape(8.dp)
                     ) {
-                        Text(
-                            "Paid by ",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-
-                        FilterChip(
-                            selected = true,
-                            onClick = { showPayerSheet = true },
-                            label = { 
-                                Text(
-                                    selectedPaidBy.lowercase(),
-                                    fontWeight = FontWeight.Medium
-                                ) 
-                            },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = Primary.copy(alpha = 0.12f),
-                                selectedLabelColor = Primary
+                        Row(
+                            modifier = Modifier
+                                .padding(horizontal = 16.dp, vertical = 12.dp),
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                "Paid by ",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurface
                             )
-                        )
 
-                        Text(
-                            " and split ",
-                            style = MaterialTheme.typography.bodyLarge,
-                            color = MaterialTheme.colorScheme.onSurface
-                        )
-
-                        FilterChip(
-                            selected = true,
-                            onClick = { showSplitSheet = true },
-                            label = { 
-                                Text(
-                                    when(selectedSplitType) {
-                                        "Equal Split" -> "equally"
-                                        "Percentage" -> "by %"
-                                        "Custom Amount" -> "custom"
-                                        else -> selectedSplitType.lowercase()
-                                    },
-                                    fontWeight = FontWeight.Medium
-                                ) 
-                            },
-                            colors = FilterChipDefaults.filterChipColors(
-                                selectedContainerColor = Primary.copy(alpha = 0.12f),
-                                selectedLabelColor = Primary
+                            FilterChip(
+                                selected = true,
+                                onClick = { showPayerSheet = true },
+                                label = { 
+                                    Text(
+                                        selectedPaidBy.lowercase(),
+                                        fontWeight = FontWeight.Medium
+                                    ) 
+                                },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = Primary.copy(alpha = 0.12f),
+                                    selectedLabelColor = Primary
+                                ),
+                                modifier = Modifier.heightIn(min = 32.dp)
                             )
-                        )
+
+                            Text(
+                                " and split ",
+                                style = MaterialTheme.typography.bodyLarge,
+                                color = MaterialTheme.colorScheme.onSurface
+                            )
+
+                            FilterChip(
+                                selected = true,
+                                onClick = { showSplitSheet = true },
+                                label = { 
+                                    Text(
+                                        when(selectedSplitType) {
+                                            "Equal Split" -> "equally"
+                                            "Percentage" -> "by %"
+                                            "Custom Amount" -> "custom"
+                                            else -> selectedSplitType.lowercase()
+                                        },
+                                        fontWeight = FontWeight.Medium
+                                    ) 
+                                },
+                                colors = FilterChipDefaults.filterChipColors(
+                                    selectedContainerColor = Primary.copy(alpha = 0.12f),
+                                    selectedLabelColor = Primary
+                                ),
+                                modifier = Modifier.heightIn(min = 32.dp)
+                            )
+                        }
                     }
                 }
 
                 // Calculator Section (Amount)
-                Column(
+                Surface(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    color = BackgroundPrimary,
+                    shape = RoundedCornerShape(8.dp)
                 ) {
-                    Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.CenterVertically
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        Text(
-                            text = "Amount",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = TextPrimary
-                        )
-                        
-                        // Currency Selector
-                        var showCurrencyDropdown by remember { mutableStateOf(false) }
-                        Box {
-                            OutlinedButton(
-                                onClick = { showCurrencyDropdown = true },
-                                modifier = Modifier.width(100.dp),
-                                colors = ButtonDefaults.outlinedButtonColors(
-                                    contentColor = Primary
+                        Row(
+                            modifier = Modifier.fillMaxWidth(),
+                            horizontalArrangement = Arrangement.SpaceBetween,
+                            verticalAlignment = Alignment.CenterVertically
+                        ) {
+                            Text(
+                                text = "Amount",
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = FontWeight.SemiBold
                                 ),
-                                border = BorderStroke(1.dp, Primary.copy(alpha = 0.5f))
-                            ) {
-                                Text(
-                                    text = viewModel.getGroupCurrency(),
-                                    fontSize = 14.sp,
-                                    fontWeight = FontWeight.Medium
-                                )
-                                Icon(
-                                    Icons.Default.ArrowDropDown,
-                                    contentDescription = "Select Currency",
-                                    modifier = Modifier.size(16.dp)
-                                )
-                            }
+                                color = TextPrimary
+                            )
                             
-                            DropdownMenu(
-                                expanded = showCurrencyDropdown,
-                                onDismissRequest = { showCurrencyDropdown = false }
-                            ) {
-                                listOf("USD", "EUR", "GBP", "JPY", "PHP", "SGD", "CAD", "AUD").forEach { currency ->
-                                    DropdownMenuItem(
-                                        text = { 
-                                            Row(
-                                                verticalAlignment = Alignment.CenterVertically,
-                                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                                            ) {
-                                                Text(
-                                                    text = when(currency) {
-                                                        "USD" -> "🇺🇸"
-                                                        "EUR" -> "🇪🇺"
-                                                        "GBP" -> "🇬🇧"
-                                                        "JPY" -> "🇯🇵"
-                                                        "PHP" -> "🇵🇭"
-                                                        "SGD" -> "🇸🇬"
-                                                        "CAD" -> "🇨🇦"
-                                                        "AUD" -> "🇦🇺"
-                                                        else -> "💰"
-                                                    },
-                                                    fontSize = 16.sp
-                                                )
-                                                Text(currency)
-                                            }
-                                        },
-                                        onClick = {
-                                            viewModel.updateExpenseCurrency(currency)
-                                            showCurrencyDropdown = false
-                                        }
-                                    )
+                            // Currency Selector
+                            var showCurrencyDropdown by remember { mutableStateOf(false) }
+                            Box {
+                                OutlinedButton(
+                                    onClick = { showCurrencyDropdown = true },
+                                    modifier = Modifier
+                                        .widthIn(min = 120.dp)
+                                        .heightIn(min = 48.dp),
+                                    colors = ButtonDefaults.outlinedButtonColors(
+                                        contentColor = Primary
+                                    ),
+                                    border = BorderStroke(1.dp, Primary.copy(alpha = 0.5f))
+                                ) {
+                                    Row(
+                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
+                                        verticalAlignment = Alignment.CenterVertically
+                                    ) {
+                                        Text(
+                                            text = viewModel.getGroupCurrency(),
+                                            style = MaterialTheme.typography.bodyLarge.copy(
+                                                fontWeight = FontWeight.Medium
+                                            )
+                                        )
+                                        Icon(
+                                            Icons.Default.ArrowDropDown,
+                                            contentDescription = "Select Currency",
+                                            modifier = Modifier.size(24.dp)
+                                        )
+                                    }
+                                }
+                                
+                                DropdownMenu(
+                                    expanded = showCurrencyDropdown,
+                                    onDismissRequest = { showCurrencyDropdown = false }
+                                ) {
+                                    listOf("USD", "EUR", "GBP", "JPY", "PHP", "SGD", "CAD", "AUD").forEach { currency ->
+                                        DropdownMenuItem(
+                                            text = { 
+                                                Row(
+                                                    verticalAlignment = Alignment.CenterVertically,
+                                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                                    modifier = Modifier.fillMaxWidth()
+                                                ) {
+                                                    Text(
+                                                        text = when(currency) {
+                                                            "USD" -> "🇺🇸"
+                                                            "EUR" -> "🇪🇺"
+                                                            "GBP" -> "🇬🇧"
+                                                            "JPY" -> "🇯🇵"
+                                                            "PHP" -> "🇵🇭"
+                                                            "SGD" -> "🇸🇬"
+                                                            "CAD" -> "🇨🇦"
+                                                            "AUD" -> "🇦🇺"
+                                                            else -> "💰"
+                                                        },
+                                                        fontSize = 16.sp
+                                                    )
+                                                    Text(
+                                                        text = currency,
+                                                        style = MaterialTheme.typography.bodyLarge
+                                                    )
+                                                }
+                                            },
+                                            onClick = {
+                                                viewModel.updateExpenseCurrency(currency)
+                                                showCurrencyDropdown = false
+                                            },
+                                            modifier = Modifier.heightIn(min = 48.dp)
+                                        )
+                                    }
                                 }
                             }
                         }
+                        
+                        CompactCalculator(
+                            value = amount,
+                            onValueChange = { amount = it },
+                            modifier = Modifier.fillMaxWidth(),
+                            viewModel = viewModel
+                        )
                     }
-                    
-                    CompactCalculator(
-                        value = amount,
-                        onValueChange = { amount = it },
-                        modifier = Modifier.fillMaxWidth(),
-                        viewModel = viewModel
-                    )
                 }
 
                 // Receipt Photos Section
-                Column(
+                Surface(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    color = BackgroundPrimary,
+                    shape = RoundedCornerShape(8.dp)
                 ) {
-                    Text(
-                        text = "Receipt Photos",
-                        fontSize = 14.sp,
-                        fontWeight = FontWeight.SemiBold,
-                        color = TextPrimary
-                    )
-                    
-                    // Add Receipt Button
-                    OutlinedButton(
-                        onClick = { showPhotoPickerDialog = true },
-                        modifier = Modifier.fillMaxWidth(),
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = Primary
-                        ),
-                        border = BorderStroke(1.dp, Primary.copy(alpha = 0.5f))
+                    Column(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        Icon(
-                            Icons.Default.CameraAlt,
-                            contentDescription = null,
-                            modifier = Modifier.size(20.dp)
+                        Text(
+                            text = "Receipt Photos",
+                            style = MaterialTheme.typography.titleMedium.copy(
+                                fontWeight = FontWeight.SemiBold
+                            ),
+                            color = TextPrimary
                         )
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Add Receipt Photo")
-                    }
-                    
-                    // Display existing receipt photos
-                    if (receiptPhotos.isNotEmpty()) {
-                        LazyRow(
-                            horizontalArrangement = Arrangement.spacedBy(8.dp),
-                            modifier = Modifier.fillMaxWidth()
+                        
+                        // Add Receipt Button
+                        OutlinedButton(
+                            onClick = { showPhotoPickerDialog = true },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .heightIn(min = 48.dp),
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = Primary
+                            ),
+                            border = BorderStroke(1.dp, Primary.copy(alpha = 0.5f))
                         ) {
-                            items(receiptPhotos) { photo ->
-                                ReceiptPhotoCard(
-                                    photo = photo,
-                                    onRemove = {
-                                        receiptPhotos = receiptPhotos.filter { it.id != photo.id }
-                                    }
+                            Row(
+                                horizontalArrangement = Arrangement.Center,
+                                verticalAlignment = Alignment.CenterVertically,
+                                modifier = Modifier.padding(vertical = 8.dp)
+                            ) {
+                                Icon(
+                                    Icons.Default.CameraAlt,
+                                    contentDescription = "Add photo",
+                                    modifier = Modifier.size(24.dp)
                                 )
+                                Spacer(modifier = Modifier.width(12.dp))
+                                Text(
+                                    "Add Receipt Photo",
+                                    style = MaterialTheme.typography.bodyLarge
+                                )
+                            }
+                        }
+                        
+                        // Display existing receipt photos
+                        if (receiptPhotos.isNotEmpty()) {
+                            LazyRow(
+                                horizontalArrangement = Arrangement.spacedBy(12.dp),
+                                contentPadding = PaddingValues(vertical = 4.dp),
+                                modifier = Modifier.fillMaxWidth()
+                            ) {
+                                items(receiptPhotos) { photo ->
+                                    ReceiptPhotoCard(
+                                        photo = photo,
+                                        onRemove = {
+                                            receiptPhotos = receiptPhotos.filter { it.id != photo.id }
+                                        },
+                                        modifier = Modifier
+                                    )
+                                }
                             }
                         }
                     }
@@ -618,153 +729,184 @@ fun AddExpenseScreen(
     // Snackbar host
     SnackbarHost(
         hostState = snackbarHostState,
-        modifier = Modifier
-            .padding(16.dp)
+        modifier = Modifier.padding(16.dp)
     )
 
     // Modal sheet for payer selection
     if (showPayerSheet) {
-        ModalBottomSheet(onDismissRequest = { showPayerSheet = false }) {
+        ModalBottomSheet(
+            onDismissRequest = { showPayerSheet = false },
+            dragHandle = { BottomSheetDefaults.DragHandle() }
+        ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .navigationBarsPadding()
             ) {
                 Text(
                     text = "Who paid?",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(bottom = 16.dp)
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(vertical = 16.dp)
                 )
                 members.forEach { member ->
-                    ListItem(
-                        headlineContent = { 
-                            Text(
-                                member,
-                                style = MaterialTheme.typography.bodyLarge
-                            ) 
-                        },
-                        leadingContent = {
-                            Icon(
-                                Icons.Default.Person,
-                                contentDescription = null,
-                                tint = if (member == selectedPaidBy) Primary else MaterialTheme.colorScheme.onSurfaceVariant
-                            )
-                        },
-                        trailingContent = {
-                            if (member == selectedPaidBy) {
-                                Icon(
-                                    Icons.Default.Check,
-                                    contentDescription = "Selected",
-                                    tint = Primary
-                                )
-                            }
-                        },
+                    Surface(
                         modifier = Modifier
                             .fillMaxWidth()
                             .clickable {
                                 selectedPaidBy = member
                                 showPayerSheet = false
-                            }
-                    )
+                            },
+                        color = if (member == selectedPaidBy) 
+                            Primary.copy(alpha = 0.08f) 
+                        else 
+                            MaterialTheme.colorScheme.surface
+                    ) {
+                        ListItem(
+                            headlineContent = { 
+                                Text(
+                                    member,
+                                    style = MaterialTheme.typography.bodyLarge
+                                ) 
+                            },
+                            leadingContent = {
+                                Icon(
+                                    Icons.Default.Person,
+                                    contentDescription = null,
+                                    tint = if (member == selectedPaidBy) 
+                                        Primary 
+                                    else 
+                                        MaterialTheme.colorScheme.onSurfaceVariant,
+                                    modifier = Modifier.size(24.dp)
+                                )
+                            },
+                            trailingContent = {
+                                if (member == selectedPaidBy) {
+                                    Icon(
+                                        Icons.Default.Check,
+                                        contentDescription = "Selected",
+                                        tint = Primary,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                            },
+                            modifier = Modifier.heightIn(min = 56.dp)
+                        )
+                    }
                 }
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(24.dp))
             }
         }
     }
 
     // Modal sheet for split selection
     if (showSplitSheet) {
-        ModalBottomSheet(onDismissRequest = { showSplitSheet = false }) {
+        ModalBottomSheet(
+            onDismissRequest = { showSplitSheet = false },
+            dragHandle = { BottomSheetDefaults.DragHandle() }
+        ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .navigationBarsPadding()
             ) {
                 Text(
                     text = "How to split?",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(bottom = 16.dp)
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(vertical = 16.dp)
                 )
                 
-                splitTypes.forEach { type ->
-                    val isSelected = type == selectedSplitType
-                    val splitDescription = when(type) {
-                        "Equal Split" -> "Split the expense equally among all members"
-                        "Percentage" -> "Split by percentage (e.g., 50%, 30%, 20%)"
-                        "Custom Amount" -> "Set specific amounts for each person"
-                        else -> "Custom split method"
-                    }
-                    
-                    Card(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 4.dp)
-                            .clickable {
-                                selectedSplitType = type
-                                showSplitSheet = false
-                            },
-                        colors = CardDefaults.cardColors(
-                            containerColor = if (isSelected) Primary.copy(alpha = 0.1f) else MaterialTheme.colorScheme.surface
-                        ),
-                        border = if (isSelected) BorderStroke(2.dp, Primary) else null
-                    ) {
-                        Row(
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    splitTypes.forEach { type ->
+                        val isSelected = type == selectedSplitType
+                        val splitDescription = when(type) {
+                            "Equal Split" -> "Split the expense equally among all members"
+                            "Percentage" -> "Split by percentage (e.g., 50%, 30%, 20%)"
+                            "Custom Amount" -> "Set specific amounts for each person"
+                            else -> "Custom split method"
+                        }
+                        
+                        Card(
                             modifier = Modifier
                                 .fillMaxWidth()
-                                .padding(16.dp),
-                            verticalAlignment = Alignment.CenterVertically
+                                .heightIn(min = 72.dp)
+                                .clickable {
+                                    selectedSplitType = type
+                                    showSplitSheet = false
+                                },
+                            colors = CardDefaults.cardColors(
+                                containerColor = if (isSelected) 
+                                    Primary.copy(alpha = 0.08f) 
+                                else 
+                                    MaterialTheme.colorScheme.surface
+                            ),
+                            border = if (isSelected) 
+                                BorderStroke(2.dp, Primary) 
+                            else 
+                                BorderStroke(1.dp, MaterialTheme.colorScheme.outline.copy(alpha = 0.12f))
                         ) {
-                            // Icon with background
-                            Box(
+                            Row(
                                 modifier = Modifier
-                                    .size(48.dp)
-                                    .background(
-                                        if (isSelected) Primary.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceVariant,
-                                        CircleShape
-                                    ),
-                                contentAlignment = Alignment.Center
+                                    .fillMaxWidth()
+                                    .padding(16.dp),
+                                verticalAlignment = Alignment.CenterVertically
                             ) {
-                                Icon(
-                                    when(type) {
-                                        "Equal Split" -> Icons.Default.Group
-                                        "Percentage" -> Icons.Default.Percent
-                                        "Custom Amount" -> Icons.Default.Calculate
-                                        else -> Icons.AutoMirrored.Filled.CallSplit
-                                    },
-                                    contentDescription = null,
-                                    tint = if (isSelected) Primary else MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.size(24.dp)
-                                )
-                            }
-                            
-                            Spacer(modifier = Modifier.width(16.dp))
-                            
-                            // Content
-                            Column(
-                                modifier = Modifier.weight(1f)
-                            ) {
-                                Text(
-                                    text = type,
-                                    style = MaterialTheme.typography.titleSmall,
-                                    fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
-                                    color = if (isSelected) Primary else MaterialTheme.colorScheme.onSurface
-                                )
-                                Text(
-                                    text = splitDescription,
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = MaterialTheme.colorScheme.onSurfaceVariant,
-                                    modifier = Modifier.padding(top = 2.dp)
-                                )
-                            }
-                            
-                            // Selection indicator
-                            if (isSelected) {
-                                Icon(
-                                    Icons.Default.CheckCircle,
-                                    contentDescription = "Selected",
-                                    tint = Primary,
-                                    modifier = Modifier.size(24.dp)
-                                )
+                                // Icon with background
+                                Box(
+                                    modifier = Modifier
+                                        .size(48.dp)
+                                        .background(
+                                            if (isSelected) Primary.copy(alpha = 0.2f) else MaterialTheme.colorScheme.surfaceVariant,
+                                            CircleShape
+                                        ),
+                                    contentAlignment = Alignment.Center
+                                ) {
+                                    Icon(
+                                        when(type) {
+                                            "Equal Split" -> Icons.Default.Group
+                                            "Percentage" -> Icons.Default.Percent
+                                            "Custom Amount" -> Icons.Default.Calculate
+                                            else -> Icons.AutoMirrored.Filled.CallSplit
+                                        },
+                                        contentDescription = null,
+                                        tint = if (isSelected) Primary else MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
+                                
+                                Spacer(modifier = Modifier.width(16.dp))
+                                
+                                // Content
+                                Column(
+                                    modifier = Modifier.weight(1f)
+                                ) {
+                                    Text(
+                                        text = type,
+                                        style = MaterialTheme.typography.titleSmall,
+                                        fontWeight = if (isSelected) FontWeight.Bold else FontWeight.Medium,
+                                        color = if (isSelected) Primary else MaterialTheme.colorScheme.onSurface
+                                    )
+                                    Text(
+                                        text = splitDescription,
+                                        style = MaterialTheme.typography.bodySmall,
+                                        color = MaterialTheme.colorScheme.onSurfaceVariant,
+                                        modifier = Modifier.padding(top = 2.dp)
+                                    )
+                                }
+                                
+                                // Selection indicator
+                                if (isSelected) {
+                                    Icon(
+                                        Icons.Default.CheckCircle,
+                                        contentDescription = "Selected",
+                                        tint = Primary,
+                                        modifier = Modifier.size(24.dp)
+                                    )
+                                }
                             }
                         }
                     }
@@ -776,16 +918,20 @@ fun AddExpenseScreen(
 
     // Modal sheet for category selection
     if (showCategorySheet) {
-        ModalBottomSheet(onDismissRequest = { showCategorySheet = false }) {
+        ModalBottomSheet(
+            onDismissRequest = { showCategorySheet = false },
+            dragHandle = { BottomSheetDefaults.DragHandle() }
+        ) {
             Column(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .padding(16.dp)
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .navigationBarsPadding()
             ) {
                 Text(
                     text = "Select Category",
-                    style = MaterialTheme.typography.titleMedium,
-                    modifier = Modifier.padding(bottom = 16.dp)
+                    style = MaterialTheme.typography.titleLarge,
+                    modifier = Modifier.padding(vertical = 16.dp)
                 )
                 
                 CategorySelectionGrid(
@@ -794,10 +940,12 @@ fun AddExpenseScreen(
                         selectedCategory = category
                         showCategorySheet = false
                     },
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 8.dp)
                 )
                 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(24.dp))
             }
         }
     }
@@ -806,40 +954,97 @@ fun AddExpenseScreen(
     if (showPhotoPickerDialog) {
         AlertDialog(
             onDismissRequest = { showPhotoPickerDialog = false },
-            title = { Text("Add Receipt Photo") },
-            text = { Text("Choose how you want to add a receipt photo") },
+            title = { 
+                Text(
+                    "Add Receipt Photo",
+                    style = MaterialTheme.typography.titleLarge
+                )
+            },
+            text = { 
+                Text(
+                    "Choose how you want to add a receipt photo",
+                    style = MaterialTheme.typography.bodyLarge
+                )
+            },
             confirmButton = {
-                Column {
-                    TextButton(
+                Column(
+                    verticalArrangement = Arrangement.spacedBy(8.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    FilledTonalButton(
                         onClick = {
                             currentPhotoFile = PhotoUtils.createImageFile(context)
                             currentPhotoFile?.let { photoFile ->
                                 cameraLauncher.launch(PhotoUtils.getImageUri(context, photoFile))
                                 showPhotoPickerDialog = false
                             }
-                        }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 48.dp)
                     ) {
-                        Icon(Icons.Default.CameraAlt, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Take Photo")
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(
+                                Icons.Default.CameraAlt,
+                                contentDescription = "Camera",
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(
+                                "Take Photo",
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
                     }
-                    TextButton(
+                    FilledTonalButton(
                         onClick = {
                             galleryLauncher.launch("image/*")
                             showPhotoPickerDialog = false
-                        }
+                        },
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .heightIn(min = 48.dp)
                     ) {
-                        Icon(Icons.Default.PhotoLibrary, contentDescription = null)
-                        Spacer(modifier = Modifier.width(8.dp))
-                        Text("Choose from Gallery")
+                        Row(
+                            horizontalArrangement = Arrangement.Center,
+                            verticalAlignment = Alignment.CenterVertically,
+                            modifier = Modifier.fillMaxWidth()
+                        ) {
+                            Icon(
+                                Icons.Default.PhotoLibrary,
+                                contentDescription = "Gallery",
+                                modifier = Modifier.size(24.dp)
+                            )
+                            Spacer(modifier = Modifier.width(12.dp))
+                            Text(
+                                "Choose from Gallery",
+                                style = MaterialTheme.typography.bodyLarge
+                            )
+                        }
                     }
                 }
             },
             dismissButton = {
-                TextButton(onClick = { showPhotoPickerDialog = false }) {
-                    Text("Cancel")
+                OutlinedButton(
+                    onClick = { showPhotoPickerDialog = false },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .heightIn(min = 48.dp)
+                ) {
+                    Text(
+                        "Cancel",
+                        style = MaterialTheme.typography.bodyLarge
+                    )
                 }
-            }
+            },
+            properties = DialogProperties(
+                dismissOnBackPress = true,
+                dismissOnClickOutside = true
+            )
         )
     }
 
@@ -852,16 +1057,32 @@ fun AddExpenseScreen(
         DatePickerDialog(
             onDismissRequest = { showEndDatePicker = false },
             confirmButton = {
-                TextButton(onClick = {
-                    val millis = datePickerState.selectedDateMillis
-                    if (millis != null) {
-                        recurrenceEndDate = Date(millis)
-                    }
-                    showEndDatePicker = false
-                }) { Text("OK") }
+                TextButton(
+                    onClick = {
+                        val millis = datePickerState.selectedDateMillis
+                        if (millis != null) {
+                            recurrenceEndDate = Date(millis)
+                        }
+                        showEndDatePicker = false
+                    },
+                    modifier = Modifier.heightIn(min = 48.dp)
+                ) { 
+                    Text(
+                        "OK",
+                        style = MaterialTheme.typography.labelLarge
+                    ) 
+                }
             },
             dismissButton = {
-                TextButton(onClick = { showEndDatePicker = false }) { Text("Cancel") }
+                TextButton(
+                    onClick = { showEndDatePicker = false },
+                    modifier = Modifier.heightIn(min = 48.dp)
+                ) { 
+                    Text(
+                        "Cancel",
+                        style = MaterialTheme.typography.labelLarge
+                    ) 
+                }
             }
         ) {
             DatePicker(state = datePickerState)
@@ -918,37 +1139,48 @@ fun CompactCalculator(
     }
 
     Column(
-        modifier = modifier.padding(8.dp),
-        verticalArrangement = Arrangement.spacedBy(4.dp)
+        modifier = modifier.padding(16.dp),
+        verticalArrangement = Arrangement.spacedBy(16.dp)
     ) {
         // Display
-        Box(
+        Surface(
             modifier = Modifier
                 .fillMaxWidth()
-                .background(
-                    Primary.copy(alpha = 0.05f),
-                    RoundedCornerShape(8.dp)
-                )
-                .padding(horizontal = 16.dp, vertical = 12.dp)
+                .heightIn(min = 80.dp),
+            shape = RoundedCornerShape(12.dp),
+            color = Primary.copy(alpha = 0.05f),
+            tonalElevation = 1.dp
         ) {
-            Column(
-                modifier = Modifier.fillMaxWidth(),
-                horizontalAlignment = Alignment.End
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 12.dp)
             ) {
-                if (firstNumber != null && operation != null) {
+                Column(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalAlignment = Alignment.End
+                ) {
+                    if (firstNumber != null && operation != null) {
+                        Text(
+                            text = "${viewModel.getCurrencySymbol()}${String.format("%.2f", firstNumber)} $operation",
+                            style = MaterialTheme.typography.bodyMedium.copy(
+                                color = TextSecondary,
+                                fontWeight = FontWeight.Medium
+                            )
+                        )
+                        Spacer(modifier = Modifier.height(4.dp))
+                    }
                     Text(
-                        text = "${viewModel.getCurrencySymbol()}${String.format("%.2f", firstNumber)} $operation",
-                        fontSize = 14.sp,
-                        color = TextSecondary,
-                        fontWeight = FontWeight.Medium
+                        text = if (displayValue.isNotEmpty()) 
+                            "${viewModel.getCurrencySymbol()} $displayValue" 
+                        else 
+                            "${viewModel.getCurrencySymbol()} 0.00",
+                        style = MaterialTheme.typography.headlineMedium.copy(
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
                     )
                 }
-                Text(
-                    text = if (displayValue.isNotEmpty()) "${viewModel.getCurrencySymbol()} $displayValue" else "${viewModel.getCurrencySymbol()} 0.00",
-                    fontSize = 28.sp,
-                    fontWeight = FontWeight.Bold,
-                    color = TextPrimary
-                )
             }
         }
 
@@ -961,18 +1193,27 @@ fun CompactCalculator(
         )
 
         Column(
-            verticalArrangement = Arrangement.spacedBy(4.dp)
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
             buttons.forEach { row ->
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(4.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
                     row.forEach { button ->
                         val isOperation = button in listOf("+", "-", "×", "÷")
                         val isDelete = button == "⌫"
                         
-                        TextButton(
+                        Surface(
+                            modifier = Modifier
+                                .weight(1f)
+                                .aspectRatio(1f),
+                            shape = RoundedCornerShape(12.dp),
+                            color = when {
+                                isOperation -> Primary.copy(alpha = 0.1f)
+                                isDelete -> MaterialTheme.colorScheme.errorContainer
+                                else -> MaterialTheme.colorScheme.surfaceVariant
+                            },
                             onClick = {
                                 hideKeyboard()
                                 when {
@@ -985,8 +1226,9 @@ fun CompactCalculator(
                                     }
                                     button == "." -> {
                                         if (!displayValue.contains(".")) {
-                                            displayValue += button
-                                            onValueChange(displayValue)
+                                            val newValue = if (displayValue.isEmpty()) "0." else "$displayValue."
+                                            displayValue = newValue
+                                            onValueChange(newValue)
                                         }
                                     }
                                     else -> {
@@ -999,55 +1241,31 @@ fun CompactCalculator(
                                         onValueChange(displayValue)
                                     }
                                 }
-                            },
-                            modifier = Modifier
-                                .weight(1f)
-                                .height(56.dp)
-                                .background(
-                                    when {
-                                        isOperation -> Primary.copy(alpha = 0.1f)
-                                        isDelete -> ErrorRed.copy(alpha = 0.1f)
-                                        else -> MaterialTheme.colorScheme.surface
-                                    },
-                                    RoundedCornerShape(8.dp)
-                                ),
-                            colors = ButtonDefaults.textButtonColors(
-                                contentColor = when {
-                                    isOperation -> Primary
-                                    isDelete -> ErrorRed
-                                    else -> TextPrimary
-                                }
-                            )
+                            }
                         ) {
-                            Text(
-                                text = button,
-                                fontSize = 18.sp,
-                                fontWeight = FontWeight.Medium
-                            )
+                            Box(
+                                modifier = Modifier.fillMaxSize(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(
+                                    text = button,
+                                    style = MaterialTheme.typography.titleLarge.copy(
+                                        fontWeight = when {
+                                            isOperation -> FontWeight.Bold
+                                            isDelete -> FontWeight.Medium
+                                            else -> FontWeight.Normal
+                                        },
+                                        color = when {
+                                            isOperation -> Primary
+                                            isDelete -> MaterialTheme.colorScheme.error
+                                            else -> MaterialTheme.colorScheme.onSurfaceVariant
+                                        }
+                                    )
+                                )
+                            }
                         }
                     }
                 }
-            }
-
-            // Equal button
-            TextButton(
-                onClick = { 
-                    hideKeyboard()
-                    performOperation() 
-                },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(56.dp)
-                    .background(Primary, RoundedCornerShape(8.dp)),
-                colors = ButtonDefaults.textButtonColors(
-                    contentColor = Color.White
-                )
-            ) {
-                Text(
-                    text = "=",
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
-                )
             }
         }
     }
@@ -1067,14 +1285,21 @@ fun AddExpenseScreenPreview() {
 @Composable
 fun ReceiptPhotoCard(
     photo: ReceiptPhoto,
-    onRemove: () -> Unit
+    onRemove: () -> Unit,
+    modifier: Modifier = Modifier
 ) {
     Card(
-        modifier = Modifier
-            .size(80.dp)
-            .shadow(1.dp, RoundedCornerShape(8.dp)),
-        shape = RoundedCornerShape(8.dp),
-        colors = CardDefaults.cardColors(containerColor = NeutralWhite)
+        modifier = modifier
+            .size(100.dp)
+            .shadow(
+                elevation = 2.dp,
+                shape = RoundedCornerShape(12.dp),
+                spotColor = MaterialTheme.colorScheme.outline.copy(alpha = 0.1f)
+            ),
+        shape = RoundedCornerShape(12.dp),
+        colors = CardDefaults.cardColors(
+            containerColor = MaterialTheme.colorScheme.surface
+        )
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
             // Photo
@@ -1085,38 +1310,70 @@ fun ReceiptPhotoCard(
                 contentScale = ContentScale.Crop
             )
             
-            // Remove button
+            // Semi-transparent overlay at the top
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(32.dp)
+                    .align(Alignment.TopCenter)
+                    .background(
+                        brush = Brush.verticalGradient(
+                            colors = listOf(
+                                Color.Black.copy(alpha = 0.4f),
+                                Color.Transparent
+                            )
+                        )
+                    )
+            )
+            
+            // Remove button with ripple effect
             IconButton(
                 onClick = onRemove,
                 modifier = Modifier
                     .align(Alignment.TopEnd)
-                    .padding(2.dp)
-                    .size(20.dp)
-                    .background(ErrorRed, CircleShape)
+                    .padding(4.dp)
+                    .size(28.dp)
+                    .background(
+                        color = MaterialTheme.colorScheme.errorContainer,
+                        shape = CircleShape
+                    )
             ) {
                 Icon(
                     Icons.Default.Close,
-                    contentDescription = "Remove",
-                    tint = NeutralWhite,
-                    modifier = Modifier.size(12.dp)
+                    contentDescription = "Remove photo",
+                    tint = MaterialTheme.colorScheme.error,
+                    modifier = Modifier.size(16.dp)
                 )
             }
             
-            // OCR indicator
+            // OCR indicator with improved visibility
             if (photo.extractedData != null) {
-                Box(
+                Surface(
                     modifier = Modifier
                         .align(Alignment.BottomStart)
-                        .padding(2.dp)
-                        .background(DarkGreen, RoundedCornerShape(3.dp))
-                        .padding(horizontal = 4.dp, vertical = 1.dp)
+                        .padding(4.dp),
+                    shape = RoundedCornerShape(4.dp),
+                    color = MaterialTheme.colorScheme.secondaryContainer.copy(alpha = 0.9f)
                 ) {
-                    Text(
-                        text = "OCR",
-                        fontSize = 8.sp,
-                        color = NeutralWhite,
-                        fontWeight = FontWeight.Bold
-                    )
+                    Row(
+                        modifier = Modifier.padding(horizontal = 6.dp, vertical = 2.dp),
+                        horizontalArrangement = Arrangement.spacedBy(4.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            Icons.Default.Check,
+                            contentDescription = null,
+                            modifier = Modifier.size(12.dp),
+                            tint = MaterialTheme.colorScheme.onSecondaryContainer
+                        )
+                        Text(
+                            text = "OCR",
+                            style = MaterialTheme.typography.labelSmall.copy(
+                                fontWeight = FontWeight.Medium,
+                                color = MaterialTheme.colorScheme.onSecondaryContainer
+                            )
+                        )
+                    }
                 }
             }
         }

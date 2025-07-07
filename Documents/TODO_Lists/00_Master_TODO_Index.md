@@ -5,6 +5,8 @@
 - Added clarifying comments to justified suppressions in service/repository code (GroupService, ExpenseRepository)
 - Removed unused variables in GroupService.kt and ExpenseRepository.kt
 - Ensured app builds and runs after each change
+- Added KDoc documentation to ValidationUtils, PerformanceOptimizer, PhotoUtils, and AnalyticsService
+- Improved inline comments in addExpense (ExpenseRepository)
 
 ## 📋 COMPREHENSIVE TODO SYSTEM OVERVIEW
 

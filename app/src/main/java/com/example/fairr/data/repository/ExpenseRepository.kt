@@ -6,7 +6,6 @@ import com.example.fairr.data.model.ExpenseSplit
 import com.example.fairr.data.model.ExpenseCategory
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
-import com.google.firebase.firestore.QueryDocumentSnapshot
 import com.google.firebase.firestore.DocumentSnapshot
 import com.google.firebase.Timestamp
 import kotlinx.coroutines.tasks.await
@@ -499,14 +498,14 @@ class ExpenseRepositoryImpl @Inject constructor(
 
             // Step 6: Log activity for expense added (for group activity feed)
             try {
-                val currentUser = auth.currentUser
-                if (currentUser != null) {
+                val activityUser = auth.currentUser
+                if (activityUser != null) {
                     val userDoc = firestore.collection("users")
-                        .document(currentUser.uid)
+                        .document(activityUser.uid)
                         .get()
                         .await()
                     
-                    val userName = userDoc.getString("displayName") ?: currentUser.email?.substringBefore("@") ?: "Unknown User"
+                    val userName = userDoc.getString("displayName") ?: activityUser.email?.substringBefore("@") ?: "Unknown User"
                     val userInitials = userName.split(" ").take(2).joinToString("") { it.firstOrNull()?.uppercase() ?: "" }
                     
                     activityService.logActivity(

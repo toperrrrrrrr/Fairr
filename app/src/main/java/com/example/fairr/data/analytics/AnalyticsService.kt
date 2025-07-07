@@ -20,8 +20,11 @@ import java.util.*
 import kotlin.system.measureTimeMillis
 
 /**
- * Comprehensive Analytics Service
- * Handles user behavior tracking, performance monitoring, business intelligence, and crash reporting
+ * Comprehensive Analytics Service for the Fairr app.
+ *
+ * Handles user behavior tracking, performance monitoring, business intelligence, and crash reporting.
+ * Integrates with Firebase Analytics, Crashlytics, and Performance Monitoring.
+ * Provides methods for tracking screen views, expense/group/feature events, settlements, errors, and performance traces.
  */
 @Singleton
 class AnalyticsService @Inject constructor(

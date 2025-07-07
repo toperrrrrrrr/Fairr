@@ -21,8 +21,11 @@ import javax.inject.Singleton
 import java.util.*
 
 /**
- * GDPR Compliance Service - Handles data deletion, export, and privacy controls
- * Implements GDPR "Right to be Forgotten" and "Data Portability" requirements
+ * GDPR Compliance Service for the Fairr app.
+ *
+ * Handles data deletion, export, and privacy controls to implement GDPR "Right to be Forgotten"
+ * and "Data Portability" requirements. Coordinates user data removal across Firestore, Storage,
+ * Auth, and local device, and manages export for data portability.
  */
 @Singleton
 class GDPRComplianceService @Inject constructor(
