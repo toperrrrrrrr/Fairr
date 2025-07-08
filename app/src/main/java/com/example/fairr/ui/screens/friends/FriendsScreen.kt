@@ -51,8 +51,9 @@ fun FriendsScreen(
     val pullToRefreshState = rememberPullToRefreshState()
     var searchQuery by remember { mutableStateOf("") }
 
-    // State for moderation dialogs
+    // State for dialogs
     var showReportDialog by remember { mutableStateOf<Friend?>(null) }
+    var showAddFriendDialog by remember { mutableStateOf(false) }
 
     // Collect user messages
     LaunchedEffect(true) {
@@ -81,20 +82,38 @@ fun FriendsScreen(
         )
     }
 
+    // Add friend modal dialog
+    if (showAddFriendDialog) {
+        AddFriendModal(
+            email = uiState.let { if (it is FriendsUiState.Success) it.emailInput else "" },
+            onEmailChange = viewModel::onEmailInputChange,
+            onSendRequest = {
+                viewModel.sendFriendRequest()
+                showAddFriendDialog = false
+            },
+            onDismiss = { showAddFriendDialog = false },
+            isLoading = false // Add loading state to ViewModel if needed
+        )
+    }
+
     Scaffold(
         topBar = {
             TopAppBar(
                 title = { Text("Friends", style = MaterialTheme.typography.headlineSmall) },
-                navigationIcon = {
-                    IconButton(onClick = onNavigateBack) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back"
-                        )
-                    }
-                },
                 colors = TopAppBarDefaults.topAppBarColors(containerColor = BackgroundPrimary)
             )
+        },
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = { showAddFriendDialog = true },
+                containerColor = Primary,
+                contentColor = PureWhite
+            ) {
+                Icon(
+                    imageVector = Icons.Default.PersonAdd,
+                    contentDescription = "Add Friend"
+                )
+            }
         },
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = BackgroundPrimary
@@ -131,16 +150,6 @@ fun FriendsScreen(
                         contentPadding = PaddingValues(16.dp),
                         verticalArrangement = Arrangement.spacedBy(16.dp)
                     ) {
-                        // Add friend section
-                        item {
-                            ModernAddFriendSection(
-                                email = uiState.emailInput,
-                                onEmailChange = viewModel::onEmailInputChange,
-                                onSendRequest = viewModel::sendFriendRequest,
-                                isLoading = false // Add loading state to ViewModel if needed
-                            )
-                        }
-
                         // Search section for friends
                         if (uiState.friends.isNotEmpty()) {
                             item {
@@ -273,6 +282,161 @@ fun FriendsScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class)
+@Composable
+private fun AddFriendModal(
+    email: String,
+    onEmailChange: (String) -> Unit,
+    onSendRequest: () -> Unit,
+    onDismiss: () -> Unit,
+    isLoading: Boolean
+) {
+    val keyboardController = LocalSoftwareKeyboardController.current
+    
+    AlertDialog(
+        onDismissRequest = onDismiss,
+        modifier = Modifier.fillMaxWidth()
+    ) {
+        ModernCard(
+            modifier = Modifier.fillMaxWidth(),
+            backgroundColor = CardBackground,
+            cornerRadius = 20
+        ) {
+            Column(
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                // Header
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(40.dp)
+                                .background(Primary.copy(alpha = 0.1f), CircleShape),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Icon(
+                                imageVector = Icons.Default.PersonAdd,
+                                contentDescription = null,
+                                tint = Primary,
+                                modifier = Modifier.size(20.dp)
+                            )
+                        }
+                        
+                        Text(
+                            text = "Add Friend",
+                            style = MaterialTheme.typography.titleLarge,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
+                        )
+                    }
+                    
+                    IconButton(onClick = onDismiss) {
+                        Icon(
+                            imageVector = Icons.Default.Close,
+                            contentDescription = "Close",
+                            tint = IconTint
+                        )
+                    }
+                }
+                
+                Spacer(modifier = Modifier.height(20.dp))
+                
+                Text(
+                    text = "Enter your friend's email address to send them a friend request.",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = TextSecondary
+                )
+                
+                Spacer(modifier = Modifier.height(20.dp))
+                
+                OutlinedTextField(
+                    value = email,
+                    onValueChange = onEmailChange,
+                    label = { Text("Friend's Email") },
+                    placeholder = { Text("Enter email address") },
+                    leadingIcon = {
+                        Icon(
+                            Icons.Default.Email,
+                            contentDescription = null,
+                            tint = IconTint
+                        )
+                    },
+                    singleLine = true,
+                    keyboardOptions = KeyboardOptions(
+                        keyboardType = KeyboardType.Email,
+                        imeAction = ImeAction.Send
+                    ),
+                    keyboardActions = KeyboardActions(
+                        onSend = {
+                            keyboardController?.hide()
+                            onSendRequest()
+                        }
+                    ),
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Primary,
+                        focusedLabelColor = Primary
+                    )
+                )
+                
+                Spacer(modifier = Modifier.height(24.dp))
+                
+                // Action buttons
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+                ) {
+                    OutlinedButton(
+                        onClick = onDismiss,
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.outlinedButtonColors(
+                            contentColor = TextSecondary
+                        )
+                    ) {
+                        Text("Cancel")
+                    }
+                    
+                    Button(
+                        onClick = {
+                            keyboardController?.hide()
+                            onSendRequest()
+                        },
+                        enabled = email.isNotBlank() && !isLoading,
+                        modifier = Modifier.weight(1f),
+                        colors = ButtonDefaults.buttonColors(
+                            containerColor = Primary,
+                            contentColor = PureWhite
+                        )
+                    ) {
+                        if (isLoading) {
+                            CircularProgressIndicator(
+                                modifier = Modifier.size(20.dp),
+                                strokeWidth = 2.dp,
+                                color = PureWhite
+                            )
+                        } else {
+                            Icon(
+                                Icons.Default.Send,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text("Send Request")
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
 @Composable
 private fun ModernErrorState(
     title: String,
@@ -329,111 +493,7 @@ private fun ModernErrorState(
     }
 }
 
-@OptIn(ExperimentalMaterial3Api::class)
-@Composable
-private fun ModernAddFriendSection(
-    email: String,
-    onEmailChange: (String) -> Unit,
-    onSendRequest: () -> Unit,
-    isLoading: Boolean
-) {
-    val keyboardController = LocalSoftwareKeyboardController.current
-    
-    ModernCard {
-        Column(
-            modifier = Modifier.fillMaxWidth()
-        ) {
-            Row(
-                verticalAlignment = Alignment.CenterVertically,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .background(Primary.copy(alpha = 0.1f), CircleShape),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.PersonAdd,
-                        contentDescription = null,
-                        tint = Primary,
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-                
-                Text(
-                    text = "Add Friend",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.Bold,
-                    color = TextPrimary
-                )
-            }
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            OutlinedTextField(
-                value = email,
-                onValueChange = onEmailChange,
-                label = { Text("Friend's Email") },
-                placeholder = { Text("Enter email address") },
-                leadingIcon = {
-                    Icon(
-                        Icons.Default.Email,
-                        contentDescription = null,
-                        tint = IconTint
-                    )
-                },
-                singleLine = true,
-                keyboardOptions = KeyboardOptions(
-                    keyboardType = KeyboardType.Email,
-                    imeAction = ImeAction.Send
-                ),
-                keyboardActions = KeyboardActions(
-                    onSend = {
-                        keyboardController?.hide()
-                        onSendRequest()
-                    }
-                ),
-                modifier = Modifier.fillMaxWidth(),
-                colors = OutlinedTextFieldDefaults.colors(
-                    focusedBorderColor = Primary,
-                    focusedLabelColor = Primary
-                )
-            )
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            Button(
-                onClick = {
-                    keyboardController?.hide()
-                    onSendRequest()
-                },
-                enabled = email.isNotBlank() && !isLoading,
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Primary,
-                    contentColor = PureWhite
-                )
-            ) {
-                if (isLoading) {
-                    CircularProgressIndicator(
-                        modifier = Modifier.size(20.dp),
-                        strokeWidth = 2.dp,
-                        color = PureWhite
-                    )
-                } else {
-                    Icon(
-                        Icons.Default.Send,
-                        contentDescription = null,
-                        modifier = Modifier.size(20.dp)
-                    )
-                    Spacer(modifier = Modifier.width(8.dp))
-                    Text("Send Request")
-                }
-            }
-        }
-    }
-}
+
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
