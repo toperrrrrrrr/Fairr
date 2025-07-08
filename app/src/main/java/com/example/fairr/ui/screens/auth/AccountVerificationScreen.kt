@@ -24,13 +24,15 @@ import androidx.navigation.NavController
 import androidx.navigation.compose.rememberNavController
 import com.example.fairr.ui.theme.*
 import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 
+@OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun AccountVerificationScreen(
-    navController: NavController,
+    @Suppress("UNUSED_PARAMETER") navController: NavController,
     onNavigateBack: () -> Unit,
-    onVerificationComplete: () -> Unit,
-    viewModel: AuthViewModel = viewModel()
+    onNavigateToMain: () -> Unit,
+    viewModel: AuthViewModel = hiltViewModel()
 ) {
     var verificationCode by remember { mutableStateOf("") }
     val state = viewModel.state.collectAsState().value
@@ -44,7 +46,7 @@ fun AccountVerificationScreen(
                     snackbarHostState.showSnackbar(event.message)
                 }
                 AuthUiEvent.EmailVerified -> {
-                    onVerificationComplete()
+                    onNavigateToMain()
                 }
                 AuthUiEvent.EmailVerificationSent -> {
                     snackbarHostState.showSnackbar("Verification email sent successfully")
@@ -267,7 +269,7 @@ fun AccountVerificationScreenPreview() {
         AccountVerificationScreen(
             navController = rememberNavController(),
             onNavigateBack = {},
-            onVerificationComplete = {}
+            onNavigateToMain = {}
         )
     }
 } 

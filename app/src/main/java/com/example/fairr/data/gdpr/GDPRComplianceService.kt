@@ -524,8 +524,9 @@ class GDPRComplianceService @Inject constructor(
      */
     suspend fun requestDataPortability(): GDPRResult = withContext(Dispatchers.IO) {
         try {
-            val userId = auth.currentUser?.uid
-                ?: return@withContext GDPRResult.Error("User not authenticated")
+            if (auth.currentUser?.uid == null) {
+                return@withContext GDPRResult.Error("User not authenticated")
+            }
 
             val exportResult = exportService.exportData(
                 ExportOptions(

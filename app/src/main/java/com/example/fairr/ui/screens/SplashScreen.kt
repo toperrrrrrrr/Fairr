@@ -39,11 +39,12 @@ import androidx.compose.material3.ButtonDefaults
 
 @Composable
 fun SplashScreen(
-    startupState: StartupState,
-    authLoading: Boolean,
+    onNavigateToMain: () -> Unit,
+    onNavigateToAuth: () -> Unit,
+    @Suppress("UNUSED_PARAMETER") authLoading: Boolean,
+    isUserAuthenticated: Boolean,
     authError: String?,
-    onRetry: () -> Unit,
-    onClearError: () -> Unit
+    @Suppress("UNUSED_PARAMETER") onClearError: () -> Unit
 ) {
     // OPTIMIZED: Simple scale animation for the logo with reduced intensity
     val infiniteTransition = rememberInfiniteTransition(label = "logo_scale")
@@ -115,7 +116,7 @@ fun SplashScreen(
                         textAlign = TextAlign.Center
                     )
                     Button(
-                        onClick = onRetry,
+                        onClick = onNavigateToAuth,
                         colors = ButtonDefaults.buttonColors(
                             containerColor = MaterialTheme.colorScheme.primary
                         )
@@ -125,7 +126,7 @@ fun SplashScreen(
                 }
             } else {
                 // Loading state with contextual message
-                val loadingMessage = when (startupState) {
+                val loadingMessage = when (StartupState.Loading) {
                     StartupState.Loading -> "Initializing..."
                     StartupState.Authentication -> "Preparing sign in..."
                     StartupState.Main -> "Setting up your workspace..."
@@ -155,10 +156,11 @@ fun SplashScreen(
 fun SplashScreenPreview() {
     FairrTheme {
         SplashScreen(
-            startupState = StartupState.Loading, 
+            onNavigateToMain = {},
+            onNavigateToAuth = {},
             authLoading = true, 
+            isUserAuthenticated = false,
             authError = null, 
-            onRetry = {}, 
             onClearError = {}
         )
     }

@@ -87,18 +87,32 @@ fun FairrNavGraph(
         composable(Screen.Login.route) {
             LoginScreen(
                 navController = navController,
-                onLoginSuccess = { navController.navigate(Screen.Main.route) },
-                onNavigateToRegister = { navController.navigate(Screen.SignUp.route) },
-                onNavigateToForgotPassword = { navController.navigate(Screen.ForgotPassword.route) }
+                onNavigateToSignUp = { navController.navigate(Screen.SignUp.route) },
+                onNavigateToForgotPassword = { navController.navigate(Screen.ForgotPassword.route) },
+                onNavigateToMain = { navController.navigate(Screen.Main.route) }
             )
         }
 
         composable(Screen.SignUp.route) {
             SignUpScreen(
                 navController = navController,
+                onNavigateToLogin = { navController.navigate(Screen.Login.route) },
+                onNavigateToAccountVerification = { navController.navigate(Screen.AccountVerification.route) }
+            )
+        }
+
+        composable(Screen.AccountVerification.route) {
+            AccountVerificationScreen(
+                navController = navController,
                 onNavigateBack = { navController.popBackStack() },
-                onSignUpSuccess = { navController.navigate(Screen.Main.route) },
-                onNavigateToLogin = { navController.navigate(Screen.Login.route) }
+                onNavigateToMain = { navController.navigate(Screen.Main.route) }
+            )
+        }
+
+        composable(Screen.ForgotPassword.route) {
+            ForgotPasswordScreen(
+                navController = navController,
+                onNavigateBack = { navController.popBackStack() }
             )
         }
 

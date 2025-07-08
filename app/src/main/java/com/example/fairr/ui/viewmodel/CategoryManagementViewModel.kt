@@ -67,7 +67,7 @@ class CategoryManagementViewModel @Inject constructor(
             combine(
                 categoryService.customCategories,
                 categoryService.isLoading
-            ) { customCategories, isLoading ->
+            ) { _, isLoading ->
                 val allCategories = categoryService.getAllAvailableCategories()
                 _categories.value = allCategories
                 

@@ -26,7 +26,7 @@ import androidx.compose.foundation.ExperimentalFoundationApi
 @OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class, ExperimentalFoundationApi::class)
 @Composable
 fun GroupListScreen(
-    navController: NavController,
+    @Suppress("UNUSED_PARAMETER") navController: NavController,
     onNavigateToCreateGroup: () -> Unit,
     onNavigateToGroupDetail: (String) -> Unit,
     onNavigateToJoinGroup: () -> Unit,

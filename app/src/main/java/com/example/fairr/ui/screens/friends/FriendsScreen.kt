@@ -43,7 +43,7 @@ import java.util.*
 fun FriendsScreen(
     navController: NavController,
     viewModel: FriendsViewModel = hiltViewModel(),
-    onNavigateBack: () -> Unit
+    @Suppress("UNUSED_PARAMETER") onNavigateBack: () -> Unit
 ) {
     val uiState = viewModel.uiState
     val snackbarHostState = remember { SnackbarHostState() }

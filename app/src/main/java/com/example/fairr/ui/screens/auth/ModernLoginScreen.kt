@@ -35,10 +35,10 @@ import com.google.android.gms.common.SignInButton
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ModernLoginScreen(
-    navController: NavController,
-    onLoginSuccess: () -> Unit = {},
-    onNavigateToRegister: () -> Unit = {},
-    onNavigateToForgotPassword: () -> Unit = {},
+    @Suppress("UNUSED_PARAMETER") navController: NavController,
+    onNavigateToSignUp: () -> Unit,
+    onNavigateToForgotPassword: () -> Unit,
+    onNavigateToMain: () -> Unit,
     viewModel: AuthViewModel = hiltViewModel()
 ) {
     var email by remember { mutableStateOf("") }
@@ -59,7 +59,7 @@ fun ModernLoginScreen(
                 is AuthUiEvent.ShowMessage -> {
                     snackbarHostState.showSnackbar(event.message)
                 }
-                AuthUiEvent.NavigateToHome -> onLoginSuccess()
+                AuthUiEvent.NavigateToHome -> onNavigateToMain()
                 is AuthUiEvent.LaunchGoogleSignIn -> {
                     googleSignInLauncher.launch(event.intent)
                 }
@@ -224,7 +224,7 @@ fun ModernLoginScreen(
             
             // Register link
             TextButton(
-                onClick = onNavigateToRegister,
+                onClick = onNavigateToSignUp,
                 modifier = Modifier.fillMaxWidth()
             ) {
                 Text(
@@ -253,7 +253,10 @@ fun ModernLoginScreen(
 fun ModernLoginScreenPreview() {
     FairrTheme {
         ModernLoginScreen(
-            navController = rememberNavController()
+            navController = rememberNavController(),
+            onNavigateToSignUp = {},
+            onNavigateToForgotPassword = {},
+            onNavigateToMain = {}
         )
     }
 } 

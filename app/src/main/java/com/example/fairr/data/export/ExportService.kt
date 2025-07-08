@@ -184,7 +184,7 @@ class ExportService @Inject constructor(
         return file
     }
     
-    private fun createExcelFile(data: ExportData, options: ExportOptions): File {
+    private fun createExcelFile(data: ExportData, @Suppress("UNUSED_PARAMETER") options: ExportOptions): File {
         // For now, create a CSV file with .xlsx extension
         // In a real implementation, you would use a library like Apache POI
         val fileName = "fairr_export_${System.currentTimeMillis()}.xlsx"
@@ -218,7 +218,7 @@ class ExportService @Inject constructor(
         return file
     }
     
-    private fun createPDFFile(data: ExportData, options: ExportOptions): File {
+    private fun createPDFFile(data: ExportData, @Suppress("UNUSED_PARAMETER") options: ExportOptions): File {
         // For now, create a text file with .pdf extension
         // In a real implementation, you would use a library like iText or PDFBox
         val fileName = "fairr_export_${System.currentTimeMillis()}.pdf"

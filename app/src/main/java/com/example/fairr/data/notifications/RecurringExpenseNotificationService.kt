@@ -124,8 +124,6 @@ class RecurringExpenseNotificationService @Inject constructor(
      * Get upcoming recurring expenses for all groups the user is a member of
      */
     private suspend fun getUpcomingExpensesForAllGroups(daysAhead: Int): List<Expense> {
-        val currentUserId = auth.currentUser?.uid ?: return emptyList()
-        
         try {
             // Get all groups the user is a member of
             val userGroups = groupService.getUserGroups().first()

@@ -115,10 +115,16 @@ class MainActivity : ComponentActivity() {
                     // Show splash screen during loading or initial startup determination
                     if (showSplash || startupState == StartupState.Loading || authLoading) {
                         SplashScreen(
-                            startupState = startupState,
+                            onNavigateToMain = { 
+                                // Handle navigation to main app when ready
+                                if (!authLoading && startupState != StartupState.Loading) {
+                                    showSplash = false 
+                                }
+                            },
+                            onNavigateToAuth = { startupViewModel.retryAuthValidation() },
                             authLoading = authLoading,
+                            isUserAuthenticated = isAuthenticated,
                             authError = authError,
-                            onRetry = { startupViewModel.retryAuthValidation() },
                             onClearError = { startupViewModel.clearAuthError() }
                         )
                     } else {

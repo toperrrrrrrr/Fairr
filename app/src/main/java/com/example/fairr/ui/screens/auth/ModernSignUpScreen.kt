@@ -37,10 +37,9 @@ import kotlinx.coroutines.launch
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun ModernSignUpScreen(
-    navController: NavController,
-    onNavigateBack: () -> Unit,
-    onSignUpSuccess: () -> Unit,
+    @Suppress("UNUSED_PARAMETER") navController: NavController,
     onNavigateToLogin: () -> Unit,
+    onNavigateToAccountVerification: () -> Unit,
     viewModel: AuthViewModel = hiltViewModel()
 ) {
     var email by remember { mutableStateOf("") }
@@ -62,7 +61,9 @@ fun ModernSignUpScreen(
                 is AuthUiEvent.ShowMessage -> {
                     snackbarHostState.showSnackbar(event.message)
                 }
-                AuthUiEvent.NavigateToHome -> onSignUpSuccess()
+                AuthUiEvent.NavigateToHome -> {
+                    // This event is handled at the app level, no action needed here
+                }
                 is AuthUiEvent.LaunchGoogleSignIn -> {
                     googleSignInLauncher.launch(event.intent)
                 }
@@ -100,10 +101,10 @@ fun ModernSignUpScreen(
         ) {
             // Back Button
             IconButton(
-                onClick = onNavigateBack,
+                onClick = onNavigateToLogin,
                 modifier = Modifier
                     .padding(16.dp)
-                    .align(Alignment.TopStart)
+                    .statusBarsPadding()
             ) {
                 Icon(
                     imageVector = Icons.AutoMirrored.Filled.ArrowBack,
@@ -283,9 +284,8 @@ fun ModernSignUpScreenPreview() {
     FairrTheme {
         ModernSignUpScreen(
             navController = rememberNavController(),
-            onNavigateBack = {},
-            onSignUpSuccess = {},
-            onNavigateToLogin = {}
+            onNavigateToLogin = {},
+            onNavigateToAccountVerification = {}
         )
     }
 } 

@@ -87,7 +87,6 @@ object PhotoUtils {
             val decodingOptions = BitmapFactory.Options().apply {
                 inSampleSize = sampleSize
                 inPreferredConfig = Bitmap.Config.RGB_565 // Use less memory
-                inDither = true
                 inTempStorage = ByteArray(16 * 1024) // 16KB temp storage
             }
             
