@@ -98,6 +98,13 @@ class FriendsViewModel @Inject constructor(
     }
 
     /**
+     * Refresh all friends data - for pull-to-refresh
+     */
+    fun refreshData() {
+        loadFriendsAndRequests()
+    }
+
+    /**
      * Validates email format using Android's built-in email pattern
      * @param email The email address to validate
      * @return Validation result with specific error message if invalid

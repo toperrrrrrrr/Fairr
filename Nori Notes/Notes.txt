@@ -26,3 +26,9 @@ Create group layout should be improved.
 
 lots of bugs on new install. to sign in. 
 sign out stuck on 
+
+
+
+Group
+group invitation notification accept and deccline is not working . 
+invalid or expired invite code  
