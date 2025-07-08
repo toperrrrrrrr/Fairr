@@ -12,3 +12,17 @@ Let's fix it to reflect the emoji instead of the letter. I will then run the app
 11.Reduce code warnings
 12. darkmode on some pages doesnt seem right, icons are still black and not changing to white. Notification and settings are not changing to darkmode.
 13. Notifications are not appearing on the notification page. Friend request must show up on notificat
+Friends should have profile page where we can see their bank details and how much we owe them or how much they owe us
+ 
+Notification doesnt reload to load new notifications
+
+Join group only accepts number but invite code has letter. We should follow only numbers. 
+
+
+Group settings archive doesnt work. How to access archived grpups?
+
+Create group layout should be improved. 
+
+
+lots of bugs on new install. to sign in. 
+sign out stuck on 

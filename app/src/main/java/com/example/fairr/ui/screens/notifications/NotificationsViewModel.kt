@@ -220,25 +220,6 @@ class NotificationsViewModel @Inject constructor(
         loadNotifications()
     }
 
-    fun createTestNotifications() {
-        Log.d(TAG, "Creating test notifications")
-        viewModelScope.launch {
-            try {
-                val success = notificationService.createTestNotifications()
-                if (success) {
-                    snackbarMessage = "Test notifications created successfully"
-                    Log.d(TAG, "Test notifications created successfully")
-                } else {
-                    snackbarMessage = "Failed to create test notifications"
-                    Log.e(TAG, "Failed to create test notifications")
-                }
-            } catch (e: Exception) {
-                Log.e(TAG, "Error creating test notifications", e)
-                snackbarMessage = "Error creating test notifications: ${e.message}"
-            }
-        }
-    }
-
     fun markAllAsRead() {
         Log.d(TAG, "Marking all notifications as read")
         viewModelScope.launch {

@@ -10,12 +10,15 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
+import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
+import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.vector.ImageVector
+import androidx.compose.ui.input.nestedscroll.nestedScroll
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -28,8 +31,6 @@ import com.example.fairr.ui.theme.*
 import com.example.fairr.data.model.Notification
 import com.example.fairr.data.model.NotificationType
 import com.google.firebase.Timestamp
-import com.google.accompanist.swiperefresh.SwipeRefresh
-import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import java.text.SimpleDateFormat
 import java.util.*
 import com.example.fairr.ui.components.ModernCard
@@ -179,44 +180,28 @@ fun NotificationsScreen(
                 )
             )
         },
-        floatingActionButton = {
-            // Temporary debug button - remove this in production
-            Column(
-                horizontalAlignment = Alignment.End,
-                verticalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                FloatingActionButton(
-                    onClick = { viewModel.refresh() },
-                    containerColor = AccentBlue,
-                    contentColor = Color.White,
-                    modifier = Modifier.size(48.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Refresh,
-                        contentDescription = "Refresh notifications",
-                        modifier = Modifier.size(20.dp)
-                    )
-                }
-                FloatingActionButton(
-                    onClick = { viewModel.createTestNotifications() },
-                    containerColor = Primary,
-                    contentColor = Color.White,
-                    modifier = Modifier.size(56.dp)
-                ) {
-                    Icon(
-                        imageVector = Icons.Default.Add,
-                        contentDescription = "Create sample notifications with real data",
-                        modifier = Modifier.size(24.dp)
-                    )
-                }
-            }
-        },
+        // Remove the debug floating action buttons
         snackbarHost = { SnackbarHost(snackbarHostState) },
         containerColor = BackgroundPrimary
     ) { innerPadding ->
-        SwipeRefresh(
-            state = rememberSwipeRefreshState(uiState.isLoading),
-            onRefresh = { viewModel.refresh() }
+        val pullToRefreshState = rememberPullToRefreshState()
+        
+        LaunchedEffect(pullToRefreshState.isRefreshing) {
+            if (pullToRefreshState.isRefreshing) {
+                viewModel.refresh()
+            }
+        }
+        
+        LaunchedEffect(uiState.isLoading) {
+            if (!uiState.isLoading) {
+                pullToRefreshState.endRefresh()
+            }
+        }
+        
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .nestedScroll(pullToRefreshState.nestedScrollConnection)
         ) {
             when {
                 uiState.isLoading && uiState.notifications.isEmpty() -> {
@@ -287,6 +272,11 @@ fun NotificationsScreen(
                     }
                 }
             }
+            
+            PullToRefreshContainer(
+                state = pullToRefreshState,
+                modifier = Modifier.align(Alignment.TopCenter)
+            )
         }
     }
 
@@ -410,42 +400,6 @@ private fun EmptyState() {
             color = TextSecondary,
             lineHeight = 20.sp
         )
-        
-        Spacer(modifier = Modifier.height(24.dp))
-        
-        // Debug info card
-        ModernCard(
-            backgroundColor = ComponentColors.Info.copy(alpha = 0.05f),
-            shadowElevation = 1,
-            cornerRadius = 12
-        ) {
-            Row(
-                verticalAlignment = Alignment.Top,
-                horizontalArrangement = Arrangement.spacedBy(12.dp)
-            ) {
-                Icon(
-                    imageVector = Icons.Default.Info,
-                    contentDescription = null,
-                    tint = ComponentColors.Info,
-                    modifier = Modifier.size(20.dp)
-                )
-                Column {
-                    Text(
-                        text = "Debug Info",
-                        style = MaterialTheme.typography.titleSmall,
-                        fontWeight = FontWeight.SemiBold,
-                        color = TextPrimary
-                    )
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Text(
-                        text = "• Tap the + button to create sample notifications with real data\n• Tap the refresh button to reload\n• Notifications are automatically created when:\n  - Someone sends you a friend request\n  - You're invited to a group\n  - Expenses are added to your groups",
-                        style = MaterialTheme.typography.bodySmall,
-                        color = TextSecondary,
-                        lineHeight = 18.sp
-                    )
-                }
-            }
-        }
     }
 }
 
