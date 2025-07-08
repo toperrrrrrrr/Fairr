@@ -34,6 +34,7 @@ import com.google.firebase.Timestamp
 import java.text.SimpleDateFormat
 import java.util.*
 import com.example.fairr.ui.components.ModernCard
+import android.util.Log
 
 // UI model that extends the data model with display properties
 data class NotificationUiModel(
@@ -249,6 +250,12 @@ fun NotificationsScreen(
                                         }
                                         NotificationType.GROUP_INVITATION -> {
                                             val inviteId = notificationUiModel.notification.data["inviteId"] as? String ?: ""
+                                            Log.d("NotificationsScreen", "GROUP_INVITATION action - NotificationId: ${notificationUiModel.notification.id}, InviteId: '$inviteId', Data: ${notificationUiModel.notification.data}")
+                                            
+                                            if (inviteId.isEmpty()) {
+                                                Log.e("NotificationsScreen", "InviteId is empty for GROUP_INVITATION notification")
+                                            }
+                                            
                                             viewModel.respondToInvite(
                                                 notificationUiModel.notification.id,
                                                 inviteId,

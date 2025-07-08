@@ -134,21 +134,30 @@ class NotificationsViewModel @Inject constructor(
     }
 
     fun respondToInvite(notificationId: String, inviteId: String, accept: Boolean) {
-        Log.d(TAG, "Responding to invite: id=$inviteId, accept=$accept")
+        Log.d(TAG, "Responding to invite: notificationId=$notificationId, inviteId=$inviteId, accept=$accept")
+        
+        if (inviteId.isEmpty()) {
+            Log.e(TAG, "InviteId is empty or null")
+            snackbarMessage = "Invalid invitation - missing invite ID"
+            return
+        }
+        
         viewModelScope.launch {
             try {
                 _uiState.value = _uiState.value.copy(processingRequestId = inviteId)
                 Log.d(TAG, "Set processing state: ${_uiState.value}")
 
                 val result = if (accept) {
+                    Log.d(TAG, "Calling acceptInvitation with inviteId: $inviteId")
                     groupInviteService.acceptInvitation(inviteId)
                 } else {
+                    Log.d(TAG, "Calling rejectInvitation with inviteId: $inviteId")
                     groupInviteService.rejectInvitation(inviteId)
                 }
 
                 when (result) {
                     is GroupInviteResult.Success -> {
-                        Log.d(TAG, "Invite response successful")
+                        Log.d(TAG, "Invite response successful: ${result.message}")
                         notificationService.markNotificationAsRead(notificationId)
                         
                         val message = if (accept) "Group invitation accepted" else "Group invitation declined"
