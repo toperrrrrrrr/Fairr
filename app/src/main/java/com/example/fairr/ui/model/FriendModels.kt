@@ -11,8 +11,7 @@ data class Friend(
 
 enum class FriendStatus {
     PENDING,    // Friend request sent but not accepted
-    ACCEPTED,   // Friend request accepted
-    BLOCKED     // User has blocked this friend
+    ACCEPTED    // Friend request accepted
 }
 
 data class FriendRequest(

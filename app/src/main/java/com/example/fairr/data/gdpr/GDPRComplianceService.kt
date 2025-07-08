@@ -108,7 +108,7 @@ class GDPRComplianceService @Inject constructor(
     ) {
         val collections = listOf(
             "users",
-            "groups", 
+            "groups",
             "expenses",
             "settlements",
             "notifications",
@@ -117,7 +117,6 @@ class GDPRComplianceService @Inject constructor(
             "groupInvites", 
             "friendRequests",
             "friends",
-            "blockedUsers",
             "userReports",
             "friendGroups",
             "friendGroupMemberships"
@@ -136,7 +135,6 @@ class GDPRComplianceService @Inject constructor(
                 "groupInvites" -> deleteUserInvites(userId)
                 "friendRequests" -> deleteUserFriendRequests(userId)
                 "friends" -> deleteUserFriends(userId)
-                "blockedUsers" -> deleteUserBlocks(userId)
                 "userReports" -> deleteUserReports(userId)
                 "friendGroups" -> deleteUserFriendGroups(userId)
                 "friendGroupMemberships" -> deleteUserFriendGroupMemberships(userId)
@@ -421,35 +419,6 @@ class GDPRComplianceService @Inject constructor(
             .await()
             
         friends2.documents.forEach { doc ->
-            batch.delete(doc.reference)
-        }
-        
-        batch.commit().await()
-    }
-
-    /**
-     * Delete user blocks
-     */
-    private suspend fun deleteUserBlocks(userId: String) {
-        val batch = firestore.batch()
-        
-        // Delete blocks created by user
-        val blocksBy = firestore.collection("blockedUsers")
-            .whereEqualTo("blockedBy", userId)
-            .get()
-            .await()
-            
-        blocksBy.documents.forEach { doc ->
-            batch.delete(doc.reference)
-        }
-        
-        // Delete blocks targeting user
-        val blocksOf = firestore.collection("blockedUsers")
-            .whereEqualTo("blockedUserId", userId)
-            .get()
-            .await()
-            
-        blocksOf.documents.forEach { doc ->
             batch.delete(doc.reference)
         }
         

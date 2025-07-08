@@ -73,45 +73,6 @@ class FriendsViewModel @Inject constructor(
     }
 
     /**
-     * Check if a user is blocked
-     */
-    suspend fun isUserBlocked(userId: String): Boolean {
-        return userModerationService.isUserBlocked(userId)
-    }
-
-    /**
-     * Block a user - OPTIMIZED
-     */
-    fun blockUser(userId: String, userName: String, userEmail: String, reason: String = "") {
-        launchOptimized {
-            when (val result = userModerationService.blockUser(userId, userName, userEmail, reason)) {
-                is ModerationResult.Success -> {
-                    _userMessage.emit(result.message)
-                }
-                is ModerationResult.Error -> {
-                    _userMessage.emit(result.message)
-                }
-            }
-        }
-    }
-
-    /**
-     * Unblock a user - OPTIMIZED
-     */
-    fun unblockUser(userId: String) {
-        launchOptimized {
-            when (val result = userModerationService.unblockUser(userId)) {
-                is ModerationResult.Success -> {
-                    _userMessage.emit(result.message)
-                }
-                is ModerationResult.Error -> {
-                    _userMessage.emit(result.message)
-                }
-            }
-        }
-    }
-
-    /**
      * Report a user - OPTIMIZED
      */
     fun reportUser(

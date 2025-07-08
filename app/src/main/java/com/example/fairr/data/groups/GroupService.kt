@@ -12,10 +12,10 @@ import kotlinx.coroutines.channels.awaitClose
 import kotlinx.coroutines.flow.Flow
 import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
-import java.util.UUID
 import javax.inject.Inject
 import javax.inject.Singleton
 import com.google.firebase.firestore.FieldValue
+import kotlin.random.Random
 
 private const val TAG = "GroupService"
 
@@ -32,7 +32,7 @@ class GroupService @Inject constructor(
     private val groupsCollection = firestore.collection("groups")
 
     private fun generateInviteCode(): String {
-        return UUID.randomUUID().toString().substring(0, 6).uppercase()
+        return Random.nextInt(100000, 999999).toString()
     }
 
     // Firestore returns generic Map<String, Any>; safe cast with try/catch for member parsing

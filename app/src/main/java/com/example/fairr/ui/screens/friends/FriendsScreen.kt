@@ -41,7 +41,6 @@ fun FriendsScreen(
     val scope = rememberCoroutineScope()
 
     // State for moderation dialogs
-    var showBlockDialog by remember { mutableStateOf<Friend?>(null) }
     var showReportDialog by remember { mutableStateOf<Friend?>(null) }
 
     // Collect user messages
@@ -49,18 +48,6 @@ fun FriendsScreen(
         viewModel.userMessage.collect { message ->
             snackbarHostState.showSnackbar(message)
         }
-    }
-
-    // Block user dialog
-    showBlockDialog?.let { friend ->
-        BlockUserDialog(
-            userName = friend.name,
-            onConfirm = { reason ->
-                viewModel.blockUser(friend.id, friend.name, friend.email, reason)
-                showBlockDialog = null
-            },
-            onDismiss = { showBlockDialog = null }
-        )
     }
 
     // Report user dialog
@@ -225,9 +212,6 @@ fun FriendsScreen(
                                 }
                             }
                         },
-                        onBlockUser = { friend ->
-                            showBlockDialog = friend
-                        },
                         onReportUser = { friend ->
                             showReportDialog = friend
                         },
@@ -365,7 +349,6 @@ private fun FriendRequestItem(
 private fun FriendsList(
     friends: List<Friend>,
     onRemoveFriend: (String) -> Unit,
-    onBlockUser: (Friend) -> Unit,
     onReportUser: (Friend) -> Unit,
     viewModel: FriendsViewModel
 ) {
@@ -391,7 +374,6 @@ private fun FriendsList(
                     FriendItem(
                         friend = friend,
                         onRemove = { onRemoveFriend(friend.id) },
-                        onBlock = { onBlockUser(friend) },
                         onReport = { onReportUser(friend) },
                         viewModel = viewModel
                     )
@@ -405,7 +387,6 @@ private fun FriendsList(
 private fun FriendItem(
     friend: Friend,
     onRemove: () -> Unit,
-    onBlock: () -> Unit,
     onReport: () -> Unit,
     viewModel: FriendsViewModel
 ) {
@@ -440,13 +421,6 @@ private fun FriendItem(
                 Icon(
                     Icons.Default.Delete,
                     contentDescription = "Remove friend",
-                    tint = MaterialTheme.colorScheme.error
-                )
-            }
-            IconButton(onClick = onBlock) {
-                Icon(
-                    Icons.Default.Block,
-                    contentDescription = "Block user",
                     tint = MaterialTheme.colorScheme.error
                 )
             }

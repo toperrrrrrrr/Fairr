@@ -2,16 +2,6 @@ package com.example.fairr.data.model
 
 import com.google.firebase.Timestamp
 
-data class BlockedUser(
-    val id: String = "",
-    val blockedUserId: String = "",
-    val blockedUserName: String = "",
-    val blockedUserEmail: String = "",
-    val blockedBy: String = "", // Current user's ID
-    val blockedAt: Timestamp = Timestamp.now(),
-    val reason: String = ""
-)
-
 data class UserReport(
     val id: String = "",
     val reportedUserId: String = "",

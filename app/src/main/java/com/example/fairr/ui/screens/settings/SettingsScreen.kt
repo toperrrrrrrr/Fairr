@@ -260,20 +260,6 @@ fun SettingsScreen(
                             }
                         )
                         ListItem(
-                            headlineContent = { Text("Blocked Users") },
-                            supportingContent = { Text("Manage blocked users") },
-                            leadingContent = { 
-                                Icon(
-                                    Icons.Default.Block,
-                                    contentDescription = null,
-                                    tint = Primary
-                                )
-                            },
-                            modifier = Modifier.clickable { 
-                                navController.navigate("blocked_users")
-                            }
-                        )
-                        ListItem(
                             headlineContent = { Text("Privacy Policy") },
                             leadingContent = { 
                                 Icon(
