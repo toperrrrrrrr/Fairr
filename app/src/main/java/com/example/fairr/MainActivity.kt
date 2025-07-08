@@ -76,24 +76,13 @@ class MainActivity : ComponentActivity() {
 
                     // State to control splash screen visibility
                     var showSplash by remember { mutableStateOf(true) }
-                    var canNavigate by remember { mutableStateOf(false) }
 
-                    // Show splash screen for at least 2 seconds
-                    LaunchedEffect(Unit) {
+                    // Show splash screen for minimum time and until startup state is determined
+                    LaunchedEffect(startupState) {
                         delay(2000) // 2 second minimum splash screen time
-                        canNavigate = true
-                    }
-
-                    // Handle authentication redirects with delay
-                    LaunchedEffect(startupState, isAuthenticated, canNavigate) {
-                        if (canNavigate) {
-                            // Additional delay to ensure smooth transition
-                            delay(500)
-                            when {
-                                !isAuthenticated -> navController.navigate(Screen.Welcome.route)
-                                startupState == StartupState.Onboarding -> navController.navigate(Screen.Onboarding.route)
-                                else -> navController.navigate(Screen.Main.route)
-                            }
+                        
+                        // Hide splash when we have a determined startup state (not Loading)
+                        if (startupState != StartupState.Loading) {
                             showSplash = false
                         }
                     }
@@ -120,16 +109,11 @@ class MainActivity : ComponentActivity() {
                     // Function to handle complete app reset
                     fun handleAppReset() {
                         startupViewModel.resetToInitialState()
-                        // Force navigation to welcome screen
-                        navController.navigate(Screen.Welcome.route) {
-                            popUpTo(0) { inclusive = true }
-                        }
+                        showSplash = true // Show splash during reset
                     }
 
-                    // Show splash screen during loading, authentication, or while waiting for minimum time
-                    if (showSplash && (startupState == StartupState.Loading ||
-                        startupState == StartupState.Authentication ||
-                        authLoading || !canNavigate)) {
+                    // Show splash screen during loading or initial startup determination
+                    if (showSplash || startupState == StartupState.Loading || authLoading) {
                         SplashScreen(
                             startupState = startupState,
                             authLoading = authLoading,

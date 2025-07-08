@@ -5,6 +5,8 @@ import android.util.Patterns
 import com.example.fairr.ui.model.Friend
 import com.example.fairr.ui.model.FriendRequest
 import com.example.fairr.ui.model.FriendStatus
+import com.example.fairr.data.model.NotificationType
+import com.example.fairr.data.notifications.NotificationService
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import kotlinx.coroutines.channels.awaitClose
@@ -30,7 +32,9 @@ sealed class EmailValidationResult {
 }
 
 @Singleton
-class FriendService @Inject constructor() {
+class FriendService @Inject constructor(
+    private val notificationService: NotificationService
+) {
     private val auth = FirebaseAuth.getInstance()
     private val firestore = FirebaseFirestore.getInstance()
     private val friendsCollection = firestore.collection("friends")
@@ -278,6 +282,21 @@ class FriendService @Inject constructor() {
 
             // Use set() with the specific document ID instead of add()
             friendRequestsCollection.document(requestId).set(friendRequest).await()
+            
+            // Create notification for the friend request recipient
+            val senderName = currentUser.displayName ?: currentUser.email?.substringBefore("@") ?: "Someone"
+            notificationService.createNotification(
+                type = NotificationType.FRIEND_REQUEST,
+                title = "Friend Request",
+                message = "$senderName sent you a friend request",
+                recipientId = receiverId,
+                data = mapOf(
+                    "requestId" to requestId,
+                    "requesterId" to currentUser.uid,
+                    "senderName" to senderName
+                )
+            )
+            
             return FriendResult.Success("Friend request sent successfully")
 
         } catch (e: Exception) {

@@ -196,9 +196,10 @@ fun OnboardingScreen(
                     }
                 },
                 onGetStarted = {
-                        viewModel.onGetStartedClick()
+                    viewModel.onGetStartedClick {
                         onGetStarted()
                     }
+                }
             )
             
             Spacer(modifier = Modifier.windowInsetsPadding(WindowInsets.navigationBars))

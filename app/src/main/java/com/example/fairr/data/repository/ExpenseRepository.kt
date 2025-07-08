@@ -4,6 +4,8 @@ import android.util.Log
 import com.example.fairr.data.model.Expense
 import com.example.fairr.data.model.ExpenseSplit
 import com.example.fairr.data.model.ExpenseCategory
+import com.example.fairr.data.model.NotificationType
+import com.example.fairr.data.notifications.NotificationService
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.DocumentSnapshot
@@ -125,7 +127,8 @@ interface ExpenseRepository {
 class ExpenseRepositoryImpl @Inject constructor(
     private val firestore: FirebaseFirestore,
     private val auth: FirebaseAuth,
-    private val activityService: com.example.fairr.data.activity.ActivityService
+    private val activityService: com.example.fairr.data.activity.ActivityService,
+    private val notificationService: NotificationService
 ) : ExpenseRepository {
 
     // Cache for user names to reduce Firestore calls
@@ -518,6 +521,34 @@ class ExpenseRepositoryImpl @Inject constructor(
                         userInitials = userInitials,
                         isPositive = false
                     )
+                    
+                    // Step 6.1: Create notifications for other group members
+                    try {
+                        val groupDoc = firestore.collection("groups").document(groupId).get().await()
+                        val groupData = groupDoc.data
+                        val groupName = groupData?.get("name") as? String ?: "Group"
+                        val members = groupData?.get("members") as? Map<String, Any> ?: emptyMap()
+                        
+                        // Notify all group members except the person who added the expense
+                        members.keys.filter { it != currentUser.uid }.forEach { memberId ->
+                            notificationService.createNotification(
+                                type = NotificationType.EXPENSE_ADDED,
+                                title = "New Expense Added",
+                                message = "$userName added '$description' (${currency}${String.format("%.2f", amount)}) to '$groupName'",
+                                recipientId = memberId,
+                                data = mapOf(
+                                    "expenseId" to expenseRef.id,
+                                    "groupId" to groupId,
+                                    "addedBy" to currentUser.uid,
+                                    "amount" to amount.toString(),
+                                    "currency" to currency
+                                )
+                            )
+                        }
+                        Log.d("ExpenseRepository", "Notifications sent to ${members.size - 1} group members")
+                    } catch (e: Exception) {
+                        Log.w("ExpenseRepository", "Failed to send expense notifications: ${e.message}")
+                    }
                 }
             } catch (e: Exception) {
                 Log.w("ExpenseRepository", "Failed to log activity for expense added: ${e.message}")

@@ -48,6 +48,7 @@ import com.example.fairr.ui.screens.SplashScreen
 import com.example.fairr.ui.screens.home.HomeScreen
 import com.example.fairr.ui.screens.groups.GroupDetailScreen
 import com.example.fairr.ui.screens.auth.ModernLoginScreen as LoginScreen
+import com.example.fairr.ui.screens.auth.ModernSignUpScreen as SignUpScreen
 import com.example.fairr.ui.screens.onboarding.OnboardingScreen
 import com.example.fairr.ui.screens.settings.SettingsScreen
 import com.example.fairr.ui.screens.MainScreen
@@ -72,13 +73,14 @@ fun FairrNavGraph(
             StartupState.Welcome -> Screen.Welcome.route
             StartupState.Login -> Screen.Login.route
             StartupState.Onboarding -> Screen.Onboarding.route
+            StartupState.Authentication -> Screen.Welcome.route
             else -> Screen.Main.route
         }
     ) {
         composable(Screen.Welcome.route) {
             WelcomeScreen(
-                onNavigateToHome = { navController.navigate(Screen.Main.route) },
-                onNavigateToAuth = { navController.navigate(Screen.Login.route) }
+                onNavigateToHome = { navController.navigate(Screen.Login.route) },
+                onNavigateToAuth = { navController.navigate(Screen.SignUp.route) }
             )
         }
 
@@ -86,8 +88,17 @@ fun FairrNavGraph(
             LoginScreen(
                 navController = navController,
                 onLoginSuccess = { navController.navigate(Screen.Main.route) },
-                onNavigateToRegister = { navController.navigate(Screen.Onboarding.route) },
+                onNavigateToRegister = { navController.navigate(Screen.SignUp.route) },
                 onNavigateToForgotPassword = { navController.navigate(Screen.ForgotPassword.route) }
+            )
+        }
+
+        composable(Screen.SignUp.route) {
+            SignUpScreen(
+                navController = navController,
+                onNavigateBack = { navController.popBackStack() },
+                onSignUpSuccess = { navController.navigate(Screen.Main.route) },
+                onNavigateToLogin = { navController.navigate(Screen.Login.route) }
             )
         }
 
@@ -108,7 +119,7 @@ fun FairrNavGraph(
 
         composable(Screen.Onboarding.route) {
             OnboardingScreen(
-                onGetStarted = { navController.navigate(Screen.Main.route) }
+                onGetStarted = { navController.navigate(Screen.Welcome.route) }
             )
         }
 

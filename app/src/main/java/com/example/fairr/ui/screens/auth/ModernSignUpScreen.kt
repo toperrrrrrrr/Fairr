@@ -28,7 +28,7 @@ import androidx.navigation.compose.rememberNavController
 import com.example.fairr.R
 import com.example.fairr.ui.components.*
 import com.example.fairr.ui.theme.*
-import androidx.lifecycle.viewmodel.compose.viewModel
+import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.activity.compose.rememberLauncherForActivityResult
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.lifecycle.compose.collectAsStateWithLifecycle
@@ -41,7 +41,7 @@ fun ModernSignUpScreen(
     onNavigateBack: () -> Unit,
     onSignUpSuccess: () -> Unit,
     onNavigateToLogin: () -> Unit,
-    viewModel: AuthViewModel = viewModel()
+    viewModel: AuthViewModel = hiltViewModel()
 ) {
     var email by remember { mutableStateOf("") }
     var password by remember { mutableStateOf("") }

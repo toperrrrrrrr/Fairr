@@ -66,8 +66,9 @@ object AppModule {
     fun provideExpenseRepository(
         firestore: FirebaseFirestore,
         auth: FirebaseAuth,
-        activityService: ActivityService
-    ): ExpenseRepository = ExpenseRepositoryImpl(firestore, auth, activityService)
+        activityService: ActivityService,
+        notificationService: NotificationService
+    ): ExpenseRepository = ExpenseRepositoryImpl(firestore, auth, activityService, notificationService)
 
     @Provides
     @Singleton
@@ -87,8 +88,9 @@ object AppModule {
     @Singleton
     fun provideGroupInviteService(
         firestore: FirebaseFirestore,
-        auth: FirebaseAuth
-    ): GroupInviteService = GroupInviteService(firestore, auth)
+        auth: FirebaseAuth,
+        notificationService: NotificationService
+    ): GroupInviteService = GroupInviteService(firestore, auth, notificationService)
 
     @Provides
     @Singleton

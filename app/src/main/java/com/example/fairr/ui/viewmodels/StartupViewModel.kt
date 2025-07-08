@@ -63,7 +63,7 @@ class StartupViewModel @Inject constructor(
                 // Check if account selection should be forced (after complete sign-out)
                 val forceAccountSelection = userPreferencesManager.shouldForceAccountSelection()
                 if (forceAccountSelection) {
-                    _startupState.value = StartupState.Authentication
+                    _startupState.value = StartupState.Welcome
                     _authLoading.value = false
                     return@launch
                 }
@@ -73,7 +73,7 @@ class StartupViewModel @Inject constructor(
                 val hasStoredAuth = storedAuthState?.isAuthenticated == true
 
                 if (!hasStoredAuth) {
-                    _startupState.value = StartupState.Authentication
+                    _startupState.value = StartupState.Welcome
                     _authLoading.value = false
                     return@launch
                 }
@@ -90,12 +90,12 @@ class StartupViewModel @Inject constructor(
                     // Session is invalid, clear stored state and redirect to auth
                     userPreferencesManager.clearAuthState()
                     _isAuthenticated.value = false
-                    _startupState.value = StartupState.Authentication
+                    _startupState.value = StartupState.Welcome
                 }
 
             } catch (e: Exception) {
                 _authError.value = "Failed to validate session: ${e.message}"
-                _startupState.value = StartupState.Authentication
+                _startupState.value = StartupState.Welcome
             } finally {
                 _authLoading.value = false
             }
@@ -134,7 +134,7 @@ class StartupViewModel @Inject constructor(
                         
                         // Update startup state based on onboarding status
                         if (_isOnboardingCompleted.value) {
-                            _startupState.value = StartupState.Authentication
+                            _startupState.value = StartupState.Welcome
                         } else {
                             _startupState.value = StartupState.Onboarding
                         }
@@ -148,7 +148,7 @@ class StartupViewModel @Inject constructor(
                         userPreferencesManager.clearAuthState()
                         
                         if (_isOnboardingCompleted.value) {
-                            _startupState.value = StartupState.Authentication
+                            _startupState.value = StartupState.Welcome
                         } else {
                             _startupState.value = StartupState.Onboarding
                         }
@@ -184,7 +184,7 @@ class StartupViewModel @Inject constructor(
                     userPreferencesManager.clearAuthState()
                     
                     if (_isOnboardingCompleted.value) {
-                        _startupState.value = StartupState.Authentication
+                        _startupState.value = StartupState.Welcome
                     } else {
                         _startupState.value = StartupState.Onboarding
                     }
@@ -209,7 +209,7 @@ class StartupViewModel @Inject constructor(
                 _authError.value = null
                 
                 if (_isOnboardingCompleted.value) {
-                    _startupState.value = StartupState.Authentication
+                    _startupState.value = StartupState.Welcome
                 } else {
                     _startupState.value = StartupState.Onboarding
                 }
@@ -232,7 +232,7 @@ class StartupViewModel @Inject constructor(
                 if (_isAuthenticated.value) {
                     _startupState.value = StartupState.Main
                 } else {
-                    _startupState.value = StartupState.Authentication
+                    _startupState.value = StartupState.Welcome
                 }
             } catch (e: Exception) {
                 _authError.value = "Failed to complete onboarding: ${e.message}"

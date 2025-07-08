@@ -32,6 +32,7 @@ import com.google.accompanist.swiperefresh.SwipeRefresh
 import com.google.accompanist.swiperefresh.rememberSwipeRefreshState
 import java.text.SimpleDateFormat
 import java.util.*
+import com.example.fairr.ui.components.ModernCard
 
 // UI model that extends the data model with display properties
 data class NotificationUiModel(
@@ -121,55 +122,54 @@ fun NotificationsScreen(
     }
 
     Scaffold(
-        snackbarHost = { SnackbarHost(snackbarHostState) },
         topBar = {
             TopAppBar(
-                title = { 
-                    Row(verticalAlignment = Alignment.CenterVertically) {
+                title = {
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
                         Text(
-                            "Notifications",
-                            style = MaterialTheme.typography.titleLarge,
+                            text = "Notifications",
+                            style = MaterialTheme.typography.headlineSmall,
                             fontWeight = FontWeight.SemiBold,
                             color = TextPrimary
                         )
+                        
                         if (unreadCount > 0) {
                             Spacer(modifier = Modifier.width(8.dp))
-                            Badge(
-                                containerColor = Primary,
-                                modifier = Modifier.size(20.dp)
+                            Box(
+                                modifier = Modifier
+                                    .background(Primary, CircleShape)
+                                    .padding(horizontal = 8.dp, vertical = 4.dp)
                             ) {
                                 Text(
-                                    text = if (unreadCount > 99) "99+" else unreadCount.toString(),
+                                    text = unreadCount.toString(),
                                     style = MaterialTheme.typography.labelSmall,
-                                    color = Color.White
+                                    color = Color.White,
+                                    fontWeight = FontWeight.Bold
                                 )
                             }
                         }
                     }
                 },
                 navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
+                    IconButton(onClick = { navController.navigateUp() }) {
                         Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack, 
+                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
                             contentDescription = "Back",
                             tint = TextPrimary
                         )
                     }
                 },
                 actions = {
-                    if (unreadCount > 0 && !uiState.isLoading) {
-                        TextButton(
-                            onClick = { 
-                                // Mark all as read functionality
-                                uiState.notifications
-                                    .filter { !it.isRead }
-                                    .forEach { viewModel.markAsRead(it.id) }
-                            }
+                    if (uiState.notifications.isNotEmpty()) {
+                        IconButton(
+                            onClick = { viewModel.markAllAsRead() }
                         ) {
-                            Text(
-                                "Mark all read",
-                                style = MaterialTheme.typography.labelMedium,
-                                color = Primary
+                            Icon(
+                                imageVector = Icons.Default.DoneAll,
+                                contentDescription = "Mark all as read",
+                                tint = TextPrimary
                             )
                         }
                     }
@@ -178,73 +178,122 @@ fun NotificationsScreen(
                     containerColor = BackgroundPrimary
                 )
             )
-        }
-    ) { paddingValues ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-                .background(BackgroundSecondary)
-                .padding(paddingValues)
+        },
+        floatingActionButton = {
+            // Temporary debug button - remove this in production
+            Column(
+                horizontalAlignment = Alignment.End,
+                verticalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                FloatingActionButton(
+                    onClick = { viewModel.refresh() },
+                    containerColor = AccentBlue,
+                    contentColor = Color.White,
+                    modifier = Modifier.size(48.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Refresh,
+                        contentDescription = "Refresh notifications",
+                        modifier = Modifier.size(20.dp)
+                    )
+                }
+                FloatingActionButton(
+                    onClick = { viewModel.createTestNotifications() },
+                    containerColor = Primary,
+                    contentColor = Color.White,
+                    modifier = Modifier.size(56.dp)
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Add,
+                        contentDescription = "Create sample notifications with real data",
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+            }
+        },
+        snackbarHost = { SnackbarHost(snackbarHostState) },
+        containerColor = BackgroundPrimary
+    ) { innerPadding ->
+        SwipeRefresh(
+            state = rememberSwipeRefreshState(uiState.isLoading),
+            onRefresh = { viewModel.refresh() }
         ) {
             when {
                 uiState.isLoading && uiState.notifications.isEmpty() -> {
-                    // Initial loading state
                     LoadingState()
                 }
                 uiState.error != null -> {
-                    // Error state
                     ErrorState(
-                        error = uiState.error ?: "Unknown error",
+                        error = uiState.error!!,
                         onRetry = { viewModel.retry() }
                     )
                 }
                 uiState.notifications.isEmpty() -> {
-                    // Empty state
                     EmptyState()
                 }
                 else -> {
-                    // Notifications list with pull-to-refresh
-                    val swipeRefreshState = rememberSwipeRefreshState(
-                        isRefreshing = uiState.isLoading && uiState.notifications.isNotEmpty()
-                    )
-                    
-                    SwipeRefresh(
-                        state = swipeRefreshState,
-                        onRefresh = { viewModel.refresh() },
-                        modifier = Modifier.fillMaxSize()
+                    LazyColumn(
+                        modifier = Modifier
+                            .fillMaxSize()
+                            .padding(innerPadding),
+                        contentPadding = PaddingValues(16.dp),
+                        verticalArrangement = Arrangement.spacedBy(12.dp)
                     ) {
-                        LazyColumn(
-                            modifier = Modifier.fillMaxSize(),
-                            contentPadding = PaddingValues(16.dp),
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            items(
-                                items = notificationUiModels,
-                                key = { it.notification.id }
-                            ) { notificationUiModel ->
-                                NotificationCard(
-                                    notificationUiModel = notificationUiModel,
-                                    isProcessing = uiState.processingRequestId == getActionId(notificationUiModel.notification),
-                                    decisionResult = uiState.decisionResults[notificationUiModel.notification.id],
-                                    onMarkAsRead = { viewModel.markAsRead(notificationUiModel.notification.id) },
-                                    onAction = { accept ->
-                                        handleNotificationAction(
-                                            notification = notificationUiModel.notification,
-                                            accept = accept,
-                                            viewModel = viewModel
-                                        )
-                                    },
-                                    onDelete = { viewModel.deleteNotification(notificationUiModel.notification.id) }
-                                )
-                            }
-                            
-                            item {
-                                Spacer(modifier = Modifier.height(16.dp))
-                            }
+                        items(
+                            items = notificationUiModels,
+                            key = { it.notification.id }
+                        ) { notificationUiModel ->
+                            NotificationCard(
+                                notificationUiModel = notificationUiModel,
+                                isProcessing = uiState.processingRequestId == notificationUiModel.notification.id,
+                                decisionResult = uiState.decisionResults[notificationUiModel.notification.id],
+                                onMarkAsRead = {
+                                    if (!notificationUiModel.notification.isRead) {
+                                        viewModel.markAsRead(notificationUiModel.notification.id)
+                                    }
+                                },
+                                onAction = { accept ->
+                                    when (notificationUiModel.notification.type) {
+                                        NotificationType.GROUP_JOIN_REQUEST -> {
+                                            val requestId = notificationUiModel.notification.data["requestId"] as? String ?: ""
+                                            viewModel.respondToJoinRequest(
+                                                notificationUiModel.notification.id,
+                                                requestId,
+                                                accept
+                                            )
+                                        }
+                                        NotificationType.GROUP_INVITATION -> {
+                                            val inviteId = notificationUiModel.notification.data["inviteId"] as? String ?: ""
+                                            viewModel.respondToInvite(
+                                                notificationUiModel.notification.id,
+                                                inviteId,
+                                                accept
+                                            )
+                                        }
+                                        NotificationType.FRIEND_REQUEST -> {
+                                            // TODO: Implement friend request handling
+                                            viewModel.snackbarMessage = "Friend request handling not implemented yet"
+                                        }
+                                        else -> {
+                                            // No action needed for other types
+                                        }
+                                    }
+                                },
+                                onDelete = {
+                                    viewModel.deleteNotification(notificationUiModel.notification.id)
+                                }
+                            )
                         }
                     }
                 }
             }
+        }
+    }
+
+    // Clear snackbar message after showing
+    LaunchedEffect(snackbarMessage) {
+        if (snackbarMessage != null) {
+            viewModel.clearSnackbarMessage()
         }
     }
 }
@@ -361,6 +410,42 @@ private fun EmptyState() {
             color = TextSecondary,
             lineHeight = 20.sp
         )
+        
+        Spacer(modifier = Modifier.height(24.dp))
+        
+        // Debug info card
+        ModernCard(
+            backgroundColor = ComponentColors.Info.copy(alpha = 0.05f),
+            shadowElevation = 1,
+            cornerRadius = 12
+        ) {
+            Row(
+                verticalAlignment = Alignment.Top,
+                horizontalArrangement = Arrangement.spacedBy(12.dp)
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Info,
+                    contentDescription = null,
+                    tint = ComponentColors.Info,
+                    modifier = Modifier.size(20.dp)
+                )
+                Column {
+                    Text(
+                        text = "Debug Info",
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = FontWeight.SemiBold,
+                        color = TextPrimary
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = "• Tap the + button to create sample notifications with real data\n• Tap the refresh button to reload\n• Notifications are automatically created when:\n  - Someone sends you a friend request\n  - You're invited to a group\n  - Expenses are added to your groups",
+                        style = MaterialTheme.typography.bodySmall,
+                        color = TextSecondary,
+                        lineHeight = 18.sp
+                    )
+                }
+            }
+        }
     }
 }
 
@@ -376,175 +461,168 @@ fun NotificationCard(
 ) {
     val notification = notificationUiModel.notification
     
-    Card(
-        modifier = Modifier.fillMaxWidth(),
+    ModernCard(
         onClick = { 
             if (!notification.isRead) {
                 onMarkAsRead()
             }
         },
-        colors = CardDefaults.cardColors(
-            containerColor = if (notification.isRead) {
-                BackgroundPrimary
-            } else {
-                Primary.copy(alpha = 0.03f)
-            }
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = if (notification.isRead) 1.dp else 2.dp
-        ),
-        shape = RoundedCornerShape(12.dp),
-        border = if (!notification.isRead) {
-            CardDefaults.outlinedCardBorder()
-        } else null
+        backgroundColor = if (notification.isRead) {
+            CardBackground
+        } else {
+            Primary.copy(alpha = 0.03f)
+        },
+        shadowElevation = if (notification.isRead) 1 else 2,
+        cornerRadius = 12
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(16.dp)
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.Top
         ) {
-            Row(
-                modifier = Modifier.fillMaxWidth(),
-                verticalAlignment = Alignment.Top
+            // Icon
+            Box(
+                modifier = Modifier
+                    .size(40.dp)
+                    .background(
+                        color = notificationUiModel.iconBackgroundColor,
+                        shape = RoundedCornerShape(10.dp)
+                    ),
+                contentAlignment = Alignment.Center
             ) {
-                // Icon
-                Box(
-                    modifier = Modifier
-                        .size(40.dp)
-                        .clip(CircleShape)
-                        .background(notificationUiModel.iconBackgroundColor),
-                    contentAlignment = Alignment.Center
+                Icon(
+                    imageVector = notificationUiModel.icon,
+                    contentDescription = null,
+                    tint = notificationUiModel.iconColor,
+                    modifier = Modifier.size(20.dp)
+                )
+            }
+            
+            Spacer(modifier = Modifier.width(12.dp))
+            
+            // Content
+            Column(
+                modifier = Modifier.weight(1f)
+            ) {
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.SpaceBetween,
+                    verticalAlignment = Alignment.Top
                 ) {
-                    Icon(
-                        imageVector = notificationUiModel.icon,
-                        contentDescription = null,
-                        tint = notificationUiModel.iconColor,
-                        modifier = Modifier.size(20.dp)
+                    Text(
+                        text = notification.title,
+                        style = MaterialTheme.typography.titleSmall,
+                        fontWeight = if (notification.isRead) FontWeight.Medium else FontWeight.SemiBold,
+                        color = TextPrimary,
+                        modifier = Modifier.weight(1f)
                     )
-                }
-                
-                Spacer(modifier = Modifier.width(12.dp))
-                
-                // Content
-                Column(
-                    modifier = Modifier.weight(1f)
-                ) {
+                    
                     Row(
-                        modifier = Modifier.fillMaxWidth(),
-                        horizontalArrangement = Arrangement.SpaceBetween,
-                        verticalAlignment = Alignment.Top
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Text(
-                            text = notification.title,
-                            style = MaterialTheme.typography.titleSmall,
-                            fontWeight = if (notification.isRead) FontWeight.Medium else FontWeight.SemiBold,
-                            color = TextPrimary,
-                            modifier = Modifier.weight(1f)
+                            text = formatRelativeTime(notification.createdAt),
+                            style = MaterialTheme.typography.labelSmall,
+                            color = TextSecondary
                         )
                         
-                        Row(
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                text = formatRelativeTime(notification.createdAt),
-                                style = MaterialTheme.typography.labelSmall,
-                                color = TextSecondary
+                        if (!notification.isRead) {
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Box(
+                                modifier = Modifier
+                                    .size(8.dp)
+                                    .background(
+                                        color = Primary,
+                                        shape = CircleShape
+                                    )
                             )
-                            
-                            if (!notification.isRead) {
-                                Spacer(modifier = Modifier.width(8.dp))
-                                Box(
-                                    modifier = Modifier
-                                        .size(8.dp)
-                                        .clip(CircleShape)
-                                        .background(Primary)
+                        }
+                    }
+                }
+                
+                Spacer(modifier = Modifier.height(4.dp))
+                
+                Text(
+                    text = notification.message,
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = TextSecondary,
+                    lineHeight = 20.sp
+                )
+                
+                // Action buttons or decision result
+                if (decisionResult != null) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Surface(
+                        shape = RoundedCornerShape(8.dp),
+                        color = when (decisionResult) {
+                            "Accepted" -> ComponentColors.Success.copy(alpha = 0.1f)
+                            "Declined" -> ComponentColors.Error.copy(alpha = 0.1f)
+                            else -> ComponentColors.Info.copy(alpha = 0.1f)
+                        },
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text(
+                            text = decisionResult,
+                            style = MaterialTheme.typography.labelMedium,
+                            fontWeight = FontWeight.Medium,
+                            color = when (decisionResult) {
+                                "Accepted" -> ComponentColors.Success
+                                "Declined" -> ComponentColors.Error
+                                else -> ComponentColors.Info
+                            },
+                            modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
+                        )
+                    }
+                } else if (notificationUiModel.canTakeAction && !notification.isRead) {
+                    Spacer(modifier = Modifier.height(12.dp))
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        // Accept button
+                        Button(
+                            onClick = { onAction(true) },
+                            enabled = !isProcessing,
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = ComponentColors.Success,
+                                contentColor = Color.White
+                            ),
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            if (isProcessing) {
+                                CircularProgressIndicator(
+                                    modifier = Modifier.size(16.dp),
+                                    color = Color.White,
+                                    strokeWidth = 2.dp
+                                )
+                            } else {
+                                Text(
+                                    text = notificationUiModel.actionLabel ?: "Accept",
+                                    style = MaterialTheme.typography.labelMedium,
+                                    fontWeight = FontWeight.Medium
                                 )
                             }
                         }
-                    }
-                    
-                    Spacer(modifier = Modifier.height(4.dp))
-                    
-                    Text(
-                        text = notification.message,
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = TextSecondary,
-                        lineHeight = 20.sp
-                    )
-                }
-            }
-            
-            // Action buttons or decision result
-            if (decisionResult != null) {
-                Spacer(modifier = Modifier.height(12.dp))
-                Surface(
-                    shape = RoundedCornerShape(8.dp),
-                    color = when (decisionResult) {
-                        "Accepted" -> ComponentColors.SuccessLight
-                        "Declined" -> ComponentColors.ErrorLight
-                        else -> ComponentColors.InfoLight
-                    },
-                    modifier = Modifier.fillMaxWidth()
-                ) {
-                    Text(
-                        text = decisionResult,
-                        style = MaterialTheme.typography.labelMedium,
-                        color = when (decisionResult) {
-                            "Accepted" -> ComponentColors.Success
-                            "Declined" -> ComponentColors.Error
-                            else -> ComponentColors.Info
-                        },
-                        modifier = Modifier.padding(horizontal = 12.dp, vertical = 8.dp)
-                    )
-                }
-            } else if (notificationUiModel.canTakeAction && !notification.isRead) {
-                Spacer(modifier = Modifier.height(12.dp))
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    // Accept button
-                    Button(
-                        onClick = { onAction(true) },
-                        enabled = !isProcessing,
-                        colors = ButtonDefaults.buttonColors(
-                            containerColor = ComponentColors.Success,
-                            contentColor = Color.White
-                        ),
-                        shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        if (isProcessing) {
-                            CircularProgressIndicator(
-                                modifier = Modifier.size(16.dp),
-                                color = Color.White,
-                                strokeWidth = 2.dp
-                            )
-                        } else {
+                        
+                        // Decline button
+                        OutlinedButton(
+                            onClick = { onAction(false) },
+                            enabled = !isProcessing,
+                            colors = ButtonDefaults.outlinedButtonColors(
+                                contentColor = ComponentColors.Error
+                            ),
+                            border = androidx.compose.foundation.BorderStroke(
+                                1.dp, ComponentColors.Error
+                            ),
+                            shape = RoundedCornerShape(8.dp),
+                            modifier = Modifier.weight(1f)
+                        ) {
                             Text(
-                                text = notificationUiModel.actionLabel ?: "Accept",
-                                style = MaterialTheme.typography.labelMedium
+                                text = notificationUiModel.secondaryActionLabel ?: "Decline",
+                                style = MaterialTheme.typography.labelMedium,
+                                fontWeight = FontWeight.Medium
                             )
                         }
-                    }
-                    
-                    // Decline button
-                    OutlinedButton(
-                        onClick = { onAction(false) },
-                        enabled = !isProcessing,
-                        colors = ButtonDefaults.outlinedButtonColors(
-                            contentColor = ComponentColors.Error
-                        ),
-                        border = androidx.compose.foundation.BorderStroke(
-                            1.dp, ComponentColors.Error
-                        ),
-                        shape = RoundedCornerShape(8.dp),
-                        modifier = Modifier.weight(1f)
-                    ) {
-                        Text(
-                            text = notificationUiModel.secondaryActionLabel ?: "Decline",
-                            style = MaterialTheme.typography.labelMedium
-                        )
                     }
                 }
             }

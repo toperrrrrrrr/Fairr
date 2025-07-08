@@ -48,7 +48,6 @@ class NotificationsViewModel @Inject constructor(
     val uiState: StateFlow<NotificationsUiState> = _uiState.asStateFlow()
 
     var snackbarMessage by mutableStateOf<String?>(null)
-        private set
 
     init {
         Log.d(TAG, "Initializing NotificationsViewModel")
@@ -219,5 +218,43 @@ class NotificationsViewModel @Inject constructor(
     fun refresh() {
         Log.d(TAG, "Refreshing notifications")
         loadNotifications()
+    }
+
+    fun createTestNotifications() {
+        Log.d(TAG, "Creating test notifications")
+        viewModelScope.launch {
+            try {
+                val success = notificationService.createTestNotifications()
+                if (success) {
+                    snackbarMessage = "Test notifications created successfully"
+                    Log.d(TAG, "Test notifications created successfully")
+                } else {
+                    snackbarMessage = "Failed to create test notifications"
+                    Log.e(TAG, "Failed to create test notifications")
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error creating test notifications", e)
+                snackbarMessage = "Error creating test notifications: ${e.message}"
+            }
+        }
+    }
+
+    fun markAllAsRead() {
+        Log.d(TAG, "Marking all notifications as read")
+        viewModelScope.launch {
+            try {
+                val success = notificationService.markAllAsRead()
+                if (success) {
+                    snackbarMessage = "All notifications marked as read"
+                    Log.d(TAG, "All notifications marked as read")
+                } else {
+                    snackbarMessage = "Failed to mark all notifications as read"
+                    Log.e(TAG, "Failed to mark all notifications as read")
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error marking all notifications as read", e)
+                snackbarMessage = "Error marking all notifications as read: ${e.message}"
+            }
+        }
     }
 } 

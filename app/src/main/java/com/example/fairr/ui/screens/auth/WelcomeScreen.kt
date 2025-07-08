@@ -63,7 +63,7 @@ fun WelcomeScreen(
             onClick = onNavigateToHome,
             modifier = Modifier.fillMaxWidth()
         ) {
-            Text("I already have an account")
+            Text("Sign In")
         }
     }
 } 
