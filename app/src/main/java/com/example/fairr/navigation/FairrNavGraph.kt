@@ -322,6 +322,17 @@ fun FairrNavGraph(
                 onNavigateBack = { navController.popBackStack() }
             )
         }
+
+        composable(
+            route = Screen.GroupActivity.route,
+            arguments = listOf(navArgument("groupId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val groupId = backStackEntry.arguments?.getString("groupId") ?: return@composable
+            GroupActivityScreen(
+                groupId = groupId,
+                navController = navController
+            )
+        }
     }
 }
 

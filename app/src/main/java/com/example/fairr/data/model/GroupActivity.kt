@@ -9,5 +9,6 @@ data class GroupActivity(
     val userName: String,
     val userInitials: String,
     val timestamp: Long,
-    val isPositive: Boolean = true
+    val isPositive: Boolean = true,
+    val expenseId: String? = null
 ) 

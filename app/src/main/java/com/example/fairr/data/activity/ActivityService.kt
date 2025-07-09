@@ -58,6 +58,8 @@ class ActivityService @Inject constructor(
     
     fun getActivitiesForGroup(groupId: String): Flow<List<GroupActivity>> = flow {
         try {
+            Log.d(TAG, "Loading activities for group: $groupId")
+            
             val activitiesRef = firestore.collection("groups")
                 .document(groupId)
                 .collection("activity_logs")
@@ -65,28 +67,52 @@ class ActivityService @Inject constructor(
                 .limit(50)
             
             val snapshot = activitiesRef.get().await()
+            Log.d(TAG, "Found ${snapshot.documents.size} activity documents for group $groupId")
+            
             val activities = snapshot.documents.mapNotNull { doc ->
                 try {
-                    val data = doc.data ?: return@mapNotNull null
-                    GroupActivity(
+                    val data = doc.data
+                    Log.d(TAG, "Processing activity document ${doc.id}: $data")
+                    
+                    if (data == null) {
+                        Log.w(TAG, "Activity document ${doc.id} has null data")
+                        return@mapNotNull null
+                    }
+                    
+                    val activityType = try {
+                        ActivityType.valueOf(data["type"] as? String ?: "EXPENSE_ADDED")
+                    } catch (e: Exception) {
+                        Log.w(TAG, "Invalid activity type in document ${doc.id}: ${data["type"]}")
+                        ActivityType.EXPENSE_ADDED
+                    }
+                    
+                    val activity = GroupActivity(
                         id = doc.id,
-                        type = ActivityType.valueOf(data["type"] as? String ?: "EXPENSE_ADDED"),
-                        title = data["title"] as? String ?: "",
-                        description = data["description"] as? String ?: "",
+                        type = activityType,
+                        title = data["title"] as? String ?: "Unknown Activity",
+                        description = data["description"] as? String ?: "No description",
                         amount = (data["amount"] as? Number)?.toDouble(),
-                        userName = data["userName"] as? String ?: "",
-                        userInitials = data["userInitials"] as? String ?: "",
+                        userName = data["userName"] as? String ?: "Unknown User",
+                        userInitials = data["userInitials"] as? String ?: "??",
                         timestamp = (data["timestamp"] as? Timestamp)?.let { timestamp ->
                             timestamp.seconds * 1000L
                         } ?: System.currentTimeMillis(),
-                        isPositive = data["isPositive"] as? Boolean ?: true
+                        isPositive = data["isPositive"] as? Boolean ?: true,
+                        expenseId = data["expenseId"] as? String // Add this field if it exists
                     )
+                    
+                    Log.d(TAG, "Successfully parsed activity: ${activity.title}")
+                    activity
                 } catch (e: Exception) {
+                    Log.e(TAG, "Error parsing activity document ${doc.id}", e)
                     null
                 }
             }
+            
+            Log.d(TAG, "Successfully loaded ${activities.size} activities for group $groupId")
             emit(activities)
         } catch (e: Exception) {
+            Log.e(TAG, "Error loading activities for group $groupId", e)
             emit(emptyList())
         }
     }
@@ -99,7 +125,8 @@ class ActivityService @Inject constructor(
         amount: Double? = null,
         userName: String,
         userInitials: String,
-        isPositive: Boolean = true
+        isPositive: Boolean = true,
+        expenseId: String? = null
     ): Result<Unit> {
         return try {
             val activityData = HashMap<String, Any>()
@@ -112,6 +139,9 @@ class ActivityService @Inject constructor(
             activityData["isPositive"] = isPositive
             if (amount != null) {
                 activityData["amount"] = amount
+            }
+            if (expenseId != null) {
+                activityData["expenseId"] = expenseId
             }
             
             firestore.collection("groups")

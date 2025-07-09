@@ -519,7 +519,8 @@ class ExpenseRepositoryImpl @Inject constructor(
                         amount = amount,
                         userName = userName,
                         userInitials = userInitials,
-                        isPositive = false
+                        isPositive = false,
+                        expenseId = expenseRef.id
                     )
                     
                     // Step 6.1: Create notifications for other group members

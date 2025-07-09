@@ -3,15 +3,13 @@ Let's fix it to reflect the emoji instead of the letter. I will then run the app
 2. Get the app to load the necessary data first. to prevent the app to show no data where there is actual data. 
 
 5. Friend request should show up on notification page.
-11.Reduce code warnings
+
+
 12. darkmode on some pages doesnt seem right, icons are still black and not changing to white. Notification and settings are not changing to darkmode.
 13. Notifications are not appearing on the notification page. Friend request must show up on notificat
 
-
 Group settings archive doesnt work. How to access archived grpups?
-
 Create group layout should be improved. 
-
 
 lots of bugs on new install. to sign in. 
 sign out stuck on 
@@ -38,3 +36,14 @@ And section for friends you owe something.
 
 The group details page shows huge white space right under the manage ruecurring and above recent expenses. 
 The manage expenes button can be a quick action button right after add expense and before settle up.
+
+
+Add expense page needs to be cleaned up. 
+Add receipt recurrance category could be small buttons. in one row 
+
+Description text box. When deselected or clicked awauy. Keyboard collapses 
+Amount textbox - When selected. The numberpad calculator will pop up like how keyboard appears. Make sure it is a calculator. 
+Paid by and split by 
+
+
+

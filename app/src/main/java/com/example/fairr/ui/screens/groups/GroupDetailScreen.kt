@@ -503,7 +503,7 @@ private fun QuickActionsSection(
 
         Row(
             modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
+            horizontalArrangement = Arrangement.spacedBy(12.dp)
         ) {
             QuickActionCard(
                 title = "Add Expense",
@@ -512,7 +512,7 @@ private fun QuickActionsSection(
                 modifier = Modifier.weight(1f)
             )
             QuickActionCard(
-                title = "Manage Recurring",
+                title = "Recurring",
                 icon = Icons.Default.Repeat,
                 onClick = { 
                     try {
@@ -528,20 +528,6 @@ private fun QuickActionsSection(
                 modifier = Modifier.weight(1f)
             )
             QuickActionCard(
-                title = "Settle Up",
-                icon = Icons.Default.SwapHoriz,
-                onClick = { 
-                    navController.navigate(Screen.Settlement.createRoute(groupId))
-                },
-                modifier = Modifier.weight(1f)
-            )
-        }
-        
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.spacedBy(16.dp)
-        ) {
-            QuickActionCard(
                 title = "Activity",
                 icon = Icons.Default.History,
                 onClick = { 
@@ -550,15 +536,13 @@ private fun QuickActionsSection(
                 modifier = Modifier.weight(1f)
             )
             QuickActionCard(
-                title = "Settings",
-                icon = Icons.Default.Settings,
+                title = "Settle Up",
+                icon = Icons.Default.SwapHoriz,
                 onClick = { 
-                    navController.navigate(Screen.GroupSettings.createRoute(groupId))
+                    navController.navigate(Screen.Settlement.createRoute(groupId))
                 },
                 modifier = Modifier.weight(1f)
             )
-            // Empty space to maintain alignment
-            Spacer(modifier = Modifier.weight(1f))
         }
     }
 }
