@@ -42,7 +42,17 @@ fun GroupListScreen(
     Scaffold(
         topBar = {
             TopAppBar(
-                title = { Text("Groups") }
+                title = { 
+                    Text(if (viewModel.showingArchived) "Archived Groups" else "Groups") 
+                },
+                actions = {
+                    IconButton(onClick = { viewModel.toggleShowArchived() }) {
+                        Icon(
+                            imageVector = if (viewModel.showingArchived) Icons.Default.Unarchive else Icons.Default.Archive,
+                            contentDescription = if (viewModel.showingArchived) "Show Active Groups" else "Show Archived Groups"
+                        )
+                    }
+                }
             )
         }
     ) { padding ->

@@ -512,18 +512,26 @@ private fun QuickActionsSection(
                 modifier = Modifier.weight(1f)
             )
             QuickActionCard(
-                title = "Settle Up",
-                icon = Icons.Default.SwapHoriz,
+                title = "Manage Recurring",
+                icon = Icons.Default.Repeat,
                 onClick = { 
-                    navController.navigate(Screen.Settlement.createRoute(groupId))
+                    try {
+                        if (groupId.isNotBlank()) {
+                            navController.navigate(Screen.RecurringExpenseManagement.createRoute(groupId))
+                        } else {
+                            android.util.Log.e("GroupDetailScreen", "Group ID is blank, cannot navigate to recurring expenses")
+                        }
+                    } catch (e: Exception) {
+                        android.util.Log.e("GroupDetailScreen", "Failed to navigate to recurring expenses", e)
+                    }
                 },
                 modifier = Modifier.weight(1f)
             )
             QuickActionCard(
-                title = "Activity",
-                icon = Icons.Default.History,
+                title = "Settle Up",
+                icon = Icons.Default.SwapHoriz,
                 onClick = { 
-                    navController.navigate(Screen.GroupActivity.createRoute(groupId))
+                    navController.navigate(Screen.Settlement.createRoute(groupId))
                 },
                 modifier = Modifier.weight(1f)
             )
@@ -533,39 +541,14 @@ private fun QuickActionsSection(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Button(
+            QuickActionCard(
+                title = "Activity",
+                icon = Icons.Default.History,
                 onClick = { 
-                    try {
-                        if (groupId.isNotBlank()) {
-                            navController.navigate(Screen.RecurringExpenseManagement.createRoute(groupId))
-                        } else {
-                            // Log error for debugging
-                            android.util.Log.e("GroupDetailScreen", "Group ID is blank, cannot navigate to recurring expenses")
-                        }
-                    } catch (e: Exception) {
-                        android.util.Log.e("GroupDetailScreen", "Failed to navigate to recurring expenses", e)
-                        // Could show a toast or snackbar here for user feedback
-                    }
+                    navController.navigate(Screen.GroupActivity.createRoute(groupId))
                 },
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = Primary,
-                    contentColor = NeutralWhite
-                ),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Icon(
-                    Icons.Default.Repeat,
-                    contentDescription = null,
-                    modifier = Modifier.size(20.dp)
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Manage Recurring",
-                    style = MaterialTheme.typography.bodyMedium,
-                    fontWeight = FontWeight.SemiBold
-                )
-            }
+                modifier = Modifier.weight(1f)
+            )
             QuickActionCard(
                 title = "Settings",
                 icon = Icons.Default.Settings,
@@ -574,6 +557,8 @@ private fun QuickActionsSection(
                 },
                 modifier = Modifier.weight(1f)
             )
+            // Empty space to maintain alignment
+            Spacer(modifier = Modifier.weight(1f))
         }
     }
 }

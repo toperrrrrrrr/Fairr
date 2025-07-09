@@ -51,7 +51,7 @@ class HomeViewModel @Inject constructor(
                 // Get user's preferred currency
                 val userCurrency = settingsDataStore.defaultCurrency.first()
 
-                groupService.getUserGroups()
+                groupService.getActiveGroups()
                     .catch { e ->
                         _state.value = _state.value.copy(
                             isLoading = false,

@@ -27,6 +27,9 @@ class GroupListViewModel @Inject constructor(
         private set
 
     private var groupBalances by mutableStateOf<Map<String, Double>>(emptyMap())
+    
+    var showingArchived: Boolean by mutableStateOf(false)
+        private set
 
     init {
         loadGroups()
@@ -36,7 +39,13 @@ class GroupListViewModel @Inject constructor(
         viewModelScope.launch {
             uiState = GroupListUiState.Loading
             try {
-                groupService.getUserGroups()
+                val groupsFlow = if (showingArchived) {
+                    groupService.getArchivedGroups()
+                } else {
+                    groupService.getActiveGroups()
+                }
+                
+                groupsFlow
                     .catch { e ->
                         Log.e(TAG, "Error loading groups", e)
                         uiState = GroupListUiState.Error(e.message ?: "Unknown error occurred")
@@ -52,6 +61,11 @@ class GroupListViewModel @Inject constructor(
                 uiState = GroupListUiState.Error(e.message ?: "Unknown error occurred")
             }
         }
+    }
+    
+    fun toggleShowArchived() {
+        showingArchived = !showingArchived
+        loadGroups()
     }
 
     private fun computeBalances(groups: List<com.example.fairr.data.model.Group>) {

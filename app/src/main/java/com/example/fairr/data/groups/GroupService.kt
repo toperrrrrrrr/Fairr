@@ -5,6 +5,7 @@ import com.example.fairr.ui.model.CreateGroupData
 import com.example.fairr.data.model.Group
 import com.example.fairr.data.model.GroupMember
 import com.example.fairr.data.model.GroupRole
+import com.example.fairr.data.model.AvatarType
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.Timestamp
@@ -65,7 +66,7 @@ class GroupService @Inject constructor(
 
         Log.d(TAG, "Fetching groups for user: ${currentUser.uid}")
 
-        // Query groups where the current user is a member
+        // Query groups where the current user is a member (including archived)
         val subscription = groupsCollection
             .whereArrayContains("memberIds", currentUser.uid)  // Add memberIds array for efficient querying
             .addSnapshotListener { snapshot, error ->
@@ -97,6 +98,13 @@ class GroupService @Inject constructor(
                             createdAt = (data["createdAt"] as? Timestamp) ?: Timestamp.now(),
                             createdBy = data["createdBy"] as? String ?: "",
                             inviteCode = data["inviteCode"] as? String ?: "",
+                            avatar = data["avatar"] as? String ?: "",
+                            avatarType = if ((data["avatar"] as? String)?.isNotEmpty() == true) {
+                                AvatarType.valueOf(data["avatarType"] as? String ?: AvatarType.EMOJI.name)
+                            } else {
+                                AvatarType.EMOJI
+                            },
+                            isArchived = data["isArchived"] as? Boolean ?: false,
                             members = parseGroupData(data).map { (userId, memberData) ->
                                 GroupMember(
                                     userId = userId,
@@ -113,6 +121,122 @@ class GroupService @Inject constructor(
                     }
                 }
                 Log.d(TAG, "Processed ${groups.size} groups")
+                trySend(groups)
+            }
+
+        awaitClose { subscription.remove() }
+    }
+
+    /**
+     * Get only active (non-archived) groups for the user
+     */
+    fun getActiveGroups(): Flow<List<Group>> = callbackFlow {
+        val currentUser = auth.currentUser
+            ?: throw IllegalStateException("User not authenticated")
+
+        val subscription = groupsCollection
+            .whereArrayContains("memberIds", currentUser.uid)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    Log.e(TAG, "Error fetching active groups", error)
+                    close(error)
+                    return@addSnapshotListener
+                }
+
+                val groups = snapshot?.documents?.mapNotNull { doc ->
+                    try {
+                        val data = doc.data ?: return@mapNotNull null
+                        val group = Group(
+                            id = doc.id,
+                            name = data["name"] as? String ?: "",
+                            description = data["description"] as? String ?: "",
+                            currency = data["currency"] as? String ?: "PHP",
+                            createdAt = (data["createdAt"] as? Timestamp) ?: Timestamp.now(),
+                            createdBy = data["createdBy"] as? String ?: "",
+                            inviteCode = data["inviteCode"] as? String ?: "",
+                            avatar = data["avatar"] as? String ?: "",
+                            avatarType = if ((data["avatar"] as? String)?.isNotEmpty() == true) {
+                                AvatarType.valueOf(data["avatarType"] as? String ?: AvatarType.EMOJI.name)
+                            } else {
+                                AvatarType.EMOJI
+                            },
+                            isArchived = data["isArchived"] as? Boolean ?: false,
+                            members = parseGroupData(data).map { (userId, memberData) ->
+                                GroupMember(
+                                    userId = userId,
+                                    name = memberData["name"] as? String ?: "Unknown",
+                                    email = memberData["email"] as? String ?: "",
+                                    role = if (memberData["isAdmin"] as? Boolean == true) GroupRole.ADMIN else GroupRole.MEMBER,
+                                    joinedAt = memberData["joinedAt"] as? Timestamp ?: Timestamp.now()
+                                )
+                            }
+                        )
+                        
+                        // Filter to only include non-archived groups (client-side filtering)
+                        if (!group.isArchived) group else null
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error parsing group document", e)
+                        null
+                    }
+                } ?: emptyList()
+                
+                trySend(groups)
+            }
+
+        awaitClose { subscription.remove() }
+    }
+
+    /**
+     * Get only archived groups for the user
+     */
+    fun getArchivedGroups(): Flow<List<Group>> = callbackFlow {
+        val currentUser = auth.currentUser
+            ?: throw IllegalStateException("User not authenticated")
+
+        val subscription = groupsCollection
+            .whereArrayContains("memberIds", currentUser.uid)
+            .whereEqualTo("isArchived", true)
+            .addSnapshotListener { snapshot, error ->
+                if (error != null) {
+                    Log.e(TAG, "Error fetching archived groups", error)
+                    close(error)
+                    return@addSnapshotListener
+                }
+
+                val groups = snapshot?.documents?.mapNotNull { doc ->
+                    try {
+                        val data = doc.data ?: return@mapNotNull null
+                        Group(
+                            id = doc.id,
+                            name = data["name"] as? String ?: "",
+                            description = data["description"] as? String ?: "",
+                            currency = data["currency"] as? String ?: "PHP",
+                            createdAt = (data["createdAt"] as? Timestamp) ?: Timestamp.now(),
+                            createdBy = data["createdBy"] as? String ?: "",
+                            inviteCode = data["inviteCode"] as? String ?: "",
+                            avatar = data["avatar"] as? String ?: "",
+                            avatarType = if ((data["avatar"] as? String)?.isNotEmpty() == true) {
+                                AvatarType.valueOf(data["avatarType"] as? String ?: AvatarType.EMOJI.name)
+                            } else {
+                                AvatarType.EMOJI
+                            },
+                            isArchived = data["isArchived"] as? Boolean ?: false,
+                            members = parseGroupData(data).map { (userId, memberData) ->
+                                GroupMember(
+                                    userId = userId,
+                                    name = memberData["name"] as? String ?: "Unknown",
+                                    email = memberData["email"] as? String ?: "",
+                                    role = if (memberData["isAdmin"] as? Boolean == true) GroupRole.ADMIN else GroupRole.MEMBER,
+                                    joinedAt = memberData["joinedAt"] as? Timestamp ?: Timestamp.now()
+                                )
+                            }
+                        )
+                    } catch (e: Exception) {
+                        Log.e(TAG, "Error parsing group document", e)
+                        null
+                    }
+                } ?: emptyList()
+                
                 trySend(groups)
             }
 
@@ -147,6 +271,13 @@ class GroupService @Inject constructor(
                         createdAt = (data["createdAt"] as? Timestamp) ?: Timestamp.now(),
                         createdBy = data["createdBy"] as? String ?: "",
                         inviteCode = data["inviteCode"] as? String ?: "",
+                        avatar = data["avatar"] as? String ?: "",
+                        avatarType = if ((data["avatar"] as? String)?.isNotEmpty() == true) {
+                            AvatarType.valueOf(data["avatarType"] as? String ?: AvatarType.EMOJI.name)
+                        } else {
+                            AvatarType.EMOJI
+                        },
+                        isArchived = data["isArchived"] as? Boolean ?: false,
                         members = parseGroupData(data).map { (userId, memberData) ->
                             GroupMember(
                                 userId = userId,
@@ -196,6 +327,13 @@ class GroupService @Inject constructor(
                         createdAt = (data["createdAt"] as? Timestamp) ?: Timestamp.now(),
                         createdBy = data["createdBy"] as? String ?: "",
                         inviteCode = data["inviteCode"] as? String ?: "",
+                        avatar = data["avatar"] as? String ?: "",
+                        avatarType = if ((data["avatar"] as? String)?.isNotEmpty() == true) {
+                            AvatarType.valueOf(data["avatarType"] as? String ?: AvatarType.EMOJI.name)
+                        } else {
+                            AvatarType.EMOJI
+                        },
+                        isArchived = data["isArchived"] as? Boolean ?: false,
                         members = parseGroupData(data).map { (userId, memberData) ->
                             GroupMember(
                                 userId = userId,
