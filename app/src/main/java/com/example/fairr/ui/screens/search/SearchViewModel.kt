@@ -19,6 +19,7 @@ import javax.inject.Inject
 import com.example.fairr.ui.screens.search.SearchResult
 import com.example.fairr.ui.screens.search.SearchFilter
 import com.example.fairr.ui.screens.search.SortOption
+import kotlinx.coroutines.delay
 
 data class SearchUiState(
     val isLoading: Boolean = false,
@@ -188,7 +189,8 @@ class SearchViewModel @Inject constructor(
         
         // Category filter
         if (category != "All Categories") {
-            val expenseCategory = expense.category.name.replace("_", " ").capitalize()
+            val expenseCategory = expense.category.name.replace("_", " ")
+                .replaceFirstChar { if (it.isLowerCase()) it.titlecase(Locale.getDefault()) else it.toString() }
             if (expenseCategory != category) return false
         }
         

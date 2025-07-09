@@ -8,6 +8,10 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.CallMade
+import androidx.compose.material.icons.automirrored.filled.CallReceived
+import androidx.compose.material.icons.automirrored.filled.TrendingDown
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -419,14 +423,16 @@ private fun FriendProfileHeader(
                 verticalAlignment = Alignment.CenterVertically,
                 horizontalArrangement = Arrangement.spacedBy(8.dp)
             ) {
+                val (icon, color) = when {
+                    netBalance > 0 -> Icons.AutoMirrored.Filled.TrendingUp to ComponentColors.Success
+                    netBalance < 0 -> Icons.AutoMirrored.Filled.TrendingDown to ComponentColors.Error
+                    else -> Icons.Default.Balance to TextSecondary
+                }
+                
                 Icon(
-                    imageVector = when {
-                        netBalance > 0 -> Icons.Default.TrendingUp
-                        netBalance < 0 -> Icons.Default.TrendingDown
-                        else -> Icons.Default.Balance
-                    },
+                    imageVector = icon,
                     contentDescription = null,
-                    tint = balanceColor,
+                    tint = color,
                     modifier = Modifier.size(20.dp)
                 )
                 
@@ -477,14 +483,14 @@ private fun BalanceSummaryCard(
                     title = "They owe you",
                     amount = totalOwed,
                     color = ComponentColors.Success,
-                    icon = Icons.Default.CallReceived
+                    icon = Icons.AutoMirrored.Filled.CallReceived
                 )
                 
                 BalanceItem(
                     title = "You owe them",
                     amount = totalOwing,
                     color = ComponentColors.Error,
-                    icon = Icons.Default.CallMade
+                    icon = Icons.AutoMirrored.Filled.CallMade
                 )
             }
         }
@@ -645,8 +651,8 @@ private fun TransactionCard(
                 modifier = Modifier.weight(1f)
             ) {
                 val (icon, color) = when (transaction.type) {
-                    TransactionType.YOU_OWE -> Icons.Default.CallMade to ComponentColors.Error
-                    TransactionType.THEY_OWE -> Icons.Default.CallReceived to ComponentColors.Success
+                    TransactionType.YOU_OWE -> Icons.AutoMirrored.Filled.CallMade to ComponentColors.Error
+                    TransactionType.THEY_OWE -> Icons.AutoMirrored.Filled.CallReceived to ComponentColors.Success
                     TransactionType.SETTLED -> Icons.Default.CheckCircle to ComponentColors.Info
                 }
                 

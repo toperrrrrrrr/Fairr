@@ -11,8 +11,9 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.automirrored.filled.TrendingUp
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -1020,7 +1021,7 @@ private fun SearchSuggestionsSection(
                     modifier = Modifier.padding(bottom = 12.dp)
                 ) {
                     Icon(
-                        Icons.Default.TrendingUp,
+                        Icons.AutoMirrored.Filled.TrendingUp,
                         contentDescription = "Popular",
                         tint = TextSecondary,
                         modifier = Modifier.size(20.dp)

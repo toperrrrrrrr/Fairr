@@ -12,6 +12,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.automirrored.filled.ArrowBack
 import androidx.compose.material.icons.automirrored.filled.ArrowForward
+import androidx.compose.material.icons.automirrored.filled.Send
 import androidx.compose.material3.*
 import androidx.compose.material3.pulltorefresh.PullToRefreshContainer
 import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
@@ -298,9 +299,8 @@ private fun AddFriendModal(
 ) {
     val keyboardController = LocalSoftwareKeyboardController.current
     
-    AlertDialog(
-        onDismissRequest = onDismiss,
-        modifier = Modifier.fillMaxWidth()
+    BasicAlertDialog(
+        onDismissRequest = onDismiss
     ) {
         ModernCard(
             modifier = Modifier.fillMaxWidth(),
@@ -428,7 +428,7 @@ private fun AddFriendModal(
                             )
                         } else {
                             Icon(
-                                Icons.Default.Send,
+                                Icons.AutoMirrored.Filled.Send,
                                 contentDescription = null,
                                 modifier = Modifier.size(18.dp)
                             )
