@@ -42,6 +42,13 @@ import kotlinx.coroutines.flow.StateFlow
 import kotlinx.coroutines.flow.asStateFlow
 import kotlinx.coroutines.launch
 import javax.inject.Inject
+import android.util.Log
+import com.example.fairr.data.repository.ExpenseRepository
+import com.example.fairr.data.groups.GroupService
+import com.google.firebase.auth.FirebaseAuth
+import kotlinx.coroutines.flow.first
+import java.text.SimpleDateFormat
+import java.util.*
 
 data class FriendProfileUiState(
     val friend: Friend? = null,
@@ -81,7 +88,9 @@ enum class TransactionType {
 @HiltViewModel
 class FriendProfileViewModel @Inject constructor(
     private val friendService: FriendService,
-    private val settlementService: SettlementService
+    private val settlementService: SettlementService,
+    private val expenseRepository: ExpenseRepository,
+    private val groupService: GroupService
 ) : ViewModel() {
     
     private val _uiState = MutableStateFlow(FriendProfileUiState())
@@ -95,29 +104,32 @@ class FriendProfileViewModel @Inject constructor(
             _uiState.value = _uiState.value.copy(isLoading = true, error = null)
             
             try {
-                // For now, create a mock friend for demonstration
-                // TODO: Implement actual friend loading from the friends list
-                val friend = Friend(
-                    id = friendId,
-                    name = "John Doe",
-                    email = "john.doe@example.com",
-                    photoUrl = null,
-                    status = com.example.fairr.ui.model.FriendStatus.ACCEPTED
-                )
+                // Get the friend from the user's friends list
+                val friends = friendService.getUserFriends().first()
+                val friend = friends.find { it.id == friendId }
                 
-                // Calculate balances (mock data for now)
-                val balanceData = calculateBalances(friendId)
+                if (friend == null) {
+                    _uiState.value = _uiState.value.copy(
+                        isLoading = false,
+                        error = "Friend not found"
+                    )
+                    return@launch
+                }
                 
-                // Load bank details (mock data for now)
+                // Calculate real balances from shared expenses
+                val balanceData = calculateRealBalances(friendId)
+                
+                // Load recent transactions with this friend
+                val transactions = loadRealTransactions(friendId, friend.name)
+                
+                // For now, bank details remain mock since this is sensitive data
+                // In a real app, this would require user consent and proper privacy controls
                 val bankDetails = loadBankDetails(friendId)
-                
-                // Load recent transactions (mock data for now)
-                val transactions = loadRecentTransactions(friendId)
                 
                 _uiState.value = _uiState.value.copy(
                     friend = friend,
-                    totalOwed = balanceData.first,
-                    totalOwing = balanceData.second,
+                    totalOwed = balanceData.first,  // They owe you
+                    totalOwing = balanceData.second, // You owe them
                     netBalance = balanceData.first - balanceData.second,
                     bankDetails = bankDetails,
                     recentTransactions = transactions,
@@ -132,10 +144,108 @@ class FriendProfileViewModel @Inject constructor(
         }
     }
     
-    private suspend fun calculateBalances(friendId: String): Pair<Double, Double> {
-        // TODO: Implement actual balance calculation from shared expenses
-        // For now, return mock data
-        return Pair(125.50, 75.25) // (they owe you, you owe them)
+    private suspend fun calculateRealBalances(friendId: String): Pair<Double, Double> {
+        try {
+            val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: return Pair(0.0, 0.0)
+            
+            // Get all groups where both users are members
+            val userGroups = groupService.getUserGroups().first()
+            var theyOweYou = 0.0
+            var youOweThem = 0.0
+            
+            userGroups.forEach { group ->
+                // Check if the friend is in this group
+                if (group.members.any { it.userId == friendId }) {
+                    val groupExpenses = expenseRepository.getExpensesByGroupId(group.id)
+                    
+                    groupExpenses.forEach { expense ->
+                        // Case 1: You paid, friend owes their share
+                        if (expense.paidBy == currentUserId) {
+                            val friendSplit = expense.splitBetween.find { it.userId == friendId }
+                            if (friendSplit != null) {
+                                theyOweYou += friendSplit.share
+                            }
+                        }
+                        
+                        // Case 2: Friend paid, you owe your share
+                        if (expense.paidBy == friendId) {
+                            val yourSplit = expense.splitBetween.find { it.userId == currentUserId }
+                            if (yourSplit != null) {
+                                youOweThem += yourSplit.share
+                            }
+                        }
+                    }
+                }
+            }
+            
+            return Pair(theyOweYou, youOweThem)
+        } catch (e: Exception) {
+            Log.e("FriendProfileViewModel", "Error calculating balances", e)
+            return Pair(0.0, 0.0)
+        }
+    }
+    
+    private suspend fun loadRealTransactions(friendId: String, friendName: String): List<FriendTransaction> {
+        try {
+            val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: return emptyList()
+            val transactions = mutableListOf<FriendTransaction>()
+            
+            // Get all groups where both users are members
+            val userGroups = groupService.getUserGroups().first()
+            
+            userGroups.forEach { group ->
+                if (group.members.any { it.userId == friendId }) {
+                    val groupExpenses = expenseRepository.getExpensesByGroupId(group.id)
+                    
+                    groupExpenses.forEach { expense ->
+                        val expenseDate = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault())
+                            .format(expense.date.toDate())
+                        
+                        // Case 1: You paid, friend owes their share
+                        if (expense.paidBy == currentUserId) {
+                            val friendSplit = expense.splitBetween.find { it.userId == friendId }
+                            if (friendSplit != null && friendSplit.share > 0) {
+                                transactions.add(
+                                    FriendTransaction(
+                                        id = "${expense.id}_${friendId}_owes",
+                                        description = expense.description,
+                                        amount = friendSplit.share,
+                                        currency = expense.currency,
+                                        date = expenseDate,
+                                        type = TransactionType.THEY_OWE,
+                                        groupName = group.name
+                                    )
+                                )
+                            }
+                        }
+                        
+                        // Case 2: Friend paid, you owe your share
+                        if (expense.paidBy == friendId) {
+                            val yourSplit = expense.splitBetween.find { it.userId == currentUserId }
+                            if (yourSplit != null && yourSplit.share > 0) {
+                                transactions.add(
+                                    FriendTransaction(
+                                        id = "${expense.id}_${currentUserId}_owes",
+                                        description = expense.description,
+                                        amount = yourSplit.share,
+                                        currency = expense.currency,
+                                        date = expenseDate,
+                                        type = TransactionType.YOU_OWE,
+                                        groupName = group.name
+                                    )
+                                )
+                            }
+                        }
+                    }
+                }
+            }
+            
+            // Sort by date (most recent first) and return latest 10
+            return transactions.sortedByDescending { it.date }.take(10)
+        } catch (e: Exception) {
+            Log.e("FriendProfileViewModel", "Error loading transactions", e)
+            return emptyList()
+        }
     }
     
     private suspend fun loadBankDetails(friendId: String): FriendBankDetails? {
@@ -146,40 +256,6 @@ class FriendProfileViewModel @Inject constructor(
             accountNumber = "****1234",
             routingNumber = "****5678",
             preferredCurrency = "USD"
-        )
-    }
-    
-    private suspend fun loadRecentTransactions(friendId: String): List<FriendTransaction> {
-        // TODO: Implement actual transaction loading
-        // For now, return mock data
-        return listOf(
-            FriendTransaction(
-                id = "1",
-                description = "Dinner at Pizza Palace",
-                amount = 45.50,
-                currency = "USD",
-                date = "2024-01-15",
-                type = TransactionType.YOU_OWE,
-                groupName = "Weekend Friends"
-            ),
-            FriendTransaction(
-                id = "2",
-                description = "Movie tickets",
-                amount = 30.00,
-                currency = "USD",
-                date = "2024-01-10",
-                type = TransactionType.THEY_OWE,
-                groupName = "Movie Night"
-            ),
-            FriendTransaction(
-                id = "3",
-                description = "Groceries",
-                amount = 80.00,
-                currency = "USD",
-                date = "2024-01-05",
-                type = TransactionType.SETTLED,
-                groupName = "Household"
-            )
         )
     }
     

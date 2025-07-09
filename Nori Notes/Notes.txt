@@ -31,3 +31,7 @@ friend groups button crashes the app.
 friends list when clicked should show the profile image of the other user. 
 Friends should have profile page where we can see their bank details and how much we owe them or how much they owe us
 
+The friends profile page should be the layout for the personal profile. Same layout. 
+Balance summary will show how much the total of other people owe the user and how much they owe other user.
+Payment details should be editable for the user profile .
+And section for friends you owe something.  
