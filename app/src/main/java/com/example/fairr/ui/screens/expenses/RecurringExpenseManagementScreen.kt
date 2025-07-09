@@ -113,12 +113,31 @@ fun RecurringExpenseManagementScreen(
                 )
             )
         },
-        snackbarHost = { SnackbarHost(hostState = snackbarHostState) }
+        snackbarHost = { SnackbarHost(hostState = snackbarHostState) },
+        containerColor = BackgroundPrimary,
+        floatingActionButton = {
+            FloatingActionButton(
+                onClick = {
+                    // TODO: Navigate to create recurring expense screen
+                    // For now, show a snackbar
+                    scope.launch {
+                        snackbarHostState.showSnackbar("Create recurring expense feature coming soon!")
+                    }
+                },
+                containerColor = Primary,
+                contentColor = PureWhite
+            ) {
+                Icon(
+                    Icons.Default.Add,
+                    contentDescription = "Add Recurring Expense"
+                )
+            }
+        }
     ) { padding ->
         Column(
             modifier = Modifier
                 .fillMaxSize()
-                .background(LightBackground)
+                .background(BackgroundPrimary)
                 .padding(padding)
         ) {
             if (state.isLoading) {
@@ -135,25 +154,53 @@ fun RecurringExpenseManagementScreen(
                 ) {
                     Column(
                         horizontalAlignment = Alignment.CenterHorizontally,
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                        verticalArrangement = Arrangement.spacedBy(16.dp),
+                        modifier = Modifier.padding(horizontal = 32.dp)
                     ) {
                         Icon(
                             Icons.Default.Repeat,
                             contentDescription = null,
-                            modifier = Modifier.size(64.dp),
-                            tint = TextSecondary
+                            modifier = Modifier.size(80.dp),
+                            tint = Primary.copy(alpha = 0.6f)
                         )
                         Text(
                             text = "No Recurring Expenses",
-                            style = MaterialTheme.typography.headlineSmall,
-                            color = TextSecondary
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontWeight = FontWeight.Bold,
+                            color = TextPrimary
                         )
                         Text(
-                            text = "Create recurring expenses to see them here",
-                            style = MaterialTheme.typography.bodyMedium,
+                            text = "Set up automatic recurring expenses like rent, subscriptions, or utilities to save time on regular entries.",
+                            style = MaterialTheme.typography.bodyLarge,
                             color = TextSecondary,
                             textAlign = TextAlign.Center
                         )
+                        
+                        Spacer(modifier = Modifier.height(8.dp))
+                        
+                        Button(
+                            onClick = {
+                                scope.launch {
+                                    snackbarHostState.showSnackbar("Create recurring expense feature coming soon!")
+                                }
+                            },
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = Primary,
+                                contentColor = PureWhite
+                            ),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.Add,
+                                contentDescription = null,
+                                modifier = Modifier.size(20.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = "Create Recurring Expense",
+                                fontWeight = FontWeight.SemiBold
+                            )
+                        }
                     }
                 }
             } else {

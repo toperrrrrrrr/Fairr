@@ -101,7 +101,7 @@ fun Notification.toUiModel(): NotificationUiModel {
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun NotificationsScreen(
-    navController: NavController,
+    @Suppress("UNUSED_PARAMETER") navController: NavController,
     viewModel: NotificationsViewModel = hiltViewModel()
 ) {
     val uiState by viewModel.uiState.collectAsState()
@@ -152,15 +152,6 @@ fun NotificationsScreen(
                                 )
                             }
                         }
-                    }
-                },
-                navigationIcon = {
-                    IconButton(onClick = { navController.navigateUp() }) {
-                        Icon(
-                            imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = TextPrimary
-                        )
                     }
                 },
                 actions = {

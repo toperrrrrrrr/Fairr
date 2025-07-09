@@ -18,7 +18,9 @@ import androidx.compose.material3.pulltorefresh.rememberPullToRefreshState
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.input.nestedscroll.nestedScroll
+import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
@@ -37,6 +39,8 @@ import com.example.fairr.ui.components.*
 import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
+import com.example.fairr.navigation.Screen
+import coil.compose.AsyncImage
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -192,7 +196,7 @@ fun FriendsScreen(
                                 modifier = Modifier
                                     .fillMaxWidth()
                                     .clickable { 
-                                        navController.navigate("friend_groups")
+                                        navController.navigate(Screen.FriendGroups.route)
                                     },
                                 backgroundColor = ComponentColors.Info.copy(alpha = 0.1f),
                                 cornerRadius = 16
@@ -253,6 +257,7 @@ fun FriendsScreen(
                             ModernFriendsList(
                                 friends = uiState.friends,
                                 searchQuery = searchQuery,
+                                navController = navController,
                                 onRemoveFriend = { friendId ->
                                     scope.launch {
                                         val result = snackbarHostState.showSnackbar(
@@ -689,6 +694,7 @@ private fun ModernFriendRequestItem(
 private fun ModernFriendsList(
     friends: List<Friend>,
     searchQuery: String,
+    navController: NavController,
     onRemoveFriend: (String) -> Unit,
     onReportUser: (Friend) -> Unit
 ) {
@@ -751,6 +757,7 @@ private fun ModernFriendsList(
                 filteredFriends.forEach { friend ->
                     ModernFriendItem(
                         friend = friend,
+                        navController = navController,
                         onRemove = { onRemoveFriend(friend.id) },
                         onReport = { onReportUser(friend) }
                     )
@@ -811,31 +818,50 @@ private fun ModernEmptyFriendsState(
 @Composable
 private fun ModernFriendItem(
     friend: Friend,
+    navController: NavController,
     onRemove: () -> Unit,
     onReport: () -> Unit
 ) {
     var showMenu by remember { mutableStateOf(false) }
     
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .clickable {
+                navController.navigate(Screen.FriendProfile.createRoute(friend.id))
+            }
+            .padding(vertical = 8.dp),
         verticalAlignment = Alignment.CenterVertically,
         horizontalArrangement = Arrangement.spacedBy(12.dp)
     ) {
-        // Avatar
+        // Profile Image
         Box(
             modifier = Modifier
-                .size(48.dp)
-                .background(Primary.copy(alpha = 0.1f), CircleShape),
+                .size(56.dp)
+                .clip(CircleShape)
+                .background(Primary.copy(alpha = 0.1f)),
             contentAlignment = Alignment.Center
         ) {
-            Text(
-                text = friend.name.split(" ")
-                    .take(2)
-                    .joinToString("") { it.firstOrNull()?.uppercase() ?: "" },
-                style = MaterialTheme.typography.titleMedium,
-                fontWeight = FontWeight.Bold,
-                color = Primary
-            )
+            if (friend.photoUrl != null && friend.photoUrl.isNotEmpty()) {
+                AsyncImage(
+                    model = friend.photoUrl,
+                    contentDescription = "Profile picture of ${friend.name}",
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .clip(CircleShape),
+                    contentScale = ContentScale.Crop
+                )
+            } else {
+                // Default avatar with initials
+                Text(
+                    text = friend.name.split(" ")
+                        .take(2)
+                        .joinToString("") { it.firstOrNull()?.uppercase() ?: "" },
+                    style = MaterialTheme.typography.titleLarge,
+                    fontWeight = FontWeight.Bold,
+                    color = Primary
+                )
+            }
         }
         
         // Friend info
@@ -888,6 +914,25 @@ private fun ModernFriendItem(
                 expanded = showMenu,
                 onDismissRequest = { showMenu = false }
             ) {
+                DropdownMenuItem(
+                    text = { 
+                        Row(
+                            verticalAlignment = Alignment.CenterVertically,
+                            horizontalArrangement = Arrangement.spacedBy(8.dp)
+                        ) {
+                            Icon(
+                                Icons.Default.Person,
+                                contentDescription = null,
+                                tint = Primary
+                            )
+                            Text("View Profile")
+                        }
+                    },
+                    onClick = {
+                        showMenu = false
+                        navController.navigate(Screen.FriendProfile.createRoute(friend.id))
+                    }
+                )
                 DropdownMenuItem(
                     text = { 
                         Row(

@@ -40,6 +40,7 @@ import com.example.fairr.data.model.RecurrenceRule
 import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.unit.sp
 
 @OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
 @Composable
@@ -334,11 +335,19 @@ private fun GroupCard(
                         .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = group.name.first().toString(),
-                        style = MaterialTheme.typography.titleLarge,
-                        color = MaterialTheme.colorScheme.primary
-                    )
+                    if (group.avatar.isNotEmpty()) {
+                        Text(
+                            text = group.avatar,
+                            style = MaterialTheme.typography.headlineMedium,
+                            fontSize = 24.sp
+                        )
+                    } else {
+                        Text(
+                            text = group.name.first().toString(),
+                            style = MaterialTheme.typography.titleLarge,
+                            color = MaterialTheme.colorScheme.primary
+                        )
+                    }
                 }
                 
                 Column {

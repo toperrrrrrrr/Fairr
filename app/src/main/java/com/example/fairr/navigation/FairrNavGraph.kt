@@ -57,6 +57,8 @@ import com.example.fairr.ui.screens.groups.JoinGroupScreen
 import com.example.fairr.ui.screens.settlements.SettlementsOverviewScreen as SettlementsScreen
 import com.example.fairr.ui.screens.expenses.RecurringExpenseManagementScreen
 import com.example.fairr.ui.screens.expenses.RecurringExpenseAnalyticsScreen
+import com.example.fairr.ui.screens.friends.FriendGroupsScreen
+import com.example.fairr.ui.screens.friends.FriendProfileScreen
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -264,6 +266,24 @@ fun FairrNavGraph(
 
         composable(Screen.Friends.route) {
             FriendsScreen(
+                navController = navController,
+                onNavigateBack = { navController.popBackStack() }
+            )
+        }
+
+        composable(Screen.FriendGroups.route) {
+            FriendGroupsScreen(
+                navController = navController
+            )
+        }
+
+        composable(
+            route = Screen.FriendProfile.route,
+            arguments = listOf(navArgument("friendId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val friendId = backStackEntry.arguments?.getString("friendId") ?: return@composable
+            FriendProfileScreen(
+                friendId = friendId,
                 navController = navController,
                 onNavigateBack = { navController.popBackStack() }
             )
