@@ -7,7 +7,6 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.SavedStateHandle
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.fairr.data.groups.GroupService
 import com.example.fairr.data.repository.ExpenseRepository
 import com.example.fairr.data.model.Expense
 import com.example.fairr.data.model.Group
@@ -22,6 +21,7 @@ import kotlinx.coroutines.launch
 import java.text.SimpleDateFormat
 import java.util.*
 import javax.inject.Inject
+import com.example.fairr.data.repository.GroupRepository
 
 private const val TAG = "GroupDetailViewModel"
 
@@ -61,7 +61,7 @@ sealed interface GroupDetailUiState {
 
 @HiltViewModel
 class GroupDetailViewModel @Inject constructor(
-    private val groupService: GroupService,
+    private val groupRepository: GroupRepository,
     private val expenseRepository: ExpenseRepository,
     private val settlementService: SettlementService,
     private val auth: FirebaseAuth,
@@ -151,7 +151,7 @@ class GroupDetailViewModel @Inject constructor(
         viewModelScope.launch {
             uiState = GroupDetailUiState.Loading
             try {
-                groupService.getGroupById(groupId)
+                groupRepository.getGroup(groupId)
                     .combine(expenseRepository.getExpensesByGroupIdFlow(groupId)) { group, expenses ->
                         val uiMembers = group.members.map { convertToUiMember(it) }
                         val totalExpenses = expenses.sumOf { it.amount }

@@ -56,8 +56,8 @@ fun HomeScreen(
     modifier: Modifier = Modifier,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
-    val state by viewModel.state.collectAsState()
-    val refreshing = state.isLoading
+    val uiState = viewModel.uiState
+    val refreshing = uiState is HomeUiState.Loading
     val pullRefreshState = rememberPullRefreshState(
         refreshing = refreshing,
         onRefresh = { viewModel.refresh() }
@@ -106,15 +106,37 @@ fun HomeScreen(
             ) {
                 // Overview Cards
                 item {
-                    OverviewSection(
-                        totalBalance = state.totalBalance,
-                        totalExpenses = state.totalExpenses,
-                        activeGroups = state.activeGroups,
-                        viewModel = viewModel,
-                        modifier = Modifier.semantics {
-                            contentDescription = "Financial overview: Balance ${CurrencyFormatter.format("USD", state.totalBalance)}, ${state.totalExpenses} total expenses, ${state.activeGroups} active groups"
+                    when (uiState) {
+                        is HomeUiState.Loading -> {
+                            Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator()
+                            }
                         }
-                    )
+                        is HomeUiState.Error -> {
+                            FairrEmptyState(
+                                title = "Error Loading Data",
+                                message = uiState.message,
+                                actionText = "Retry",
+                                onActionClick = { viewModel.refresh() },
+                                icon = Icons.Default.Error,
+                                modifier = Modifier.fillMaxWidth()
+                            )
+                        }
+                        is HomeUiState.Success -> {
+                            OverviewSection(
+                                totalBalance = uiState.totalBalance,
+                                totalExpenses = uiState.totalExpenses,
+                                activeGroups = uiState.activeGroups,
+                                viewModel = viewModel,
+                                modifier = Modifier.semantics {
+                                    contentDescription = "Financial overview: Balance ${CurrencyFormatter.format("USD", uiState.totalBalance)}, ${uiState.totalExpenses} total expenses, ${uiState.activeGroups} active groups"
+                                }
+                            )
+                        }
+                    }
                 }
 
                 // Quick Actions
@@ -135,59 +157,76 @@ fun HomeScreen(
                     )
                 }
 
-                if (state.groups.isEmpty()) {
-                    item {
-                        FairrEmptyState(
-                            title = "No Groups Yet",
-                            message = "Create your first group to start tracking shared expenses with friends and family.",
-                            actionText = "Create Group",
-                            onActionClick = onNavigateToCreateGroup,
-                            icon = Icons.Default.Group,
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                when (uiState) {
+                    is HomeUiState.Loading -> {
+                        item {
+                            Box(
+                                modifier = Modifier.fillMaxWidth(),
+                                contentAlignment = Alignment.Center
+                            ) {
+                                CircularProgressIndicator()
+                            }
+                        }
                     }
-                } else {
-                    items(state.groups) { group ->
-                        GroupCard(
-                            group = group,
-                            onClick = { onNavigateToGroupDetail(group.id) },
-                            onAddExpenseClick = { onNavigateToAddExpense(group.id) }
-                        )
+                    is HomeUiState.Error -> {
+                        // Error already handled in overview section
                     }
-                }
+                    is HomeUiState.Success -> {
+                        if ((uiState as HomeUiState.Success).groups.isEmpty()) {
+                            item {
+                                FairrEmptyState(
+                                    title = "No Groups Yet",
+                                    message = "Create your first group to start tracking shared expenses with friends and family.",
+                                    actionText = "Create Group",
+                                    onActionClick = onNavigateToCreateGroup,
+                                    icon = Icons.Default.Group,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+                        } else {
+                            items((uiState as HomeUiState.Success).groups) { group ->
+                                GroupCard(
+                                    group = group,
+                                    onClick = { onNavigateToGroupDetail(group.id) },
+                                    onAddExpenseClick = { onNavigateToAddExpense(group.id) }
+                                )
+                            }
+                        }
 
-                // Recent Expenses
-                if (state.recentExpenses.isNotEmpty()) {
-                    item {
-                        Text(
-                            text = "Recent Expenses",
-                            style = MaterialTheme.typography.titleLarge,
-                            fontWeight = FontWeight.Bold,
-                            modifier = Modifier.padding(top = 16.dp)
-                        )
-                    }
+                        // Recent Expenses
+                        if ((uiState as HomeUiState.Success).recentExpenses.isNotEmpty()) {
+                            item {
+                                Text(
+                                    text = "Recent Expenses",
+                                    style = MaterialTheme.typography.titleLarge,
+                                    fontWeight = FontWeight.Bold,
+                                    modifier = Modifier.padding(top = 16.dp)
+                                )
+                            }
 
-                    items(state.recentExpenses) { expense ->
-                        ExpenseCard(
-                            expense = expense,
-                            onClick = { navController.navigate(Screen.ExpenseDetail.createRoute(expense.id)) },
-                            viewModel = viewModel
-                        )
-                    }
-                } else if (state.groups.isNotEmpty()) {
-                    item {
-                        FairrEmptyState(
-                            title = "No Recent Expenses",
-                            message = "Add your first expense to start tracking shared costs.",
-                            actionText = "Add Expense",
-                            onActionClick = { 
-                                if (state.groups.isNotEmpty()) {
-                                    onNavigateToAddExpense(state.groups.first().id)
-                                }
-                            },
-                            icon = Icons.Default.Receipt,
-                            modifier = Modifier.fillMaxWidth()
-                        )
+                            items((uiState as HomeUiState.Success).recentExpenses) { expense ->
+                                ExpenseCard(
+                                    expense = expense,
+                                    onClick = { navController.navigate(Screen.ExpenseDetail.createRoute(expense.id)) },
+                                    viewModel = viewModel
+                                )
+                            }
+                        } else if ((uiState as HomeUiState.Success).groups.isNotEmpty()) {
+                            item {
+                                FairrEmptyState(
+                                    title = "No Recent Expenses",
+                                    message = "Add your first expense to start tracking shared costs.",
+                                    actionText = "Add Expense",
+                                    onActionClick = { 
+                                        if ((uiState as HomeUiState.Success).groups.isNotEmpty()) {
+                                            onNavigateToAddExpense((uiState as HomeUiState.Success).groups.first().id)
+                                        }
+                                    },
+                                    icon = Icons.Default.Receipt,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
+                        }
                     }
                 }
             }

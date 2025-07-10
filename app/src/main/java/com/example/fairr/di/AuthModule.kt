@@ -4,6 +4,7 @@ import android.content.Context
 import com.example.fairr.data.auth.AuthService
 import com.example.fairr.data.auth.GoogleAuthService
 import com.example.fairr.data.repository.UserRepository
+import com.example.fairr.data.repository.UserRepositoryImpl
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import dagger.Module
@@ -33,7 +34,7 @@ object AuthModule {
     @Provides
     @Singleton
     fun provideUserRepository(firestore: FirebaseFirestore): UserRepository {
-        return UserRepository(firestore)
+        return UserRepositoryImpl(firestore)
     }
 
     @Provides

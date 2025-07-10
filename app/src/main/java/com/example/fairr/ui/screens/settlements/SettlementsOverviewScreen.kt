@@ -25,7 +25,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fairr.ui.theme.*
 import com.example.fairr.navigation.Screen
-import com.example.fairr.data.groups.GroupService
+import com.example.fairr.data.repository.GroupRepository
 import com.example.fairr.data.settlements.SettlementService
 import com.example.fairr.util.CurrencyFormatter
 import com.google.firebase.auth.FirebaseAuth
@@ -55,7 +55,7 @@ data class OverviewUiState(
 // ViewModel for the overview screen
 @HiltViewModel
 class SettlementsOverviewViewModel @Inject constructor(
-    private val groupService: GroupService,
+    private val groupRepository: GroupRepository,
     private val settlementService: SettlementService,
     private val auth: FirebaseAuth
 ) : ViewModel() {
@@ -72,7 +72,7 @@ class SettlementsOverviewViewModel @Inject constructor(
             try {
                 uiState = uiState.copy(isLoading = true, error = null)
                 
-                val userGroups = groupService.getUserGroups().first()
+                val userGroups = groupRepository.getUserGroups().first()
                 val groupBalances = mutableListOf<GroupBalance>()
                 var totalBalance = 0.0
                 

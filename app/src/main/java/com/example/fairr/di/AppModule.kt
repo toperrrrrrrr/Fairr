@@ -1,33 +1,38 @@
 package com.example.fairr.di
 
-import com.example.fairr.data.groups.GroupService
-import com.example.fairr.data.groups.GroupJoinService
-import com.example.fairr.data.groups.GroupInviteService
-import com.example.fairr.data.notifications.NotificationService
-import com.example.fairr.data.notifications.RecurringExpenseNotificationService
+import com.example.fairr.data.repository.GroupRepository
+import com.example.fairr.data.repository.ExpenseRepository
+import com.example.fairr.data.repository.UserRepository
+import com.example.fairr.data.repository.ExpenseRepositoryImpl
+import com.example.fairr.data.repository.GroupRepositoryImpl
+import com.example.fairr.data.repository.UserRepositoryImpl
 import com.example.fairr.data.activity.ActivityService
-import com.example.fairr.data.repository.*
-import com.example.fairr.data.settings.SettingsDataStore
-import com.example.fairr.data.user.UserModerationService
+import com.example.fairr.data.groups.GroupJoinService
+import com.example.fairr.data.notifications.NotificationService
+import com.example.fairr.data.groups.GroupInviteService
 import com.example.fairr.data.friends.FriendGroupService
-import com.example.fairr.data.comments.CommentService
-import com.example.fairr.data.category.CategoryService
+import com.example.fairr.data.notifications.RecurringExpenseNotificationService
+import com.example.fairr.data.export.ExportService
+import com.example.fairr.data.analytics.AnalyticsService
+import com.example.fairr.data.settings.SettingsDataStore
+import com.example.fairr.data.preferences.UserPreferencesManager
+import com.example.fairr.utils.PhotoUtils
+import com.example.fairr.util.PerformanceOptimizer
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.firestore.FirebaseFirestore
 import com.google.firebase.firestore.FirebaseFirestoreSettings
-import com.google.firebase.storage.FirebaseStorage
 import com.google.firebase.analytics.FirebaseAnalytics
 import com.google.firebase.crashlytics.FirebaseCrashlytics
 import com.google.firebase.perf.FirebasePerformance
-import com.example.fairr.utils.PhotoUtils
+import android.content.Context
 import dagger.Module
 import dagger.Provides
 import dagger.hilt.InstallIn
+import dagger.hilt.android.qualifiers.ApplicationContext
 import dagger.hilt.components.SingletonComponent
 import javax.inject.Singleton
-import android.content.Context
-import dagger.hilt.android.qualifiers.ApplicationContext
-import com.example.fairr.data.notifications.SimpleNotificationService
+import com.example.fairr.data.comments.CommentService
+import com.example.fairr.data.category.CategoryService
 import com.google.firebase.Firebase
 import com.google.firebase.firestore.MemoryCacheSettings
 
@@ -52,7 +57,7 @@ object AppModule {
     fun provideGroupService(
         auth: FirebaseAuth,
         firestore: FirebaseFirestore
-    ): GroupService = GroupService(auth, firestore)
+    ): GroupRepository = GroupRepositoryImpl(auth, firestore)
 
     @Provides
     @Singleton
@@ -105,9 +110,9 @@ object AppModule {
     fun provideRecurringExpenseNotificationService(
         context: Context,
         expenseRepository: ExpenseRepository,
-        groupService: GroupService,
+        groupRepository: GroupRepository,
         auth: FirebaseAuth
-    ): RecurringExpenseNotificationService = RecurringExpenseNotificationService(context, expenseRepository, groupService, auth)
+    ): RecurringExpenseNotificationService = RecurringExpenseNotificationService(context, expenseRepository, groupRepository, auth)
 
     @Provides
     @Singleton
@@ -120,7 +125,7 @@ object AppModule {
     fun provideUserModerationService(
         auth: FirebaseAuth,
         firestore: FirebaseFirestore
-    ): UserModerationService = UserModerationService(auth, firestore)
+    ): com.example.fairr.data.user.UserModerationService = com.example.fairr.data.user.UserModerationService(auth, firestore)
 
     @Provides
     @Singleton
@@ -147,11 +152,11 @@ object AppModule {
     @Singleton
     fun provideSimpleNotificationService(
         @ApplicationContext context: Context
-    ): SimpleNotificationService = SimpleNotificationService(context)
+    ): com.example.fairr.data.notifications.SimpleNotificationService = com.example.fairr.data.notifications.SimpleNotificationService(context)
 
     @Provides
     @Singleton
-    fun provideFirebaseStorage(): FirebaseStorage = FirebaseStorage.getInstance()
+    fun provideFirebaseStorage(): com.google.firebase.storage.FirebaseStorage = com.google.firebase.storage.FirebaseStorage.getInstance()
 
     @Provides
     @Singleton

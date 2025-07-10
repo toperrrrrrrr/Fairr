@@ -7,12 +7,12 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.fairr.data.groups.GroupResult
-import com.example.fairr.data.groups.GroupService
 import com.example.fairr.data.groups.GroupInviteService
 import com.example.fairr.data.groups.GroupInviteResult
-import com.example.fairr.ui.model.CreateGroupData
 import com.example.fairr.ui.model.GroupMember
+import com.example.fairr.data.repository.GroupRepository
+import com.example.fairr.data.repository.GroupResult
+import com.example.fairr.ui.model.CreateGroupData
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.flow.MutableSharedFlow
 import kotlinx.coroutines.flow.asSharedFlow
@@ -40,7 +40,7 @@ sealed class EmailValidationResult {
 
 @HiltViewModel
 class CreateGroupViewModel @Inject constructor(
-    private val groupService: GroupService,
+    private val groupRepository: GroupRepository,
     private val groupInviteService: GroupInviteService,
     private val settingsDataStore: SettingsDataStore
 ) : ViewModel() {
@@ -162,7 +162,8 @@ class CreateGroupViewModel @Inject constructor(
                     members = members
                 )
 
-                when (val result = groupService.createGroup(groupData)) {
+                val result = groupRepository.createGroup(groupData)
+                when (result) {
                     is GroupResult.Success -> {
                         // Send invites to all members
                         var successfulInvites = 0
@@ -171,7 +172,8 @@ class CreateGroupViewModel @Inject constructor(
                         if (members.isNotEmpty()) {
                             members.forEach { member ->
                                 try {
-                                    when (val inviteResult = groupInviteService.sendGroupInvitation(result.groupId, member.email, "Join our group!")) {
+                                    val inviteResult = groupInviteService.sendGroupInvitation(result.groupId, member.email, "Join our group!")
+                                    when (inviteResult) {
                                         is GroupInviteResult.Success -> {
                                             successfulInvites++
                                         }

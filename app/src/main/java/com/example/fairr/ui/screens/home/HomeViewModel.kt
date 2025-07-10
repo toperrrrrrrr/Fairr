@@ -5,7 +5,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.fairr.data.groups.GroupService
+import com.example.fairr.data.repository.GroupRepository
 import com.example.fairr.data.repository.ExpenseRepository
 import com.example.fairr.data.model.Group
 import com.example.fairr.data.model.Expense
@@ -17,27 +17,33 @@ import kotlinx.coroutines.flow.*
 import kotlinx.coroutines.launch
 import javax.inject.Inject
 
-data class HomeScreenState(
-    val isLoading: Boolean = true,
-    val error: String? = null,
-    val totalBalance: Double = 0.0,
-    val totalExpenses: Double = 0.0,
-    val activeGroups: Int = 0,
-    val groups: List<Group> = emptyList(),
-    val recentExpenses: List<Expense> = emptyList(),
-    val userCurrency: String = "PHP"
-)
+/**
+ * Sealed class for Home screen UI state management
+ * Follows consistent pattern used across the app
+ */
+sealed class HomeUiState {
+    object Loading : HomeUiState()
+    data class Success(
+        val totalBalance: Double = 0.0,
+        val totalExpenses: Double = 0.0,
+        val activeGroups: Int = 0,
+        val groups: List<Group> = emptyList(),
+        val recentExpenses: List<Expense> = emptyList(),
+        val userCurrency: String = "PHP"
+    ) : HomeUiState()
+    data class Error(val message: String) : HomeUiState()
+}
 
 @HiltViewModel
 class HomeViewModel @Inject constructor(
-    private val groupService: GroupService,
+    private val groupRepository: GroupRepository,
     private val expenseRepository: ExpenseRepository,
     private val auth: FirebaseAuth,
     private val settingsDataStore: SettingsDataStore
 ) : ViewModel() {
 
-    private val _state = MutableStateFlow(HomeScreenState())
-    val state = _state.asStateFlow()
+    var uiState by mutableStateOf<HomeUiState>(HomeUiState.Loading)
+        private set
 
     init {
         loadHomeData()
@@ -46,16 +52,15 @@ class HomeViewModel @Inject constructor(
     private fun loadHomeData() {
         viewModelScope.launch {
             try {
-                _state.value = _state.value.copy(isLoading = true, error = null)
+                uiState = HomeUiState.Loading
 
                 // Get user's preferred currency
                 val userCurrency = settingsDataStore.defaultCurrency.first()
 
-                groupService.getActiveGroups()
+                groupRepository.getActiveGroups()
                     .catch { e ->
-                        _state.value = _state.value.copy(
-                            isLoading = false,
-                            error = e.message ?: "An error occurred while loading groups"
+                        uiState = HomeUiState.Error(
+                            e.message ?: "An error occurred while loading groups"
                         )
                     }
                     .collect { groups ->
@@ -81,14 +86,12 @@ class HomeViewModel @Inject constructor(
                                 }
                             } catch (e: Exception) {
                                 // Log error but continue processing other groups
-                                _state.value = _state.value.copy(
-                                    error = "Error loading expenses for some groups"
-                                )
+                                uiState = HomeUiState.Error("Error loading expenses for some groups")
+                                return@collect
                             }
                         }
 
-                        _state.value = _state.value.copy(
-                            isLoading = false,
+                        uiState = HomeUiState.Success(
                             groups = groups,
                             activeGroups = groups.size,
                             totalBalance = totalBalance,
@@ -98,9 +101,8 @@ class HomeViewModel @Inject constructor(
                         )
                     }
             } catch (e: Exception) {
-                _state.value = _state.value.copy(
-                    isLoading = false,
-                    error = e.message ?: "An unexpected error occurred"
+                uiState = HomeUiState.Error(
+                    e.message ?: "An unexpected error occurred"
                 )
             }
         }
@@ -112,14 +114,23 @@ class HomeViewModel @Inject constructor(
 
     // Currency formatting methods
     fun formatCurrency(amount: Double): String {
-        return CurrencyFormatter.format(state.value.userCurrency, amount)
+        return when (val currentState = uiState) {
+            is HomeUiState.Success -> CurrencyFormatter.format(currentState.userCurrency, amount)
+            else -> CurrencyFormatter.format("PHP", amount) // fallback
+        }
     }
 
     fun formatCurrencyWithSpacing(amount: Double): String {
-        return CurrencyFormatter.formatWithSpacing(state.value.userCurrency, amount)
+        return when (val currentState = uiState) {
+            is HomeUiState.Success -> CurrencyFormatter.formatWithSpacing(currentState.userCurrency, amount)
+            else -> CurrencyFormatter.formatWithSpacing("PHP", amount) // fallback
+        }
     }
 
     fun getCurrencySymbol(): String {
-        return CurrencyFormatter.getSymbol(state.value.userCurrency)
+        return when (val currentState = uiState) {
+            is HomeUiState.Success -> CurrencyFormatter.getSymbol(currentState.userCurrency)
+            else -> CurrencyFormatter.getSymbol("PHP") // fallback
+        }
     }
 } 

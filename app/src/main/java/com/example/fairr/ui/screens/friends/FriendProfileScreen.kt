@@ -44,7 +44,7 @@ import kotlinx.coroutines.launch
 import javax.inject.Inject
 import android.util.Log
 import com.example.fairr.data.repository.ExpenseRepository
-import com.example.fairr.data.groups.GroupService
+import com.example.fairr.data.repository.GroupRepository
 import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.first
 import java.text.SimpleDateFormat
@@ -90,7 +90,7 @@ class FriendProfileViewModel @Inject constructor(
     private val friendService: FriendService,
     private val settlementService: SettlementService,
     private val expenseRepository: ExpenseRepository,
-    private val groupService: GroupService
+    private val groupRepository: GroupRepository
 ) : ViewModel() {
     
     private val _uiState = MutableStateFlow(FriendProfileUiState())
@@ -149,7 +149,7 @@ class FriendProfileViewModel @Inject constructor(
             val currentUserId = FirebaseAuth.getInstance().currentUser?.uid ?: return Pair(0.0, 0.0)
             
             // Get all groups where both users are members
-            val userGroups = groupService.getUserGroups().first()
+            val userGroups = groupRepository.getUserGroups().first()
             var theyOweYou = 0.0
             var youOweThem = 0.0
             
@@ -191,7 +191,7 @@ class FriendProfileViewModel @Inject constructor(
             val transactions = mutableListOf<FriendTransaction>()
             
             // Get all groups where both users are members
-            val userGroups = groupService.getUserGroups().first()
+            val userGroups = groupRepository.getUserGroups().first()
             
             userGroups.forEach { group ->
                 if (group.members.any { it.userId == friendId }) {

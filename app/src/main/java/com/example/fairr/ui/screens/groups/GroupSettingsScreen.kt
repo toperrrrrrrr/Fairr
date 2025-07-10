@@ -141,181 +141,193 @@ fun GroupSettingsScreen(
             verticalArrangement = Arrangement.spacedBy(8.dp),
             contentPadding = PaddingValues(bottom = 16.dp)
         ) {
-            // Group Info Section
-            item {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    Column(
+            // Show loading or content
+            if (uiState.isLoading || group == null) {
+                item {
+                    Box(
+                        modifier = Modifier.fillMaxWidth(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator()
+                    }
+                }
+            } else {
+                // Group Info Section
+                item {
+                    Card(
                         modifier = Modifier
                             .fillMaxWidth()
                             .padding(16.dp)
                     ) {
-                        // Group header with avatar
-                        Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            verticalAlignment = Alignment.CenterVertically
+                        Column(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .padding(16.dp)
                         ) {
-                            // Group Avatar
-                            GroupEmojiAvatar(
-                                avatar = group.avatar,
-                                groupName = group.name,
-                                size = 60.dp
-                            )
-                            
-                            Spacer(modifier = Modifier.width(16.dp))
-                            
-                            Column(modifier = Modifier.weight(1f)) {
-                                Text(
-                                    text = group.name,
-                                    style = MaterialTheme.typography.headlineSmall
+                            // Group header with avatar
+                            Row(
+                                modifier = Modifier.fillMaxWidth(),
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                // Group Avatar
+                                GroupEmojiAvatar(
+                                    avatar = group.avatar,
+                                    groupName = group.name,
+                                    size = 60.dp
                                 )
-                                if (group.description.isNotEmpty()) {
+                                
+                                Spacer(modifier = Modifier.width(16.dp))
+                                
+                                Column(modifier = Modifier.weight(1f)) {
                                     Text(
-                                        text = group.description,
-                                        style = MaterialTheme.typography.bodyMedium,
-                                        color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        text = group.name,
+                                        style = MaterialTheme.typography.headlineSmall
+                                    )
+                                    if (group.description.isNotEmpty()) {
+                                        Text(
+                                            text = group.description,
+                                            style = MaterialTheme.typography.bodyMedium,
+                                            color = MaterialTheme.colorScheme.onSurfaceVariant
+                                        )
+                                    }
+                                }
+                            }
+                            
+                            // Invite Code Section
+                            Row(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .padding(top = 8.dp),
+                                horizontalArrangement = Arrangement.SpaceBetween,
+                                verticalAlignment = Alignment.CenterVertically
+                            ) {
+                                Column {
+                                    Text(
+                                        text = "Invite Code",
+                                        style = MaterialTheme.typography.labelMedium
+                                    )
+                                    Text(
+                                        text = group.inviteCode,
+                                        style = MaterialTheme.typography.titleMedium
+                                    )
+                                }
+                                IconButton(
+                                    onClick = {
+                                        clipboardManager.setText(AnnotatedString(group.inviteCode))
+                                    }
+                                ) {
+                                    Icon(
+                                        Icons.Default.ContentCopy,
+                                        contentDescription = "Copy Invite Code"
                                     )
                                 }
                             }
                         }
+                    }
+                }
+
+                // Members Section
+                item {
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Text(
+                            text = "Members (${members.size})",
+                            style = MaterialTheme.typography.titleLarge
+                        )
                         
-                        // Invite Code Section
-                        Row(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .padding(top = 8.dp),
-                            horizontalArrangement = Arrangement.SpaceBetween,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Column {
-                                Text(
-                                    text = "Invite Code",
-                                    style = MaterialTheme.typography.labelMedium
-                                )
-                                Text(
-                                    text = group.inviteCode,
-                                    style = MaterialTheme.typography.titleMedium
-                                )
-                            }
-                            IconButton(
-                                onClick = {
-                                    clipboardManager.setText(AnnotatedString(group.inviteCode))
-                                }
+                        if (group.isUserAdmin) {
+                            OutlinedButton(
+                                onClick = { showInviteDialog = true }
                             ) {
                                 Icon(
-                                    Icons.Default.ContentCopy,
-                                    contentDescription = "Copy Invite Code"
+                                    Icons.Default.PersonAdd,
+                                    contentDescription = "Invite Members",
+                                    modifier = Modifier.size(18.dp)
+                                )
+                                Spacer(modifier = Modifier.width(4.dp))
+                                Text("Invite")
+                            }
+                        }
+                    }
+                }
+
+                items(members) { member ->
+                    MemberCard(
+                        member = member,
+                        isUserAdmin = group.isUserAdmin,
+                        onRemoveMember = { viewModel.showRemoveMemberDialog(it) },
+                        onPromote = { viewModel.showPromoteMemberDialog(it) },
+                        onDemote = { viewModel.showDemoteMemberDialog(it) },
+                        modifier = Modifier.padding(horizontal = 16.dp)
+                    )
+                }
+
+                // Actions Section  
+                item {
+                    Card(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    ) {
+                        Column {
+                            if (group.isUserAdmin) {
+                                SettingsActionItem(
+                                    icon = Icons.Default.Edit,
+                                    title = "Edit Group",
+                                    subtitle = "Change group name, description, or currency",
+                                    onClick = { viewModel.showEditGroupDialog() }
+                                )
+                                
+                                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                                
+                                SettingsActionItem(
+                                    icon = if (group.isArchived) Icons.Default.Unarchive else Icons.Default.Archive,
+                                    title = if (group.isArchived) "Unarchive Group" else "Archive Group",
+                                    subtitle = if (group.isArchived) 
+                                        "Make this group active again" 
+                                    else 
+                                        "Hide this group from active list",
+                                    onClick = { 
+                                        if (group.isArchived) {
+                                            viewModel.unarchiveGroup()
+                                        } else {
+                                            viewModel.archiveGroup()
+                                        }
+                                    }
+                                )
+                                
+                                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                                
+                                SettingsActionItem(
+                                    icon = Icons.Default.Delete,
+                                    title = "Delete Group",
+                                    subtitle = "Permanently delete this group",
+                                    onClick = { showDeleteDialog = true },
+                                    textColor = MaterialTheme.colorScheme.error
                                 )
                             }
-                        }
-                    }
-                }
-            }
-
-            // Members Section
-            item {
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    Text(
-                        text = "Members (${members.size})",
-                        style = MaterialTheme.typography.titleLarge
-                    )
-                    
-                    if (group.isUserAdmin) {
-                        OutlinedButton(
-                            onClick = { showInviteDialog = true }
-                        ) {
-                            Icon(
-                                Icons.Default.PersonAdd,
-                                contentDescription = "Invite Members",
-                                modifier = Modifier.size(18.dp)
-                            )
-                            Spacer(modifier = Modifier.width(4.dp))
-                            Text("Invite")
-                        }
-                    }
-                }
-            }
-
-            items(members) { member ->
-                MemberCard(
-                    member = member,
-                    isUserAdmin = group.isUserAdmin,
-                    onRemoveMember = { viewModel.showRemoveMemberDialog(it) },
-                    onPromote = { viewModel.showPromoteMemberDialog(it) },
-                    onDemote = { viewModel.showDemoteMemberDialog(it) },
-                    modifier = Modifier.padding(horizontal = 16.dp)
-                )
-            }
-
-            // Actions Section
-            item {
-                Card(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(16.dp)
-                ) {
-                    Column {
-                        if (group.isUserAdmin) {
-                            SettingsActionItem(
-                                icon = Icons.Default.Edit,
-                                title = "Edit Group",
-                                subtitle = "Change group name, description, or currency",
-                                onClick = { viewModel.showEditGroupDialog() }
-                            )
                             
-                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-                            
-                            SettingsActionItem(
-                                icon = if (group.isArchived) Icons.Default.Unarchive else Icons.Default.Archive,
-                                title = if (group.isArchived) "Unarchive Group" else "Archive Group",
-                                subtitle = if (group.isArchived) 
-                                    "Make this group active again" 
-                                else 
-                                    "Hide this group from active list",
-                                onClick = { 
-                                    if (group.isArchived) {
-                                        viewModel.unarchiveGroup()
-                                    } else {
-                                        viewModel.archiveGroup()
-                                    }
+                            if (!group.isUserAdmin || members.size > 1) {
+                                if (group.isUserAdmin) {
+                                    HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
                                 }
-                            )
-                            
-                            HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
-                            
-                            SettingsActionItem(
-                                icon = Icons.Default.Delete,
-                                title = "Delete Group",
-                                subtitle = "Permanently delete this group",
-                                onClick = { showDeleteDialog = true },
-                                textColor = MaterialTheme.colorScheme.error
-                            )
-                        }
-                        
-                        if (!group.isUserAdmin || members.size > 1) {
-                            if (group.isUserAdmin) {
-                                HorizontalDivider(modifier = Modifier.padding(horizontal = 16.dp))
+                                
+                                SettingsActionItem(
+                                    icon = Icons.AutoMirrored.Filled.ExitToApp,
+                                    title = "Leave Group",
+                                    subtitle = if (group.isUserAdmin && members.size > 1)
+                                        "Transfer ownership before leaving"
+                                    else
+                                        "Leave this group",
+                                    onClick = { showLeaveDialog = true },
+                                    textColor = MaterialTheme.colorScheme.error
+                                )
                             }
-                            
-                            SettingsActionItem(
-                                icon = Icons.AutoMirrored.Filled.ExitToApp,
-                                title = "Leave Group",
-                                subtitle = if (group.isUserAdmin && members.size > 1)
-                                    "Transfer ownership before leaving"
-                                else
-                                    "Leave this group",
-                                onClick = { showLeaveDialog = true },
-                                textColor = MaterialTheme.colorScheme.error
-                            )
                         }
                     }
                 }
@@ -421,7 +433,7 @@ fun GroupSettingsScreen(
     }
 
     // Edit Group Dialog
-    if (uiState.showEditGroupDialog) {
+    if (uiState.showEditGroupDialog && group != null) {
         EditGroupDialog(
             group = group,
             onDismiss = { viewModel.hideEditGroupDialog() },
@@ -488,7 +500,7 @@ fun GroupSettingsScreen(
     }
 
     // Invite Members Dialog
-    if (showInviteDialog) {
+    if (showInviteDialog && group != null) {
         InviteGroupDialog(
             groupName = group.name,
             onDismiss = { showInviteDialog = false },

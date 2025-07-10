@@ -12,7 +12,7 @@ import com.example.fairr.MainActivity
 import com.example.fairr.R
 import com.example.fairr.data.model.Expense
 import com.example.fairr.data.repository.ExpenseRepository
-import com.example.fairr.data.groups.GroupService
+import com.example.fairr.data.repository.GroupRepository
 import com.example.fairr.navigation.Screen
 import com.example.fairr.util.CurrencyFormatter
 import com.google.firebase.auth.FirebaseAuth
@@ -33,7 +33,7 @@ import androidx.core.content.ContextCompat
 class RecurringExpenseNotificationService @Inject constructor(
     private val context: Context,
     private val expenseRepository: ExpenseRepository,
-    private val groupService: GroupService,
+    private val groupRepository: GroupRepository,
     private val auth: FirebaseAuth
 ) {
     private val scope = CoroutineScope(Dispatchers.IO + SupervisorJob())
@@ -126,7 +126,7 @@ class RecurringExpenseNotificationService @Inject constructor(
     private suspend fun getUpcomingExpensesForAllGroups(daysAhead: Int): List<Expense> {
         try {
             // Get all groups the user is a member of
-            val userGroups = groupService.getUserGroups().first()
+            val userGroups = groupRepository.getUserGroups().first()
             val upcomingExpenses = mutableListOf<Expense>()
             
             // Calculate the target date range

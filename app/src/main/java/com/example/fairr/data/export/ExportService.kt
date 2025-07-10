@@ -8,7 +8,7 @@ import com.example.fairr.data.model.Expense
 import com.example.fairr.data.model.Group
 import com.example.fairr.data.repository.ExpenseRepository
 import com.example.fairr.data.repository.ExpenseQueryParams
-import com.example.fairr.data.groups.GroupService
+import com.example.fairr.data.repository.GroupRepository
 import com.example.fairr.data.settlements.SettlementService
 import com.example.fairr.data.settlements.SettlementSummary
 import com.google.firebase.auth.FirebaseAuth
@@ -55,11 +55,11 @@ data class ExportResult(
  */
 @Singleton
 class ExportService @Inject constructor(
-    private val context: Context,
     private val expenseRepository: ExpenseRepository,
-    private val groupService: GroupService,
+    private val groupRepository: GroupRepository,
     private val settlementService: SettlementService,
-    private val auth: FirebaseAuth
+    private val auth: FirebaseAuth,
+    private val context: Context
 ) {
 
     suspend fun exportData(options: ExportOptions): ExportResult {
@@ -93,7 +93,7 @@ class ExportService @Inject constructor(
     }
     
     private suspend fun exportAllData(options: ExportOptions): ExportData {
-        val groups = groupService.getUserGroups().first()
+        val groups = groupRepository.getUserGroups().first()
         val allExpenses = mutableListOf<Expense>()
         val settlements = mutableListOf<SettlementSummary>()
         
@@ -120,7 +120,7 @@ class ExportService @Inject constructor(
     }
     
     private suspend fun exportGroupData(groupId: String): ExportData {
-        val group = groupService.getGroupById(groupId).first()
+        val group: Group = groupRepository.getGroup(groupId).first()
         val expenses = expenseRepository.getPaginatedExpenses(
             ExpenseQueryParams(
                 groupId = groupId,
@@ -324,7 +324,7 @@ class ExportService @Inject constructor(
             )
         )
 
-        val group: Group = groupService.getGroupById(groupId).first()
+        val group: Group = groupRepository.getGroup(groupId).first()
 
         return when (format.lowercase()) {
             "csv" -> generateCSV(ExportData(group = group, expenses = expenses.expenses, settlements = emptyList()))

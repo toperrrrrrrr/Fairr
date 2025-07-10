@@ -6,7 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fairr.data.repository.ExpenseRepository
-import com.example.fairr.data.groups.GroupService
+import com.example.fairr.data.repository.GroupRepository
 import com.example.fairr.data.model.Expense
 import com.example.fairr.data.model.Group
 import com.google.firebase.auth.FirebaseAuth
@@ -31,7 +31,7 @@ data class SearchUiState(
 @HiltViewModel
 class SearchViewModel @Inject constructor(
     private val expenseRepository: ExpenseRepository,
-    private val groupService: GroupService,
+    private val groupRepository: GroupRepository,
     private val auth: FirebaseAuth
 ) : ViewModel() {
     
@@ -94,7 +94,7 @@ class SearchViewModel @Inject constructor(
         
         try {
             // Get user's groups first
-            val userGroups = groupService.getUserGroups().first()
+            val userGroups = groupRepository.getUserGroups().first()
             
             // Search expenses in each group
             userGroups.forEach { group ->
@@ -127,7 +127,7 @@ class SearchViewModel @Inject constructor(
         val results = mutableListOf<SearchResult>()
         
         try {
-            val userGroups = groupService.getUserGroups().first()
+            val userGroups = groupRepository.getUserGroups().first()
             
             userGroups.forEach { group ->
                 if (group.name.lowercase().contains(query) || 

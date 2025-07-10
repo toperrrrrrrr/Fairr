@@ -48,7 +48,6 @@ import com.example.fairr.data.model.RecurrenceFrequency
 import androidx.compose.material3.DatePicker
 import androidx.compose.material3.DatePickerDialog
 import androidx.compose.material3.rememberDatePickerState
-import com.example.fairr.data.groups.GroupService
 import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import androidx.compose.material.icons.automirrored.filled.CallSplit

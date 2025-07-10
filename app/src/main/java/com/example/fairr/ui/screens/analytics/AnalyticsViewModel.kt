@@ -3,7 +3,7 @@ package com.example.fairr.ui.screens.analytics
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fairr.data.repository.ExpenseRepository
-import com.example.fairr.data.groups.GroupService
+import com.example.fairr.data.repository.GroupRepository
 import com.example.fairr.data.model.Expense
 import com.example.fairr.data.model.Group
 import com.example.fairr.data.settings.SettingsDataStore
@@ -60,7 +60,7 @@ data class MonthlySpendingTrend(
 @HiltViewModel
 class AnalyticsViewModel @Inject constructor(
     private val expenseRepository: ExpenseRepository,
-    private val groupService: GroupService,
+    private val groupRepository: GroupRepository,
     private val auth: FirebaseAuth,
     private val settingsDataStore: SettingsDataStore
 ) : ViewModel() {
@@ -93,7 +93,7 @@ class AnalyticsViewModel @Inject constructor(
                 }
                 
                 // Get all user groups
-                val userGroups = groupService.getUserGroups().first()
+                val userGroups = groupRepository.getUserGroups().first()
                 
                 // Get all expenses across all groups
                 val allExpenses = mutableListOf<Expense>()

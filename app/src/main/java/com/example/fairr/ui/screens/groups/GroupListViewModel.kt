@@ -6,7 +6,7 @@ import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
-import com.example.fairr.data.groups.GroupService
+import com.example.fairr.data.repository.GroupRepository
 import com.example.fairr.data.settlements.SettlementService
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
@@ -18,7 +18,7 @@ private const val TAG = "GroupListViewModel"
 
 @HiltViewModel
 class GroupListViewModel @Inject constructor(
-    private val groupService: GroupService,
+    private val groupRepository: GroupRepository,
     private val settlementService: SettlementService,
     private val auth: FirebaseAuth
 ) : ViewModel() {
@@ -40,9 +40,9 @@ class GroupListViewModel @Inject constructor(
             uiState = GroupListUiState.Loading
             try {
                 val groupsFlow = if (showingArchived) {
-                    groupService.getArchivedGroups()
+                    groupRepository.getArchivedGroups()
                 } else {
-                    groupService.getActiveGroups()
+                    groupRepository.getActiveGroups()
                 }
                 
                 groupsFlow

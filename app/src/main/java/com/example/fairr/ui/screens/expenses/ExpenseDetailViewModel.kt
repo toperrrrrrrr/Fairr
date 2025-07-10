@@ -9,7 +9,7 @@ import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fairr.data.model.Expense
 import com.example.fairr.data.repository.ExpenseRepository
-import com.example.fairr.data.groups.GroupService
+import com.example.fairr.data.repository.GroupRepository
 import com.google.firebase.auth.FirebaseAuth
 import dagger.hilt.android.lifecycle.HiltViewModel
 import kotlinx.coroutines.launch
@@ -33,7 +33,7 @@ sealed interface ExpenseDetailUiState {
 @HiltViewModel
 class ExpenseDetailViewModel @Inject constructor(
     private val expenseRepository: ExpenseRepository,
-    private val groupService: GroupService,
+    private val groupRepository: GroupRepository,
     private val auth: FirebaseAuth,
     savedStateHandle: SavedStateHandle
 ) : ViewModel() {
@@ -60,7 +60,7 @@ class ExpenseDetailViewModel @Inject constructor(
                 if (expense != null) {
                     // Get group name
                     val groupName = try {
-                        val group = groupService.getGroupById(expense.groupId).first()
+                        val group = groupRepository.getGroup(expense.groupId).first()
                         group.name
                     } catch (e: Exception) {
                         Log.e(TAG, "Error fetching group name", e)

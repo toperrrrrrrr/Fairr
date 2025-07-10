@@ -6,7 +6,7 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fairr.data.repository.ExpenseRepository
-import com.example.fairr.data.groups.GroupService
+import com.example.fairr.data.repository.GroupRepository
 import com.example.fairr.data.model.Expense
 import com.example.fairr.data.model.ExpenseCategory
 import com.example.fairr.data.model.RecurrenceRule
@@ -29,6 +29,7 @@ import com.example.fairr.utils.ReceiptPhoto
 import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.tasks.await
 import java.io.File
+import androidx.lifecycle.SavedStateHandle
 
 sealed class EditExpenseEvent {
     data class ShowError(val message: String) : EditExpenseEvent()
@@ -47,9 +48,10 @@ data class EditExpenseState(
 @HiltViewModel
 class EditExpenseViewModel @Inject constructor(
     private val expenseRepository: ExpenseRepository,
-    private val groupService: GroupService,
+    private val groupRepository: GroupRepository,
+    private val settingsDataStore: SettingsDataStore,
     private val auth: FirebaseAuth,
-    private val settingsDataStore: SettingsDataStore
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     
     var state by mutableStateOf(EditExpenseState())
@@ -84,8 +86,8 @@ class EditExpenseViewModel @Inject constructor(
     fun loadGroupMembers(groupId: String) {
         viewModelScope.launch {
             try {
-                val members = groupService.getGroupMembers(groupId).first()
-                state = state.copy(groupMembers = members)
+                val group = groupRepository.getGroup(groupId).first()
+                state = state.copy(groupMembers = group.members)
             } catch (e: Exception) {
                 // Log error but don't fail the screen
                 _events.emit(EditExpenseEvent.ShowError("Failed to load group members"))

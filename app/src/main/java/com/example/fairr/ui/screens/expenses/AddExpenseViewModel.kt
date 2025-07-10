@@ -6,7 +6,6 @@ import androidx.compose.runtime.setValue
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.example.fairr.data.repository.ExpenseRepository
-import com.example.fairr.data.groups.GroupService
 import com.example.fairr.data.model.Group
 import com.example.fairr.data.settings.SettingsDataStore
 import com.example.fairr.util.CurrencyFormatter
@@ -25,6 +24,8 @@ import com.google.firebase.storage.FirebaseStorage
 import kotlinx.coroutines.tasks.await
 import java.io.File
 import com.example.fairr.ui.screens.expenses.ValidationResult
+import com.example.fairr.data.repository.GroupRepository
+import androidx.lifecycle.SavedStateHandle
 
 sealed class AddExpenseEvent {
     data class ShowError(val message: String) : AddExpenseEvent()
@@ -48,9 +49,10 @@ data class AddExpenseState(
 @HiltViewModel
 class AddExpenseViewModel @Inject constructor(
     private val expenseRepository: ExpenseRepository,
-    private val groupService: GroupService,
+    private val groupRepository: GroupRepository,
     private val auth: FirebaseAuth,
-    private val settingsDataStore: SettingsDataStore
+    private val settingsDataStore: SettingsDataStore,
+    savedStateHandle: SavedStateHandle
 ) : ViewModel() {
     private val dateFormat = SimpleDateFormat("MMM dd, yyyy", Locale.getDefault())
     
@@ -94,7 +96,7 @@ class AddExpenseViewModel @Inject constructor(
     fun loadGroupCurrency(groupId: String) {
         viewModelScope.launch {
             try {
-                groupService.getGroupById(groupId).collectLatest { group ->
+                groupRepository.getGroup(groupId).collectLatest { group ->
                     state = state.copy(
                         groupCurrency = group.currency,
                         expenseCurrency = group.currency // Default to group currency
@@ -237,7 +239,7 @@ class AddExpenseViewModel @Inject constructor(
     fun loadGroupMembers(groupId: String) {
         viewModelScope.launch {
             try {
-                groupService.getGroupById(groupId).collectLatest { group ->
+                groupRepository.getGroup(groupId).collectLatest { group ->
                     val memberInfos = group.members.map { member ->
                         MemberInfo(
                             userId = member.userId,
