@@ -57,6 +57,7 @@ import androidx.compose.ui.platform.LocalContext
 import android.net.Uri
 import com.example.fairr.utils.PhotoUtils
 import androidx.compose.material.icons.automirrored.filled.KeyboardArrowRight
+import kotlinx.coroutines.delay
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -199,95 +200,73 @@ fun AddExpenseScreen(
                     snackbarHostState.showSnackbar(event.message)
                 }
                 AddExpenseEvent.ExpenseSaved -> {
-                    // Show success snackbar and navigate back
-                    scope.launch {
-                        snackbarHostState.showSnackbar("Expense saved successfully")
-                        navController.popBackStack()
-                    }
-                    onExpenseAdded()
+                    onExpenseAdded() // Notify parent to refresh
+                    navController.popBackStack() // Navigate back immediately
                 }
             }
         }
     }
 
     Scaffold(
-        topBar = {
-            TopAppBar(
-                title = { 
-                    Text(
-                        "Add Expense",
-                        fontWeight = FontWeight.Bold,
-                        color = TextPrimary
-                    ) 
-                },
-                navigationIcon = {
-                    IconButton(onClick = { navController.popBackStack() }) {
-                        Icon(
-                            Icons.AutoMirrored.Filled.ArrowBack,
-                            contentDescription = "Back",
-                            tint = IconTint
+        snackbarHost = {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                SnackbarHost(
+                    hostState = snackbarHostState,
+                    modifier = Modifier.padding(bottom = 16.dp),
+                    snackbar = { data ->
+                        Snackbar(
+                            modifier = Modifier.padding(horizontal = 16.dp),
+                            containerColor = Primary,
+                            contentColor = Color.White,
+                            content = {
+                                Text(
+                                    text = data.visuals.message,
+                                    style = MaterialTheme.typography.bodyMedium,
+                                    textAlign = TextAlign.Center,
+                                    modifier = Modifier.fillMaxWidth()
+                                )
+                            }
                         )
                     }
-                },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = BackgroundPrimary
                 )
-            )
+            }
         },
-        bottomBar = {
-            ModernButton(
-                text = "Save Expense",
-                onClick = {
-                    val trimmedDescription = description.trim()
-                    val amountValue = amount.replace(viewModel.getCurrencySymbol(), "")
-                        .replace(",", "")
-                        .trim()
-                        .toDoubleOrNull()
-
-                    if (trimmedDescription.length < 3) {
-                        scope.launch {
-                            snackbarHostState.showSnackbar("Description must be at least 3 characters")
-                        }
-                        return@ModernButton
+        topBar = {
+            TopAppBar(
+                title = { Text("Add Expense") },
+                navigationIcon = {
+                    IconButton(onClick = { navController.popBackStack() }) {
+                        Icon(Icons.Default.ArrowBack, contentDescription = "Back")
                     }
-
-                    if (amountValue == null || amountValue <= 0.0) {
-                        scope.launch {
-                            snackbarHostState.showSnackbar("Please enter a valid amount greater than 0")
-                        }
-                        return@ModernButton
-                    }
-
-                    // Validate split-specific data
-                    val splitValidationError = validateSplitData(selectedSplitType, amountValue, state.groupMembers.map { it.toMap() })
-                    if (splitValidationError != null) {
-                        scope.launch {
-                            snackbarHostState.showSnackbar(splitValidationError)
-                        }
-                        return@ModernButton
-                    }
-
-                    viewModel.addExpense(
-                        groupId = groupId,
-                        description = trimmedDescription,
-                        amount = amountValue,
-                        date = Date(),
-                        paidBy = viewModel.getMemberIdByDisplayName(selectedPaidBy),
-                        splitType = selectedSplitType,
-                        category = selectedCategory,
-                        isRecurring = recurrenceFrequency != com.example.fairr.data.model.RecurrenceFrequency.NONE,
-                        recurrenceRule = if (recurrenceFrequency != com.example.fairr.data.model.RecurrenceFrequency.NONE)
-                            buildRecurrenceRule(recurrenceFrequency.displayName, recurrenceInterval, recurrenceEndDate?.time)
-                        else null,
-                        receiptPhotos = receiptPhotos
-                    )
                 },
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(16.dp)
-                    .height(48.dp)
-                    .navigationBarsPadding(),
-                enabled = description.isNotBlank() && amount.isNotBlank() && !state.isLoading
+                actions = {
+                    TextButton(
+                        onClick = {
+                            // Convert amount string to Double
+                            val amountValue = amount.toDoubleOrNull() ?: 0.0
+                            viewModel.addExpense(
+                                groupId = groupId,
+                                description = description,
+                                amount = amountValue,
+                                date = Date(),
+                                paidBy = viewModel.getMemberIdByDisplayName(selectedPaidBy),
+                                splitType = selectedSplitType,
+                                category = selectedCategory,
+                                isRecurring = recurrenceFrequency != com.example.fairr.data.model.RecurrenceFrequency.NONE,
+                                recurrenceRule = if (recurrenceFrequency != com.example.fairr.data.model.RecurrenceFrequency.NONE)
+                                    buildRecurrenceRule(recurrenceFrequency.displayName, recurrenceInterval, recurrenceEndDate?.time)
+                                else null,
+                                receiptPhotos = receiptPhotos
+                            )
+                        },
+                        enabled = description.isNotBlank() && amount.isNotBlank()
+                    ) {
+                        Text("Save", color = if (description.isNotBlank() && amount.isNotBlank()) Primary else Color.Gray)
+                    }
+                }
             )
         }
     ) { padding ->

@@ -22,16 +22,11 @@ Balance summary will show how much the total of other people owe the user and ho
 Payment details should be editable for the user profile .
 And section for friends you owe something.  
 
-Add expense page needs to be cleaned up. 
-Add receipt recurrance category could be small buttons. in one row 
 
-Description text box. When deselected or clicked awauy. Keyboard collapses 
-Amount textbox - When selected. The numberpad calculator will pop up like how keyboard appears. Make sure it is a calculator. 
-Paid by and split by 
 
 
 list items / rows cards should be more consistent accross the app. Some have shadows some doesnt. Size should be uniform as well. 
-Colors of the cards should be uniform,.
+Colors of the cards should be uniform as well.
 
 
 When opening a new screen and going back. it rediirects the app to the main page instead of hththe original screen it came from. 
@@ -41,5 +36,5 @@ Instead of
  Group list > group deatails > back button > group list 
 
 
- Dollar symbol on the add expense instead of the default symbol
- When saved it doesnt confirm that it is saved and go back to the group details
+
+Split by options needs to be updated and make it work . 
