@@ -17,18 +17,10 @@ Group
 group invitation notification accept and deccline is not working . 
 invalid or expired invite code  
 
-friend groups button crashes the app. 
-friends list when clicked should show the profile image of the other user. 
-Friends should have profile page where we can see their bank details and how much we owe them or how much they owe us
-
 The friends profile page should be the layout for the personal profile. Same layout. 
 Balance summary will show how much the total of other people owe the user and how much they owe other user.
 Payment details should be editable for the user profile .
 And section for friends you owe something.  
-
-The group details page shows huge white space right under the manage ruecurring and above recent expenses. 
-The manage expenes button can be a quick action button right after add expense and before settle up.
-
 
 Add expense page needs to be cleaned up. 
 Add receipt recurrance category could be small buttons. in one row 
