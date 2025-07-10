@@ -35,6 +35,11 @@ Colors of the cards should be uniform,.
 
 
 When opening a new screen and going back. it rediirects the app to the main page instead of hththe original screen it came from. 
+Example but not limited to: 
  Groups list> group deatails > back button > mainpage 
 Instead of 
  Group list > group deatails > back button > group list 
+
+
+ Dollar symbol on the add expense instead of the default symbol
+ When saved it doesnt confirm that it is saved and go back to the group details

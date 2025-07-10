@@ -79,6 +79,7 @@ fun AddExpenseScreen(
     var recurrenceInterval by remember { mutableStateOf(1) }
     var recurrenceEndDate by remember { mutableStateOf<Date?>(null) }
     var showEndDatePicker by remember { mutableStateOf(false) }
+    var showCalculatorSheet by remember { mutableStateOf(false) }
     val state = viewModel.state
     val snackbarHostState = remember { SnackbarHostState() }
     val scope = rememberCoroutineScope()
@@ -198,6 +199,11 @@ fun AddExpenseScreen(
                     snackbarHostState.showSnackbar(event.message)
                 }
                 AddExpenseEvent.ExpenseSaved -> {
+                    // Show success snackbar and navigate back
+                    scope.launch {
+                        snackbarHostState.showSnackbar("Expense saved successfully")
+                        navController.popBackStack()
+                    }
                     onExpenseAdded()
                 }
             }
@@ -293,424 +299,130 @@ fun AddExpenseScreen(
                     .padding(padding)
                     .padding(horizontal = 16.dp)
                     .verticalScroll(scrollState),
-                verticalArrangement = Arrangement.spacedBy(8.dp)
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
-                // Details Section (Description, Category, Split)
-                Column(
+                // --- Top Row: Receipt, Recurrence, Category ---
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                    verticalArrangement = Arrangement.spacedBy(16.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    // Description field
-                    OutlinedTextField(
-                        value = description,
-                        onValueChange = { description = it },
-                        label = { Text("Description", fontSize = 14.sp) },
-                        singleLine = true,
-                        modifier = Modifier.fillMaxWidth(),
-                        textStyle = LocalTextStyle.current.copy(fontSize = 16.sp),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Primary,
-                            focusedLabelColor = Primary
-                        )
+                    // Receipt Button
+                    OutlinedButton(
+                        onClick = { showPhotoPickerDialog = true },
+                        modifier = Modifier.weight(1f),
+                        contentPadding = PaddingValues(vertical = 8.dp)
+                    ) {
+                        Icon(Icons.Default.CameraAlt, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text("Receipt", fontSize = 13.sp)
+                    }
+                    // Recurrence Button
+                    OutlinedButton(
+                        onClick = { /* Open recurrence modal/section */ showEndDatePicker = true },
+                        modifier = Modifier.weight(1f),
+                        contentPadding = PaddingValues(vertical = 8.dp)
+                    ) {
+                        Icon(Icons.Default.Refresh, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text("Recurrence", fontSize = 13.sp)
+                    }
+                    // Category Button
+                    OutlinedButton(
+                        onClick = { showCategorySheet = true },
+                        modifier = Modifier.weight(1f),
+                        contentPadding = PaddingValues(vertical = 8.dp)
+                    ) {
+                        Icon(Icons.Default.Category, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text("Category", fontSize = 13.sp)
+                    }
+                }
+
+                // --- Description Field ---
+                OutlinedTextField(
+                    value = description,
+                    onValueChange = { description = it },
+                    label = { Text("Description", fontSize = 14.sp) },
+                    singleLine = true,
+                    modifier = Modifier.fillMaxWidth(),
+                    textStyle = LocalTextStyle.current.copy(fontSize = 16.sp),
+                    colors = OutlinedTextFieldDefaults.colors(
+                        focusedBorderColor = Primary,
+                        focusedLabelColor = Primary
                     )
+                )
 
-                    // Category selection
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                    ) {
-                        Text(
-                            text = "Category",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = TextPrimary
-                        )
-                        Surface(
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .heightIn(min = 48.dp)
-                                .clickable { showCategorySheet = true },
-                            shape = RoundedCornerShape(8.dp),
-                            border = BorderStroke(1.dp, Primary.copy(alpha = 0.5f)),
-                            color = BackgroundPrimary
-                        ) {
-                            Row(
-                                modifier = Modifier
-                                    .padding(horizontal = 16.dp, vertical = 8.dp),
-                                verticalAlignment = Alignment.CenterVertically,
-                                horizontalArrangement = Arrangement.spacedBy(8.dp)
-                            ) {
-                                CategoryChip(
-                                    category = selectedCategory,
-                                    selected = true,
-                                    onClick = { },
-                                    modifier = Modifier.weight(1f)
-                                )
-                                Icon(
-                                    imageVector = Icons.AutoMirrored.Filled.KeyboardArrowRight,
-                                    contentDescription = "Next"
-                                )
-                            }
-                        }
-                    }
-
-                    // Recurrence section
-                    Column(
-                        modifier = Modifier.fillMaxWidth(),
-                        verticalArrangement = Arrangement.spacedBy(12.dp)
-                    ) {
-                        Text(
-                            text = "Recurrence",
-                            fontSize = 14.sp,
-                            fontWeight = FontWeight.SemiBold,
-                            color = TextPrimary
-                        )
-                        Column(
-                            verticalArrangement = Arrangement.spacedBy(12.dp)
-                        ) {
-                            // Frequency dropdown
-                            var expanded by remember { mutableStateOf(false) }
-                            Box(
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                OutlinedButton(
-                                    onClick = { expanded = true },
-                                    modifier = Modifier
-                                        .fillMaxWidth()
-                                        .heightIn(min = 48.dp),
-                                    contentPadding = PaddingValues(horizontal = 16.dp)
-                                ) {
-                                    Row(
-                                        modifier = Modifier.fillMaxWidth(),
-                                        horizontalArrangement = Arrangement.SpaceBetween,
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Text(recurrenceFrequency.displayName)
-                                        Icon(
-                                            Icons.Default.ArrowDropDown,
-                                            contentDescription = "Select frequency"
-                                        )
-                                    }
-                                }
-                                DropdownMenu(
-                                    expanded = expanded,
-                                    onDismissRequest = { expanded = false },
-                                    modifier = Modifier.width(IntrinsicSize.Max)
-                                ) {
-                                    com.example.fairr.data.model.RecurrenceFrequency.values().forEach { freq ->
-                                        DropdownMenuItem(
-                                            text = { Text(freq.displayName) },
-                                            onClick = {
-                                                recurrenceFrequency = freq
-                                                expanded = false
-                                            },
-                                            modifier = Modifier.heightIn(min = 48.dp)
-                                        )
-                                    }
-                                }
-                            }
-                            
-                            // Interval input and frequency label
-                            if (recurrenceFrequency != com.example.fairr.data.model.RecurrenceFrequency.NONE) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    OutlinedTextField(
-                                        value = recurrenceInterval.toString(),
-                                        onValueChange = { val v = it.toIntOrNull(); if (v != null && v > 0) recurrenceInterval = v },
-                                        label = { Text("Every") },
-                                        singleLine = true,
-                                        modifier = Modifier
-                                            .width(100.dp)
-                                            .heightIn(min = 48.dp),
-                                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number)
-                                    )
-                                    Text(
-                                        text = recurrenceFrequency.displayName.lowercase(),
-                                        style = MaterialTheme.typography.bodyLarge
-                                    )
-                                }
-                            }
-                            
-                            // End date picker
-                            if (recurrenceFrequency != com.example.fairr.data.model.RecurrenceFrequency.NONE) {
-                                Row(
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                    modifier = Modifier.fillMaxWidth()
-                                ) {
-                                    OutlinedButton(
-                                        onClick = { showEndDatePicker = true },
-                                        modifier = Modifier
-                                            .weight(1f)
-                                            .heightIn(min = 48.dp)
-                                    ) {
-                                        Text(
-                                            text = recurrenceEndDate?.let { 
-                                                java.text.SimpleDateFormat("MMM dd, yyyy", Locale.getDefault()).format(it) 
-                                            } ?: "No end date"
-                                        )
-                                    }
-                                    if (recurrenceEndDate != null) {
-                                        IconButton(
-                                            onClick = { recurrenceEndDate = null },
-                                            modifier = Modifier.size(48.dp)
-                                        ) {
-                                            Icon(
-                                                Icons.Default.Close,
-                                                contentDescription = "Clear end date",
-                                                modifier = Modifier.size(24.dp)
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    // Conversational sentence row
-                    Surface(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(vertical = 12.dp),
-                        color = BackgroundPrimary,
-                        shape = RoundedCornerShape(8.dp)
-                    ) {
-                        Row(
-                            modifier = Modifier
-                                .padding(horizontal = 16.dp, vertical = 12.dp),
-                            horizontalArrangement = Arrangement.Center,
-                            verticalAlignment = Alignment.CenterVertically
-                        ) {
-                            Text(
-                                "Paid by ",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-
-                            FilterChip(
-                                selected = true,
-                                onClick = { showPayerSheet = true },
-                                label = { 
-                                    Text(
-                                        selectedPaidBy.lowercase(),
-                                        fontWeight = FontWeight.Medium
-                                    ) 
-                                },
-                                colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = Primary.copy(alpha = 0.12f),
-                                    selectedLabelColor = Primary
-                                ),
-                                modifier = Modifier.heightIn(min = 32.dp)
-                            )
-
-                            Text(
-                                " and split ",
-                                style = MaterialTheme.typography.bodyLarge,
-                                color = MaterialTheme.colorScheme.onSurface
-                            )
-
-                            FilterChip(
-                                selected = true,
-                                onClick = { showSplitSheet = true },
-                                label = { 
-                                    Text(
-                                        when(selectedSplitType) {
-                                            "Equal Split" -> "equally"
-                                            "Percentage" -> "by %"
-                                            "Custom Amount" -> "custom"
-                                            else -> selectedSplitType.lowercase()
-                                        },
-                                        fontWeight = FontWeight.Medium
-                                    ) 
-                                },
-                                colors = FilterChipDefaults.filterChipColors(
-                                    selectedContainerColor = Primary.copy(alpha = 0.12f),
-                                    selectedLabelColor = Primary
-                                ),
-                                modifier = Modifier.heightIn(min = 32.dp)
-                            )
-                        }
-                    }
-                }
-
-                // Calculator Section (Amount)
-                Surface(
-                    modifier = Modifier.fillMaxWidth(),
-                    color = BackgroundPrimary,
-                    shape = RoundedCornerShape(8.dp)
+                // --- Amount Field as Calculator Trigger ---
+                OutlinedButton(
+                    onClick = { showCalculatorSheet = true },
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(53.dp), // Reduced from 56.dp by ~5%
+                    border = BorderStroke(1.dp, Primary.copy(alpha = 0.5f)),
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceBetween,
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
                         Row(
-                            modifier = Modifier.fillMaxWidth(),
-                            horizontalArrangement = Arrangement.SpaceBetween,
                             verticalAlignment = Alignment.CenterVertically
                         ) {
                             Text(
-                                text = "Amount",
-                                style = MaterialTheme.typography.titleMedium.copy(
-                                    fontWeight = FontWeight.SemiBold
-                                ),
-                                color = TextPrimary
+                                text = when(viewModel.getGroupCurrency()) {
+                                    "USD" -> "$"
+                                    "EUR" -> "€"
+                                    "GBP" -> "£"
+                                    "JPY" -> "¥"
+                                    "PHP" -> "₱"
+                                    "SGD" -> "S$"
+                                    "CAD" -> "C$"
+                                    "AUD" -> "A$"
+                                    else -> "$"
+                                },
+                                fontSize = 18.sp,
+                                color = Primary,
+                                fontWeight = FontWeight.Bold
                             )
-                            
-                            // Currency Selector
-                            var showCurrencyDropdown by remember { mutableStateOf(false) }
-                            Box {
-                                OutlinedButton(
-                                    onClick = { showCurrencyDropdown = true },
-                                    modifier = Modifier
-                                        .widthIn(min = 120.dp)
-                                        .heightIn(min = 48.dp),
-                                    colors = ButtonDefaults.outlinedButtonColors(
-                                        contentColor = Primary
-                                    ),
-                                    border = BorderStroke(1.dp, Primary.copy(alpha = 0.5f))
-                                ) {
-                                    Row(
-                                        horizontalArrangement = Arrangement.spacedBy(8.dp),
-                                        verticalAlignment = Alignment.CenterVertically
-                                    ) {
-                                        Text(
-                                            text = viewModel.getGroupCurrency(),
-                                            style = MaterialTheme.typography.bodyLarge.copy(
-                                                fontWeight = FontWeight.Medium
-                                            )
-                                        )
-                                        Icon(
-                                            Icons.Default.ArrowDropDown,
-                                            contentDescription = "Select Currency",
-                                            modifier = Modifier.size(24.dp)
-                                        )
-                                    }
-                                }
-                                
-                                DropdownMenu(
-                                    expanded = showCurrencyDropdown,
-                                    onDismissRequest = { showCurrencyDropdown = false }
-                                ) {
-                                    listOf("USD", "EUR", "GBP", "JPY", "PHP", "SGD", "CAD", "AUD").forEach { currency ->
-                                        DropdownMenuItem(
-                                            text = { 
-                                                Row(
-                                                    verticalAlignment = Alignment.CenterVertically,
-                                                    horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                                    modifier = Modifier.fillMaxWidth()
-                                                ) {
-                                                    Text(
-                                                        text = when(currency) {
-                                                            "USD" -> "🇺🇸"
-                                                            "EUR" -> "🇪🇺"
-                                                            "GBP" -> "🇬🇧"
-                                                            "JPY" -> "🇯🇵"
-                                                            "PHP" -> "🇵🇭"
-                                                            "SGD" -> "🇸🇬"
-                                                            "CAD" -> "🇨🇦"
-                                                            "AUD" -> "🇦🇺"
-                                                            else -> "💰"
-                                                        },
-                                                        fontSize = 16.sp
-                                                    )
-                                                    Text(
-                                                        text = currency,
-                                                        style = MaterialTheme.typography.bodyLarge
-                                                    )
-                                                }
-                                            },
-                                            onClick = {
-                                                viewModel.updateExpenseCurrency(currency)
-                                                showCurrencyDropdown = false
-                                            },
-                                            modifier = Modifier.heightIn(min = 48.dp)
-                                        )
-                                    }
-                                }
-                            }
+                            Spacer(Modifier.width(8.dp))
+                            Text(
+                                text = if (amount.isBlank()) "Enter Amount" else amount,
+                                fontSize = 18.sp,
+                                color = if (amount.isBlank()) TextSecondary else TextPrimary
+                            )
                         }
-                        
-                        CompactCalculator(
-                            value = amount,
-                            onValueChange = { amount = it },
-                            modifier = Modifier.fillMaxWidth(),
-                            viewModel = viewModel
+                        Icon(
+                            Icons.Default.Calculate,
+                            contentDescription = "Calculator",
+                            tint = Primary,
+                            modifier = Modifier.size(20.dp)
                         )
                     }
                 }
 
-                // Receipt Photos Section
-                Surface(
+                // --- Paid By and Split By Buttons ---
+                Row(
                     modifier = Modifier.fillMaxWidth(),
-                    color = BackgroundPrimary,
-                    shape = RoundedCornerShape(8.dp)
+                    horizontalArrangement = Arrangement.spacedBy(8.dp)
                 ) {
-                    Column(
-                        modifier = Modifier
-                            .fillMaxWidth()
-                            .padding(16.dp),
-                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    OutlinedButton(
+                        onClick = { showPayerSheet = true },
+                        modifier = Modifier.weight(1f),
+                        contentPadding = PaddingValues(vertical = 8.dp)
                     ) {
-                        Text(
-                            text = "Receipt Photos",
-                            style = MaterialTheme.typography.titleMedium.copy(
-                                fontWeight = FontWeight.SemiBold
-                            ),
-                            color = TextPrimary
-                        )
-                        
-                        // Add Receipt Button
-                        OutlinedButton(
-                            onClick = { showPhotoPickerDialog = true },
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .heightIn(min = 48.dp),
-                            colors = ButtonDefaults.outlinedButtonColors(
-                                contentColor = Primary
-                            ),
-                            border = BorderStroke(1.dp, Primary.copy(alpha = 0.5f))
-                        ) {
-                            Row(
-                                horizontalArrangement = Arrangement.Center,
-                                verticalAlignment = Alignment.CenterVertically,
-                                modifier = Modifier.padding(vertical = 8.dp)
-                            ) {
-                                Icon(
-                                    Icons.Default.CameraAlt,
-                                    contentDescription = "Add photo",
-                                    modifier = Modifier.size(24.dp)
-                                )
-                                Spacer(modifier = Modifier.width(12.dp))
-                                Text(
-                                    "Add Receipt Photo",
-                                    style = MaterialTheme.typography.bodyLarge
-                                )
-                            }
-                        }
-                        
-                        // Display existing receipt photos
-                        if (receiptPhotos.isNotEmpty()) {
-                            LazyRow(
-                                horizontalArrangement = Arrangement.spacedBy(12.dp),
-                                contentPadding = PaddingValues(vertical = 4.dp),
-                                modifier = Modifier.fillMaxWidth()
-                            ) {
-                                items(receiptPhotos) { photo ->
-                                    ReceiptPhotoCard(
-                                        photo = photo,
-                                        onRemove = {
-                                            receiptPhotos = receiptPhotos.filter { it.id != photo.id }
-                                        },
-                                        modifier = Modifier
-                                    )
-                                }
-                            }
-                        }
+                        Icon(Icons.Default.Person, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text("Paid by: $selectedPaidBy", fontSize = 13.sp)
+                    }
+                    OutlinedButton(
+                        onClick = { showSplitSheet = true },
+                        modifier = Modifier.weight(1f),
+                        contentPadding = PaddingValues(vertical = 8.dp)
+                    ) {
+                        Icon(Icons.AutoMirrored.Filled.CallSplit, contentDescription = null, modifier = Modifier.size(18.dp))
+                        Spacer(Modifier.width(4.dp))
+                        Text("Split: $selectedSplitType", fontSize = 13.sp)
                     }
                 }
             }
@@ -1087,103 +799,115 @@ fun AddExpenseScreen(
             DatePicker(state = datePickerState)
         }
     }
+
+    // --- Calculator Modal Sheet ---
+    if (showCalculatorSheet) {
+        ModalBottomSheet(
+            onDismissRequest = { showCalculatorSheet = false },
+            dragHandle = { BottomSheetDefaults.DragHandle() },
+            windowInsets = WindowInsets(0),
+            sheetState = rememberModalBottomSheetState(skipPartiallyExpanded = true)
+        ) {
+            Column(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(horizontal = 16.dp, vertical = 8.dp)
+                    .navigationBarsPadding(),
+                verticalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                // Currency symbol and amount display
+                Text(
+                    text = "${when(viewModel.getGroupCurrency()) {
+                        "USD" -> "$"
+                        "EUR" -> "€"
+                        "GBP" -> "£"
+                        "JPY" -> "¥"
+                        "PHP" -> "₱"
+                        "SGD" -> "S$"
+                        "CAD" -> "C$"
+                        "AUD" -> "A$"
+                        else -> "$"
+                    }} ${if (amount.isBlank()) "0.00" else amount}",
+                    fontSize = 24.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = TextPrimary,
+                    modifier = Modifier.fillMaxWidth(),
+                    textAlign = TextAlign.End
+                )
+
+                CompactCalculator(
+                    value = amount,
+                    onValueChange = { amount = it },
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+        }
+    }
 }
 
 @Composable
 fun CompactCalculator(
     value: String,
     onValueChange: (String) -> Unit,
-    modifier: Modifier = Modifier,
-    viewModel: AddExpenseViewModel = hiltViewModel()
+    modifier: Modifier = Modifier
 ) {
     var displayValue by remember { mutableStateOf(value) }
-    var operation by remember { mutableStateOf<String?>(null) }
-    var firstNumber by remember { mutableStateOf<Double?>(null) }
-    var shouldResetInput by remember { mutableStateOf(false) }
-    val keyboardController = LocalSoftwareKeyboardController.current
+    var expression by remember { mutableStateOf("") }
+    var lastWasOperation by remember { mutableStateOf(false) }
 
-    fun hideKeyboard() {
-        keyboardController?.hide()
-    }
-
-    fun performOperation() {
-        val first = firstNumber
-        val op = operation
-        if (first != null && op != null && displayValue.isNotEmpty()) {
-            val secondNumber = displayValue.toDoubleOrNull() ?: return
-            val result = when (op) {
-                "+" -> first + secondNumber
-                "-" -> first - secondNumber
-                "×" -> first * secondNumber
-                "÷" -> if (secondNumber != 0.0) first / secondNumber else return
-                else -> return
+    fun calculateExpression(expr: String): String {
+        try {
+            val sanitizedExpr = expr
+                .replace("×", "*")
+                .replace("÷", "/")
+            
+            // Split the expression into numbers and operators
+            val numbers = sanitizedExpr.split("""[-+*/]""".toRegex()).filter { it.isNotEmpty() }
+            val operators = sanitizedExpr.replace("""[0-9.]""".toRegex(), "").toList()
+            
+            if (numbers.isEmpty()) return "0"
+            
+            var result = numbers[0].toDouble()
+            var opIndex = 0
+            
+            for (i in 1 until numbers.size) {
+                val num = numbers[i].toDouble()
+                when (operators.getOrNull(opIndex++)) {
+                    '+' -> result += num
+                    '-' -> result -= num
+                    '*' -> result *= num
+                    '/' -> if (num != 0.0) result /= num else return "Error"
+                }
             }
-            displayValue = String.format("%.2f", result)
-            onValueChange(displayValue)
-            firstNumber = null
-            operation = null
-            shouldResetInput = true
+            
+            return String.format("%.2f", result)
+        } catch (e: Exception) {
+            return "Error"
         }
     }
 
-    fun handleOperation(op: String) {
-        hideKeyboard()
-        if (displayValue.isEmpty()) return
-        if (firstNumber != null) {
-            performOperation()
+    LaunchedEffect(value) {
+        if (value != displayValue) {
+            displayValue = value
+            expression = value
         }
-        firstNumber = displayValue.toDoubleOrNull()
-        operation = op
-        shouldResetInput = true
     }
 
     Column(
-        modifier = modifier.padding(16.dp),
-        verticalArrangement = Arrangement.spacedBy(16.dp)
+        modifier = modifier,
+        verticalArrangement = Arrangement.spacedBy(4.dp)
     ) {
-        // Display
-        Surface(
+        // Display current expression
+        Text(
+            text = expression.ifEmpty { "0" },
+            style = MaterialTheme.typography.titleLarge,
+            color = TextPrimary,
             modifier = Modifier
                 .fillMaxWidth()
-                .heightIn(min = 80.dp),
-            shape = RoundedCornerShape(12.dp),
-            color = Primary.copy(alpha = 0.05f),
-            tonalElevation = 1.dp
-        ) {
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(horizontal = 16.dp, vertical = 12.dp)
-            ) {
-                Column(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalAlignment = Alignment.End
-                ) {
-                    if (firstNumber != null && operation != null) {
-                        Text(
-                            text = "${viewModel.getCurrencySymbol()}${String.format("%.2f", firstNumber)} $operation",
-                            style = MaterialTheme.typography.bodyMedium.copy(
-                                color = TextSecondary,
-                                fontWeight = FontWeight.Medium
-                            )
-                        )
-                        Spacer(modifier = Modifier.height(4.dp))
-                    }
-                    Text(
-                        text = if (displayValue.isNotEmpty()) 
-                            "${viewModel.getCurrencySymbol()} $displayValue" 
-                        else 
-                            "${viewModel.getCurrencySymbol()} 0.00",
-                        style = MaterialTheme.typography.headlineMedium.copy(
-                            fontWeight = FontWeight.Bold,
-                            color = TextPrimary
-                        )
-                    )
-                }
-            }
-        }
+                .padding(vertical = 8.dp),
+            textAlign = TextAlign.End
+        )
 
-        // Number pad grid with operations
         val buttons = listOf(
             listOf("7", "8", "9", "÷"),
             listOf("4", "5", "6", "×"),
@@ -1191,80 +915,108 @@ fun CompactCalculator(
             listOf(".", "0", "⌫", "+")
         )
 
-        Column(
-            verticalArrangement = Arrangement.spacedBy(8.dp)
-        ) {
-            buttons.forEach { row ->
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    row.forEach { button ->
-                        val isOperation = button in listOf("+", "-", "×", "÷")
-                        val isDelete = button == "⌫"
-                        
-                        Surface(
-                            modifier = Modifier
-                                .weight(1f)
-                                .aspectRatio(1f),
-                            shape = RoundedCornerShape(12.dp),
-                            color = when {
-                                isOperation -> Primary.copy(alpha = 0.1f)
-                                isDelete -> MaterialTheme.colorScheme.errorContainer
-                                else -> MaterialTheme.colorScheme.surfaceVariant
-                            },
-                            onClick = {
-                                hideKeyboard()
-                                when {
-                                    isOperation -> handleOperation(button)
-                                    isDelete -> {
-                                        if (displayValue.isNotEmpty()) {
-                                            displayValue = displayValue.dropLast(1)
-                                            onValueChange(displayValue)
-                                        }
-                                    }
-                                    button == "." -> {
-                                        if (!displayValue.contains(".")) {
-                                            val newValue = if (displayValue.isEmpty()) "0." else "$displayValue."
-                                            displayValue = newValue
-                                            onValueChange(newValue)
-                                        }
-                                    }
-                                    else -> {
-                                        if (shouldResetInput) {
-                                            displayValue = button
-                                            shouldResetInput = false
-                                        } else {
-                                            displayValue += button
-                                        }
-                                        onValueChange(displayValue)
+        buttons.forEach { row ->
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.spacedBy(4.dp)
+            ) {
+                row.forEach { button ->
+                    val isOperation = button in listOf("+", "-", "×", "÷")
+                    val isDelete = button == "⌫"
+                    
+                    Surface(
+                        modifier = Modifier
+                            .weight(1f)
+                            .aspectRatio(1f)
+                            .height(42.dp),
+                        shape = RoundedCornerShape(8.dp),
+                        color = when {
+                            isOperation -> Primary.copy(alpha = 0.1f)
+                            isDelete -> MaterialTheme.colorScheme.errorContainer
+                            else -> MaterialTheme.colorScheme.surfaceVariant
+                        },
+                        onClick = {
+                            when {
+                                isOperation -> {
+                                    if (!lastWasOperation && expression.isNotEmpty()) {
+                                        expression += button
+                                        lastWasOperation = true
                                     }
                                 }
+                                isDelete -> {
+                                    if (expression.isNotEmpty()) {
+                                        expression = expression.dropLast(1)
+                                        lastWasOperation = expression.lastOrNull()?.toString()
+                                            ?.matches("""[-+×÷]""".toRegex()) ?: false
+                                    }
+                                }
+                                button == "." -> {
+                                    val lastNumber = expression.split("""[-+×÷]""".toRegex()).last()
+                                    if (!lastNumber.contains(".")) {
+                                        expression += if (lastNumber.isEmpty()) "0." else "."
+                                        lastWasOperation = false
+                                    }
+                                }
+                                else -> {
+                                    expression += button
+                                    lastWasOperation = false
+                                }
                             }
+                        }
+                    ) {
+                        Box(
+                            modifier = Modifier.fillMaxSize(),
+                            contentAlignment = Alignment.Center
                         ) {
-                            Box(
-                                modifier = Modifier.fillMaxSize(),
-                                contentAlignment = Alignment.Center
-                            ) {
-                                Text(
-                                    text = button,
-                                    style = MaterialTheme.typography.titleLarge.copy(
-                                        fontWeight = when {
-                                            isOperation -> FontWeight.Bold
-                                            isDelete -> FontWeight.Medium
-                                            else -> FontWeight.Normal
-                                        },
-                                        color = when {
-                                            isOperation -> Primary
-                                            isDelete -> MaterialTheme.colorScheme.error
-                                            else -> MaterialTheme.colorScheme.onSurfaceVariant
-                                        }
-                                    )
+                            Text(
+                                text = button,
+                                style = MaterialTheme.typography.titleMedium.copy(
+                                    fontWeight = when {
+                                        isOperation -> FontWeight.Bold
+                                        isDelete -> FontWeight.Medium
+                                        else -> FontWeight.Normal
+                                    },
+                                    color = when {
+                                        isOperation -> Primary
+                                        isDelete -> MaterialTheme.colorScheme.error
+                                        else -> MaterialTheme.colorScheme.onSurfaceVariant
+                                    }
                                 )
-                            }
+                            )
                         }
                     }
                 }
+            }
+        }
+
+        // Equals button
+        Surface(
+            modifier = Modifier
+                .fillMaxWidth()
+                .height(42.dp),
+            shape = RoundedCornerShape(8.dp),
+            color = Primary,
+            onClick = { 
+                if (expression.isNotEmpty()) {
+                    val result = calculateExpression(expression)
+                    expression = result
+                    displayValue = result
+                    onValueChange(result)
+                    lastWasOperation = false
+                }
+            }
+        ) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = "=",
+                    style = MaterialTheme.typography.titleMedium.copy(
+                        fontWeight = FontWeight.Bold,
+                        color = Color.White
+                    )
+                )
             }
         }
     }
