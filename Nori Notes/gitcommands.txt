@@ -1,4 +1,4 @@
 git log 
 
-git reset --hard 65afe4bc2be655402fe54aeb030485cf25e9dce3
+git reset --hard 82ca46ef59014fe04d7bb67360b06b549e029a82
 git clean -fd

@@ -302,6 +302,7 @@ class GroupRepositoryImpl @Inject constructor(
             "createdAt" to timestamp,
             "createdBy" to currentUser.uid,
             "inviteCode" to inviteCode,
+            "isArchived" to false,  // Add this missing field
             "memberIds" to listOf(currentUser.uid),  // Initialize with creator as member
             "members" to mapOf(
                 currentUser.uid to createGroupMember(
