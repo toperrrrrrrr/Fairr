@@ -1,5 +1,9 @@
 package com.example.fairr.ui.model
 
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
+
+@Immutable
 data class Friend(
     val id: String,
     val name: String,
@@ -9,11 +13,13 @@ data class Friend(
     val addedAt: Long = System.currentTimeMillis()
 )
 
+@Stable
 enum class FriendStatus {
     PENDING,    // Friend request sent but not accepted
     ACCEPTED    // Friend request accepted
 }
 
+@Immutable
 data class FriendRequest(
     val id: String,
     val senderId: String,

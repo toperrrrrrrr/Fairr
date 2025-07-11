@@ -281,6 +281,101 @@ fun LoadingOverlay(
 }
 
 /**
+ * Progressive loading container that shows different states based on loading progress
+ */
+@Composable
+fun ProgressiveLoadingContainer(
+    isLoading: Boolean,
+    progress: Float = 0f,
+    loadingMessage: String = "Loading...",
+    skeletonType: SkeletonType? = null,
+    itemCount: Int = 5,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    when {
+        isLoading && progress > 0f -> {
+            EnhancedLoadingState(
+                message = loadingMessage,
+                showProgress = true,
+                progress = progress,
+                modifier = modifier
+            )
+        }
+        isLoading && skeletonType != null -> {
+            SkeletonLoadingScreen(
+                type = skeletonType,
+                itemCount = itemCount,
+                modifier = modifier
+            )
+        }
+        isLoading -> {
+            LoadingSpinner(modifier = modifier)
+        }
+        else -> {
+            content()
+        }
+    }
+}
+
+/**
+ * Progressive list loading container with load more functionality
+ */
+@Composable
+fun ProgressiveListContainer(
+    isLoading: Boolean,
+    isLoadingMore: Boolean,
+    canLoadMore: Boolean,
+    onLoadMore: () -> Unit,
+    skeletonType: SkeletonType,
+    modifier: Modifier = Modifier,
+    content: @Composable () -> Unit
+) {
+    Column(
+        modifier = modifier.fillMaxSize()
+    ) {
+        when {
+            isLoading -> {
+                SkeletonLoadingScreen(
+                    type = skeletonType,
+                    itemCount = 5,
+                    modifier = Modifier.weight(1f)
+                )
+            }
+            else -> {
+                Box(modifier = Modifier.weight(1f)) {
+                    content()
+                }
+                
+                if (isLoadingMore) {
+                    Box(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        CircularProgressIndicator(
+                            modifier = Modifier.size(32.dp),
+                            color = Primary,
+                            strokeWidth = 3.dp
+                        )
+                    }
+                } else if (canLoadMore) {
+                    TextButton(
+                        onClick = onLoadMore,
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(16.dp)
+                    ) {
+                        Text("Load More")
+                    }
+                }
+            }
+        }
+    }
+}
+
+/**
  * Contextual loading messages for different operations
  */
 object LoadingMessages {

@@ -174,7 +174,10 @@ fun ExpenseDetailScreen(
                         )
                     }
                     
-                    items(expense.splitBetween) { split ->
+                    items(
+                        items = expense.splitBetween,
+                        key = { split -> "${split.userId}_${expense.id}" } // Composite key using userId and expenseId for uniqueness
+                    ) { split ->
                         ParticipantCard(
                             split = split,
                             expense = expense,

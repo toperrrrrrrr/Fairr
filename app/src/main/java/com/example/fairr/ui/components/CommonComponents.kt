@@ -57,14 +57,14 @@ fun FairrFilterChip(
         selected = selected,
         onClick = onClick,
         label = { Text(label) },
-        modifier = modifier,
+        modifier = modifier.defaultMinSize(minHeight = 48.dp),
         enabled = enabled,
         leadingIcon = leadingIcon?.let {
             {
                 Icon(
                     imageVector = it,
                     contentDescription = null,
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(24.dp)
                 )
             }
         },
@@ -91,14 +91,14 @@ fun FairrActionChip(
     AssistChip(
         onClick = onClick,
         label = { Text(label) },
-        modifier = modifier,
+        modifier = modifier.defaultMinSize(minHeight = 48.dp),
         enabled = enabled,
         leadingIcon = leadingIcon?.let {
             {
                 Icon(
                     imageVector = it,
                     contentDescription = null,
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(24.dp)
                 )
             }
         },
@@ -756,7 +756,7 @@ fun FairrInteractiveButton(
             hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
             onClick()
         },
-        modifier = modifier,
+        modifier = modifier.defaultMinSize(minHeight = 48.dp),
         enabled = enabled,
         content = content
     )
@@ -772,13 +772,15 @@ fun FairrInteractiveCard(
     val hapticFeedback = LocalHapticFeedback.current
     
     Card(
-        modifier = modifier.clickable(
-            enabled = enabled,
-            onClick = {
-                hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
-                onClick()
-            }
-        )
+        modifier = modifier
+            .defaultMinSize(minHeight = 48.dp)
+            .clickable(
+                enabled = enabled,
+                onClick = {
+                    hapticFeedback.performHapticFeedback(HapticFeedbackType.LongPress)
+                    onClick()
+                }
+            )
     ) {
         content()
     }
@@ -802,14 +804,14 @@ fun FairrInteractiveChip(
             onClick()
         },
         label = { Text(label) },
-        modifier = modifier,
+        modifier = modifier.defaultMinSize(minHeight = 48.dp),
         enabled = enabled,
         leadingIcon = leadingIcon?.let {
             {
                 Icon(
                     imageVector = it,
                     contentDescription = null,
-                    modifier = Modifier.size(18.dp)
+                    modifier = Modifier.size(24.dp)
                 )
             }
         },
@@ -883,6 +885,7 @@ fun CategoryChip(
 
     Card(
         modifier = modifier
+            .defaultMinSize(minHeight = 48.dp)
             .clickable { onClick() }
             .padding(4.dp),
         colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = backgroundColor),
@@ -932,6 +935,7 @@ fun EnhancedCategoryChip(
 
     Card(
         modifier = modifier
+            .defaultMinSize(minHeight = 48.dp)
             .clickable { onClick() }
             .padding(4.dp),
         colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = backgroundColor),

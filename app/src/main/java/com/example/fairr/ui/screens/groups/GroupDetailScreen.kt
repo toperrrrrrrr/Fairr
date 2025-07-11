@@ -158,7 +158,10 @@ fun GroupDetailScreen(
                             )
                         }
 
-                        items(uiState.expenses) { expense ->
+                        items(
+                            items = uiState.expenses,
+                            key = { expense -> expense.id }
+                        ) { expense ->
                             ExpenseCard(
                                 expense = expense,
                                 currency = group.currency,
@@ -179,12 +182,14 @@ fun GroupDetailScreen(
                             )
                         }
                         
-                        items(uiState.activities.take(10)) { activity ->
+                        items(
+                            items = uiState.activities.take(10),
+                            key = { activity -> "${activity.id}_${activity.timestamp}" }
+                        ) { activity ->
                             ActivityCard(
                                 activity = activity,
                                 viewModel = viewModel,
                                 onClick = {
-                                    // Navigate to expense detail if it's an expense activity
                                     activity.expenseId?.let { expenseId ->
                                         navController.navigate(Screen.ExpenseDetail.createRoute(expenseId))
                                     }

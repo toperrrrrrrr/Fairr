@@ -184,7 +184,10 @@ fun HomeScreen(
                                 )
                             }
                         } else {
-                            items((uiState as HomeUiState.Success).groups) { group ->
+                            items(
+                                items = (uiState as HomeUiState.Success).groups,
+                                key = { group -> group.id } // Add stable key using group ID
+                            ) { group ->
                                 GroupCard(
                                     group = group,
                                     onClick = { onNavigateToGroupDetail(group.id) },
@@ -204,7 +207,10 @@ fun HomeScreen(
                                 )
                             }
 
-                            items((uiState as HomeUiState.Success).recentExpenses) { expense ->
+                            items(
+                                items = (uiState as HomeUiState.Success).recentExpenses,
+                                key = { expense -> expense.id } // Add stable key using expense ID
+                            ) { expense ->
                                 ExpenseCard(
                                     expense = expense,
                                     onClick = { navController.navigate(Screen.ExpenseDetail.createRoute(expense.id)) },

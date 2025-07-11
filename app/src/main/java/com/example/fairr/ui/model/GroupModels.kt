@@ -1,8 +1,11 @@
 package com.example.fairr.ui.model
 
+import androidx.compose.runtime.Immutable
+import androidx.compose.runtime.Stable
 import androidx.compose.ui.graphics.vector.ImageVector
 
 // Shared data models for group management
+@Immutable
 data class GroupMember(
     val id: String,
     val name: String,
@@ -11,6 +14,7 @@ data class GroupMember(
     val isCurrentUser: Boolean = false
 )
 
+@Immutable
 data class GroupSettingsData(
     val id: String,
     val name: String,
@@ -22,6 +26,7 @@ data class GroupSettingsData(
     val memberCount: Int
 )
 
+@Immutable
 data class CreateGroupData(
     val name: String,
     val description: String,
@@ -31,6 +36,7 @@ data class CreateGroupData(
     val members: List<GroupMember> = emptyList()
 )
 
+@Immutable
 data class Group(
     val id: String,
     val name: String,
