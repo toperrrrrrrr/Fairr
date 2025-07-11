@@ -180,7 +180,7 @@ fun SkeletonCard(
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = NeutralWhite),
+        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = NeutralWhite),
         shape = RoundedCornerShape(12.dp)
     ) {
         SkeletonLoader(
@@ -254,7 +254,7 @@ fun LoadingOverlay(
             contentAlignment = Alignment.Center
         ) {
             Card(
-                colors = CardDefaults.cardColors(containerColor = NeutralWhite),
+                colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = NeutralWhite),
                 shape = RoundedCornerShape(16.dp),
                 modifier = Modifier.padding(32.dp)
             ) {

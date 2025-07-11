@@ -42,6 +42,9 @@ import java.text.SimpleDateFormat
 import java.util.*
 import com.example.fairr.navigation.Screen
 import coil.compose.AsyncImage
+import com.example.fairr.ui.components.FairrCardDefaults
+import com.example.fairr.ui.components.ListItemCard
+import com.example.fairr.ui.components.StandardCard
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -193,55 +196,11 @@ fun FriendsScreen(
 
                         // Friend Groups Management
                         item {
-                            ModernCard(
-                                modifier = Modifier
-                                    .fillMaxWidth()
-                                    .clickable { 
-                                        navController.navigate(Screen.FriendGroups.route)
-                                    },
-                                backgroundColor = ComponentColors.Info.copy(alpha = 0.1f),
-                                cornerRadius = 16
-                            ) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    verticalAlignment = Alignment.CenterVertically,
-                                    horizontalArrangement = Arrangement.spacedBy(16.dp)
-                                ) {
-                                    Box(
-                                        modifier = Modifier
-                                            .size(48.dp)
-                                            .background(ComponentColors.Info.copy(alpha = 0.2f), CircleShape),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Icon(
-                                            imageVector = Icons.Default.Groups,
-                                            contentDescription = "Friend Groups",
-                                            tint = ComponentColors.Info,
-                                            modifier = Modifier.size(24.dp)
-                                        )
-                                    }
-                                    
-                                    Column(modifier = Modifier.weight(1f)) {
-                                        Text(
-                                            text = "Friend Groups",
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.SemiBold,
-                                            color = TextPrimary
-                                        )
-                                        Text(
-                                            text = "Organize friends into categories",
-                                            style = MaterialTheme.typography.bodyMedium,
-                                            color = TextSecondary
-                                        )
-                                    }
-                                    
-                                    Icon(
-                                        imageVector = Icons.AutoMirrored.Filled.ArrowForward,
-                                        contentDescription = "Go to groups",
-                                        tint = IconTint
-                                    )
+                            FriendGroupsCard(
+                                onClick = {
+                                    navController.navigate(Screen.FriendGroups.route)
                                 }
-                            }
+                            )
                         }
 
                         // Friend activity feed section
@@ -1214,4 +1173,146 @@ private fun ModernFriendSuggestionItem(
             Text("Add")
         }
     }
+} 
+
+// Friend Groups Management Card
+@Composable
+private fun FriendGroupsCard(
+    onClick: () -> Unit,
+    modifier: Modifier = Modifier
+) {
+    StandardCard(
+        onClick = onClick,
+        modifier = modifier.fillMaxWidth()
+    ) {
+        Row(
+            modifier = Modifier.fillMaxWidth(),
+            verticalAlignment = Alignment.CenterVertically,
+            horizontalArrangement = Arrangement.spacedBy(FairrCardDefaults.SPACING)
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(FairrCardDefaults.AVATAR_SIZE)
+                    .background(MaterialTheme.colorScheme.primary.copy(alpha = 0.1f), CircleShape),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Default.Groups,
+                    contentDescription = "Friend Groups",
+                    tint = MaterialTheme.colorScheme.primary,
+                    modifier = Modifier.size(FairrCardDefaults.ICON_SIZE)
+                )
+            }
+            
+            Column(modifier = Modifier.weight(1f)) {
+                Text(
+                    text = "Friend Groups",
+                    style = MaterialTheme.typography.titleMedium,
+                    fontWeight = FontWeight.SemiBold,
+                    color = MaterialTheme.colorScheme.onSurface
+                )
+                Text(
+                    text = "Organize friends into categories",
+                    style = MaterialTheme.typography.bodyMedium,
+                    color = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+            
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowForward,
+                contentDescription = "Go to groups",
+                tint = MaterialTheme.colorScheme.onSurfaceVariant
+            )
+        }
+    }
+}
+
+// Friend List Item
+@Composable
+private fun FriendListItem(
+    friend: Friend,
+    onFriendClick: (Friend) -> Unit,
+    onMoreClick: (Friend) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    ListItemCard(
+        title = friend.name,
+        subtitle = friend.email,
+        leading = {
+            AsyncImage(
+                model = friend.photoUrl,
+                contentDescription = "Profile photo of ${friend.name}",
+                modifier = Modifier
+                    .size(FairrCardDefaults.AVATAR_SIZE)
+                    .clip(CircleShape),
+                contentScale = ContentScale.Crop
+            )
+        },
+        trailing = {
+            IconButton(onClick = { onMoreClick(friend) }) {
+                Icon(
+                    imageVector = Icons.Default.MoreVert,
+                    contentDescription = "More options",
+                    tint = MaterialTheme.colorScheme.onSurfaceVariant
+                )
+            }
+        },
+        onClick = { onFriendClick(friend) },
+        modifier = modifier
+    )
+}
+
+// Friend Request Item
+@Composable
+private fun FriendRequestItem(
+    request: FriendRequest,
+    onAccept: (FriendRequest) -> Unit,
+    onReject: (FriendRequest) -> Unit,
+    modifier: Modifier = Modifier
+) {
+    ListItemCard(
+        title = request.senderName,
+        subtitle = request.senderEmail,
+        leading = {
+            AsyncImage(
+                model = request.senderPhotoUrl,
+                contentDescription = "Profile photo of ${request.senderName}",
+                modifier = Modifier
+                    .size(FairrCardDefaults.AVATAR_SIZE)
+                    .clip(CircleShape),
+                contentScale = ContentScale.Crop
+            )
+        },
+        trailing = {
+            Row(
+                horizontalArrangement = Arrangement.spacedBy(8.dp)
+            ) {
+                IconButton(
+                    onClick = { onAccept(request) },
+                    colors = IconButtonDefaults.iconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.primary.copy(alpha = 0.1f)
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Check,
+                        contentDescription = "Accept request",
+                        tint = MaterialTheme.colorScheme.primary
+                    )
+                }
+                IconButton(
+                    onClick = { onReject(request) },
+                    colors = IconButtonDefaults.iconButtonColors(
+                        containerColor = MaterialTheme.colorScheme.error.copy(alpha = 0.1f)
+                    )
+                ) {
+                    Icon(
+                        imageVector = Icons.Default.Close,
+                        contentDescription = "Reject request",
+                        tint = MaterialTheme.colorScheme.error
+                    )
+                }
+            }
+        },
+        modifier = modifier
+    )
 } 

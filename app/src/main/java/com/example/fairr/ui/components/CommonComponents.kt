@@ -180,7 +180,7 @@ fun FairrLoadingDialog(
                     .wrapContentSize()
                     .padding(16.dp),
                 shape = RoundedCornerShape(16.dp),
-                colors = CardDefaults.cardColors(containerColor = NeutralWhite)
+                colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = NeutralWhite)
             ) {
                 Column(
                     modifier = Modifier.padding(24.dp),
@@ -215,7 +215,7 @@ fun FairrLoadingCard(
 ) {
     Card(
         modifier = modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = NeutralWhite)
+        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = NeutralWhite)
     ) {
         Column(
             modifier = Modifier
@@ -478,7 +478,7 @@ fun FairrSuccessMessage(
             modifier = modifier
                 .fillMaxWidth()
                 .padding(16.dp),
-            colors = CardDefaults.cardColors(
+            colors = androidx.compose.material3.CardDefaults.cardColors(
                 containerColor = SuccessGreen
             ),
             shape = RoundedCornerShape(8.dp)
@@ -885,7 +885,7 @@ fun CategoryChip(
         modifier = modifier
             .clickable { onClick() }
             .padding(4.dp),
-        colors = CardDefaults.cardColors(containerColor = backgroundColor),
+        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = backgroundColor),
         border = if (!selected) {
             androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
         } else null
@@ -934,7 +934,7 @@ fun EnhancedCategoryChip(
         modifier = modifier
             .clickable { onClick() }
             .padding(4.dp),
-        colors = CardDefaults.cardColors(containerColor = backgroundColor),
+        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = backgroundColor),
         border = if (!selected) {
             androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
         } else null
@@ -1028,7 +1028,7 @@ fun EnhancedCategorySelectionGrid(
                         .fillMaxWidth()
                         .clickable { onManageCategories() }
                         .padding(4.dp),
-                    colors = CardDefaults.cardColors(containerColor = LightGray),
+                    colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = LightGray),
                     border = androidx.compose.foundation.BorderStroke(1.dp, MaterialTheme.colorScheme.outline)
                 ) {
                     Row(

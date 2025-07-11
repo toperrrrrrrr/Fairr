@@ -33,6 +33,7 @@ import androidx.hilt.navigation.compose.hiltViewModel
 import com.example.fairr.util.CurrencyFormatter
 import com.example.fairr.ui.components.ModernNavigationBar
 import com.example.fairr.ui.screens.friends.FriendsViewModel
+import com.example.fairr.ui.components.FairrCardDefaults
 
 // Data class for group items
 private data class GroupItem(
@@ -141,7 +142,7 @@ private fun GroupsTabContent(
                 onClick = onNavigateToCreateGroup,
                 modifier = Modifier.weight(1f),
                 shape = MaterialTheme.shapes.medium,
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                elevation = androidx.compose.material3.CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Column(
                     modifier = Modifier
@@ -176,7 +177,7 @@ private fun GroupsTabContent(
                 onClick = onNavigateToJoinGroup,
                 modifier = Modifier.weight(1f),
                 shape = MaterialTheme.shapes.medium,
-                elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+                elevation = androidx.compose.material3.CardDefaults.cardElevation(defaultElevation = 2.dp)
             ) {
                 Column(
                     modifier = Modifier
@@ -265,7 +266,7 @@ private fun GroupCard(
         onClick = onClick,
         modifier = Modifier.fillMaxWidth(),
         shape = MaterialTheme.shapes.medium,
-        elevation = CardDefaults.cardElevation(defaultElevation = 2.dp)
+        elevation = androidx.compose.material3.CardDefaults.cardElevation(defaultElevation = 2.dp)
     ) {
         Row(
             modifier = Modifier

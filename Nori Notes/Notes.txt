@@ -25,8 +25,6 @@ And section for friends you owe something.
 
 
 
-list items / rows cards should be more consistent accross the app. Some have shadows some doesnt. Size should be uniform as well. 
-Colors of the cards should be uniform as well.
 
 
 When opening a new screen and going back. it rediirects the app to the main page instead of hththe original screen it came from. 
@@ -38,3 +36,4 @@ Instead of
 
 
 Split by options needs to be updated and make it work . 
+Continue with card update on other pages 

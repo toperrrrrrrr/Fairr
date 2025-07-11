@@ -59,8 +59,8 @@ fun ModernCard(
             )
             .then(if (onClick != null) Modifier.clickable { onClick() } else Modifier),
         shape = RoundedCornerShape(cornerRadius.dp),
-        colors = CardDefaults.cardColors(containerColor = backgroundColor),
-        elevation = CardDefaults.cardElevation(defaultElevation = 0.dp)
+        colors = androidx.compose.material3.CardDefaults.cardColors(containerColor = backgroundColor),
+        elevation = androidx.compose.material3.CardDefaults.cardElevation(defaultElevation = 0.dp)
     ) {
         Column(
             modifier = Modifier.padding(20.dp),

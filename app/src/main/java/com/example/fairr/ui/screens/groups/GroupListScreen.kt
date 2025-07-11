@@ -143,6 +143,7 @@ fun GroupListScreen(
     }
 }
 
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class, ExperimentalFoundationApi::class)
 @Composable
 private fun GroupActions(
     onCreateGroup: () -> Unit,
@@ -166,17 +167,14 @@ private fun GroupActions(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
-            Card(
+            StandardCard(
                 onClick = onCreateGroup,
                 modifier = Modifier
                     .weight(1f)
-                    .height(160.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    .height(160.dp)
             ) {
                 Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
+                    modifier = Modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {
@@ -195,17 +193,14 @@ private fun GroupActions(
                 }
             }
             
-            Card(
+            StandardCard(
                 onClick = onJoinGroup,
                 modifier = Modifier
                     .weight(1f)
-                    .height(160.dp),
-                elevation = CardDefaults.cardElevation(defaultElevation = 4.dp)
+                    .height(160.dp)
             ) {
                 Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .padding(16.dp),
+                    modifier = Modifier.fillMaxSize(),
                     horizontalAlignment = Alignment.CenterHorizontally,
                     verticalArrangement = Arrangement.Center
                 ) {

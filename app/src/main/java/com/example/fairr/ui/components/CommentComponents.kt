@@ -33,7 +33,7 @@ fun CommentCard(
     Card(
         modifier = modifier.fillMaxWidth(),
         shape = RoundedCornerShape(12.dp),
-        colors = CardDefaults.cardColors(
+        colors = androidx.compose.material3.CardDefaults.cardColors(
             containerColor = if (isCurrentUser) Primary.copy(alpha = 0.1f) else NeutralWhite
         )
     ) {
@@ -199,7 +199,7 @@ fun CommentSection(
                     Card(
                         modifier = Modifier.fillMaxWidth(),
                         shape = RoundedCornerShape(12.dp),
-                        colors = CardDefaults.cardColors(
+                        colors = androidx.compose.material3.CardDefaults.cardColors(
                             containerColor = if (isCurrentUser) Primary.copy(alpha = 0.1f) else NeutralWhite
                         )
                     ) {
