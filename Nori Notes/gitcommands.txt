@@ -2,3 +2,6 @@ git log
 
 git reset --hard 82ca46ef59014fe04d7bb67360b06b549e029a82
 git clean -fd
+
+
+firebase deploy --only firestore:rules

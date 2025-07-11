@@ -59,15 +59,21 @@ fun Notification.toUiModel(): NotificationUiModel {
             actionLabel = "Accept",
             secondaryActionLabel = "Decline"
         )
-        NotificationType.GROUP_INVITATION -> NotificationUiModel(
-            notification = this,
-            icon = Icons.Default.Group,
-            iconColor = ComponentColors.Success,
-            iconBackgroundColor = ComponentColors.IconBackgroundSuccess,
-            canTakeAction = true,
-            actionLabel = "Accept",
-            secondaryActionLabel = "Decline"
-        )
+        NotificationType.GROUP_INVITATION -> {
+            // Check if the invite has already been accepted or declined
+            val inviteStatus = data["status"] as? String
+            val isAlreadyProcessed = inviteStatus in listOf("ACCEPTED", "DECLINED", "REJECTED")
+            
+            NotificationUiModel(
+                notification = this,
+                icon = Icons.Default.Group,
+                iconColor = ComponentColors.Success,
+                iconBackgroundColor = ComponentColors.IconBackgroundSuccess,
+                canTakeAction = !isAlreadyProcessed, // Only show buttons if not already processed
+                actionLabel = "Accept",
+                secondaryActionLabel = "Decline"
+            )
+        }
         NotificationType.FRIEND_REQUEST -> NotificationUiModel(
             notification = this,
             icon = Icons.Default.PersonAdd,
@@ -108,20 +114,32 @@ fun NotificationsScreen(
     val snackbarMessage = viewModel.snackbarMessage
     val snackbarHostState = remember { SnackbarHostState() }
 
+    // Debug logging
+    LaunchedEffect(Unit) {
+        Log.d("NotificationsScreen", "NotificationsScreen composable started")
+    }
+
     // Handle snackbar messages
     LaunchedEffect(snackbarMessage) {
         snackbarMessage?.let {
+            Log.d("NotificationsScreen", "Showing snackbar message: $it")
             snackbarHostState.showSnackbar(it)
         }
     }
 
     val notificationUiModels = remember(uiState.notifications) {
+        Log.d("NotificationsScreen", "Creating notification UI models. Count: ${uiState.notifications.size}")
+        uiState.notifications.forEach { notification ->
+            Log.d("NotificationsScreen", "Notification: id=${notification.id}, type=${notification.type}, data=${notification.data}")
+        }
         uiState.notifications.map { it.toUiModel() }
     }
 
     val unreadCount = remember(uiState.notifications) {
         uiState.notifications.count { !it.isRead }
     }
+
+    Log.d("NotificationsScreen", "Rendering notifications screen. Notifications: ${uiState.notifications.size}, Unread: $unreadCount, Loading: ${uiState.isLoading}, Error: ${uiState.error}")
 
     Scaffold(
         topBar = {
@@ -155,6 +173,20 @@ fun NotificationsScreen(
                     }
                 },
                 actions = {
+                    // Test button to create a sample notification
+                    IconButton(
+                        onClick = {
+                            Log.d("NotificationsScreen", "Creating test notification")
+                            viewModel.createTestNotification()
+                        }
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.Add,
+                            contentDescription = "Create test notification",
+                            tint = TextPrimary
+                        )
+                    }
+                    
                     if (uiState.notifications.isNotEmpty()) {
                         IconButton(
                             onClick = { viewModel.markAllAsRead() }
@@ -230,9 +262,11 @@ fun NotificationsScreen(
                                     }
                                 },
                                 onAction = { accept ->
+                                    Log.d("NotificationsScreen", "Action triggered: accept=$accept, notificationType=${notificationUiModel.notification.type}")
                                     when (notificationUiModel.notification.type) {
                                         NotificationType.GROUP_JOIN_REQUEST -> {
                                             val requestId = notificationUiModel.notification.data["requestId"] as? String ?: ""
+                                            Log.d("NotificationsScreen", "Handling GROUP_JOIN_REQUEST: requestId='$requestId'")
                                             viewModel.respondToJoinRequest(
                                                 notificationUiModel.notification.id,
                                                 requestId,
@@ -247,6 +281,7 @@ fun NotificationsScreen(
                                                 Log.e("NotificationsScreen", "InviteId is empty for GROUP_INVITATION notification")
                                             }
                                             
+                                            Log.d("NotificationsScreen", "Calling respondToInvite with accept=$accept")
                                             viewModel.respondToInvite(
                                                 notificationUiModel.notification.id,
                                                 inviteId,
@@ -255,9 +290,11 @@ fun NotificationsScreen(
                                         }
                                         NotificationType.FRIEND_REQUEST -> {
                                             // TODO: Implement friend request handling
+                                            Log.d("NotificationsScreen", "Friend request handling not implemented yet")
                                             viewModel.snackbarMessage = "Friend request handling not implemented yet"
                                         }
                                         else -> {
+                                            Log.d("NotificationsScreen", "No action needed for notification type: ${notificationUiModel.notification.type}")
                                             // No action needed for other types
                                         }
                                     }

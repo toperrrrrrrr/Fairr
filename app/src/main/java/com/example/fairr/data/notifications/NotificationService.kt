@@ -11,6 +11,7 @@ import kotlinx.coroutines.flow.callbackFlow
 import kotlinx.coroutines.tasks.await
 import javax.inject.Inject
 import javax.inject.Singleton
+import com.google.firebase.auth.FirebaseUser
 
 private const val TAG = "NotificationService"
 
@@ -39,6 +40,8 @@ class NotificationService @Inject constructor(
                 .limit(50)
                 .get()
                 .await()
+
+            Log.d(TAG, "Initial snapshot received with ${initialSnapshot.documents.size} documents")
 
             val initialNotifications = initialSnapshot.documents.mapNotNull { doc ->
                 try {
@@ -81,6 +84,8 @@ class NotificationService @Inject constructor(
                     null
                 }
             }
+            
+            Log.d(TAG, "Successfully parsed ${initialNotifications.size} initial notifications")
             trySend(initialNotifications)
         } catch (e: Exception) {
             Log.e(TAG, "Error getting initial notifications", e)
@@ -104,7 +109,7 @@ class NotificationService @Inject constructor(
                     return@addSnapshotListener
                 }
 
-                Log.d(TAG, "Received ${snapshot.documents.size} notifications")
+                Log.d(TAG, "Received ${snapshot.documents.size} notifications in real-time update")
 
                 val notifications = snapshot.documents.mapNotNull { doc ->
                     try {
@@ -148,7 +153,7 @@ class NotificationService @Inject constructor(
                     }
                 }
 
-                Log.d(TAG, "Successfully parsed ${notifications.size} notifications")
+                Log.d(TAG, "Successfully parsed ${notifications.size} notifications from real-time update")
                 trySend(notifications)
             }
 
@@ -249,6 +254,63 @@ class NotificationService @Inject constructor(
             true
         } catch (e: Exception) {
             Log.e(TAG, "Error marking all notifications as read", e)
+            false
+        }
+    }
+
+    /**
+     * Get the current authenticated user
+     */
+    fun getCurrentUser(): FirebaseUser? {
+        return auth.currentUser
+    }
+
+    suspend fun updateNotificationStatus(
+        notificationId: String? = null,
+        inviteId: String? = null,
+        status: String
+    ): Boolean {
+        val currentUser = auth.currentUser
+        if (currentUser == null) {
+            Log.e(TAG, "User not authenticated")
+            return false
+        }
+
+        return try {
+            val query = notificationsCollection
+                .whereEqualTo("recipientId", currentUser.uid)
+                .whereEqualTo("type", "GROUP_INVITATION")
+
+            // If we have a specific notificationId, use it
+            val notificationRef = if (notificationId != null) {
+                notificationsCollection.document(notificationId)
+            } else {
+                // Otherwise, find the notification by inviteId
+                val snapshot = query
+                    .whereEqualTo("data.inviteId", inviteId)
+                    .limit(1)
+                    .get()
+                    .await()
+
+                if (snapshot.documents.isEmpty()) {
+                    Log.w(TAG, "No notification found for inviteId: $inviteId")
+                    return false
+                }
+                snapshot.documents.first().reference
+            }
+
+            // Update the notification with the new status
+            notificationRef.update(
+                mapOf(
+                    "data.status" to status,
+                    "updatedAt" to Timestamp.now()
+                )
+            ).await()
+
+            Log.d(TAG, "Notification status updated to: $status")
+            true
+        } catch (e: Exception) {
+            Log.e(TAG, "Error updating notification status", e)
             false
         }
     }

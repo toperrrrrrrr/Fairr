@@ -51,3 +51,8 @@ Slide to delete actioned Notifications on notification page.
 
 add an offline member. those members that doesnt have account. Which can later on invited. once they have an account, they can replace the offlin member we have saved. 
 Offline first. online second for syncing data.
+
+
+most emoji is not working for group emoji. 
+
+Please restructure the 

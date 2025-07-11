@@ -163,12 +163,20 @@ class NotificationsViewModel @Inject constructor(
                         val message = if (accept) "Group invitation accepted" else "Group invitation declined"
                         snackbarMessage = message
                         
+                        // Update the notification data to reflect the decision
+                        val updatedNotifications = _uiState.value.notifications.map { n ->
+                            if (n.id == notificationId) {
+                                n.copy(
+                                    isRead = true,
+                                    data = n.data + ("status" to if (accept) "ACCEPTED" else "REJECTED")
+                                )
+                            } else n
+                        }
+                        
                         _uiState.value = _uiState.value.copy(
                             processingRequestId = null,
                             decisionResults = _uiState.value.decisionResults + (notificationId to if (accept) "Accepted" else "Declined"),
-                            notifications = _uiState.value.notifications.map { n ->
-                                if (n.id == notificationId) n.copy(isRead = true) else n
-                            }
+                            notifications = updatedNotifications
                         )
                         Log.d(TAG, "Updated state after success: ${_uiState.value}")
                     }
@@ -227,6 +235,46 @@ class NotificationsViewModel @Inject constructor(
     fun refresh() {
         Log.d(TAG, "Refreshing notifications")
         loadNotifications()
+    }
+
+    fun createTestNotification() {
+        Log.d(TAG, "Creating test notification")
+        viewModelScope.launch {
+            try {
+                // Get current user from the notification service's auth instance
+                val currentUser = notificationService.getCurrentUser()
+                if (currentUser == null) {
+                    Log.e(TAG, "User not authenticated for test notification")
+                    snackbarMessage = "User not authenticated"
+                    return@launch
+                }
+
+                val testInviteId = "test_invite_${System.currentTimeMillis()}"
+                val success = notificationService.createNotification(
+                    type = NotificationType.GROUP_INVITATION,
+                    title = "Test Group Invitation",
+                    message = "You have been invited to join Test Group",
+                    recipientId = currentUser.uid,
+                    data = mapOf(
+                        "inviteId" to testInviteId,
+                        "groupId" to "test_group_id",
+                        "groupName" to "Test Group",
+                        "inviterName" to "Test User"
+                    )
+                )
+
+                if (success) {
+                    Log.d(TAG, "Test notification created successfully")
+                    snackbarMessage = "Test notification created"
+                } else {
+                    Log.e(TAG, "Failed to create test notification")
+                    snackbarMessage = "Failed to create test notification"
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error creating test notification", e)
+                snackbarMessage = "Error creating test notification: ${e.message}"
+            }
+        }
     }
 
     fun markAllAsRead() {
