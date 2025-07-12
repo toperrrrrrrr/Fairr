@@ -366,7 +366,7 @@ class AnalyticsService @Inject constructor(
             val currencies = expensesSnapshot.documents.mapNotNull { 
                 it.getString("currency") 
             }
-            val primaryCurrency = currencies.groupingBy { it }.eachCount().maxByOrNull { it.value }?.key ?: "USD"
+            val primaryCurrency = currencies.groupingBy { it }.eachCount().maxByOrNull { it.value }?.key ?: "PHP"  // Changed from "USD" to "PHP"
             
             // Determine user type based on usage
             val totalExpenses = expensesSnapshot.size()
@@ -393,7 +393,7 @@ class AnalyticsService @Inject constructor(
     /**
      * Track conversion events for business metrics
      */
-    fun trackConversion(event: String, value: Double = 0.0, currency: String = "USD") {
+    fun trackConversion(event: String, value: Double = 0.0, currency: String = "PHP") {  // Changed from "USD" to "PHP"
         try {
             val bundle = Bundle().apply {
                 putString(FirebaseAnalytics.Param.CURRENCY, currency)
@@ -506,7 +506,7 @@ class AnalyticsService @Inject constructor(
 data class UserStatistics(
     val totalGroups: Int = 0,
     val totalExpenses: Int = 0,
-    val primaryCurrency: String = "USD",
+    val primaryCurrency: String = "PHP",  // Changed from "USD" to "PHP"
     val userType: String = "new_user"
 )
 
@@ -517,7 +517,7 @@ data class AnalyticsSummary(
     val totalGroups: Int = 0,
     val totalExpenses: Int = 0,
     val recentExpenses: Int = 0,
-    val primaryCurrency: String = "USD",
+    val primaryCurrency: String = "PHP",  // Changed from "USD" to "PHP"
     val userType: String = "new_user",
     val lastUpdated: Long = 0L
 )

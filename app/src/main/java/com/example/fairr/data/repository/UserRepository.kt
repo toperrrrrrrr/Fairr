@@ -80,7 +80,7 @@ data class UserProfile(
 data class UserStatistics(
     val totalGroups: Int = 0,
     val totalExpenses: Int = 0,
-    val primaryCurrency: String = "USD",
+    val primaryCurrency: String = "PHP",  // Changed from "USD" to "PHP" to match app default
     val userType: String = "new_user"
 )
 

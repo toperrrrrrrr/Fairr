@@ -78,7 +78,6 @@ fun MainScreen(
                     onNavigateToCreateGroup = onNavigateToCreateGroup,
                     onNavigateToJoinGroup = onNavigateToJoinGroup,
                     onNavigateToSearch = onNavigateToSearch,
-                    onNavigateToNotifications = onNavigateToNotifications,
                     onNavigateToGroupDetail = onNavigateToGroupDetail,
                     onNavigateToSettlements = onNavigateToSettlements,
                     onNavigateToAddExpense = onNavigateToAddExpense

@@ -35,6 +35,7 @@ import kotlinx.coroutines.flow.first
 import javax.inject.Inject
 import com.example.fairr.ui.components.EnhancedLoadingState
 import com.example.fairr.ui.components.LoadingMessages
+import com.example.fairr.ui.screens.settings.SettingsViewModel
 
 // Data classes for overview
 data class GroupBalance(
@@ -125,6 +126,8 @@ fun SettlementsOverviewScreen(
 ) {
     val state = viewModel.uiState
     val snackbarHostState = remember { SnackbarHostState() }
+    val settingsViewModel: SettingsViewModel = hiltViewModel()
+    val userCurrency = settingsViewModel.selectedCurrency
 
     Scaffold(
         topBar = {
@@ -200,7 +203,7 @@ fun SettlementsOverviewScreen(
                                 color = TextSecondary
                             )
                             Text(
-                                text = CurrencyFormatter.format(state.totalBalance),
+                                text = CurrencyFormatter.format(userCurrency, state.totalBalance),
                                 fontSize = 24.sp,
                                 fontWeight = FontWeight.Bold,
                                 color = when {
@@ -237,6 +240,7 @@ fun SettlementsOverviewScreen(
                     items(state.groupBalances) { groupBalance ->
                         GroupBalanceCard(
                             groupBalance = groupBalance,
+                            userCurrency = userCurrency,
                             onNavigateToGroup = {
                                 navController.navigate(Screen.Settlement.createRoute(groupBalance.groupId))
                             }
@@ -295,6 +299,7 @@ fun SettlementsOverviewScreen(
 @Composable
 private fun GroupBalanceCard(
     groupBalance: GroupBalance,
+    userCurrency: String,
     onNavigateToGroup: () -> Unit
 ) {
     Card(
@@ -350,7 +355,7 @@ private fun GroupBalanceCard(
                 horizontalAlignment = Alignment.End
             ) {
                 Text(
-                    text = CurrencyFormatter.format(kotlin.math.abs(groupBalance.userBalance)),
+                    text = CurrencyFormatter.format(userCurrency, kotlin.math.abs(groupBalance.userBalance)),
                     fontSize = 16.sp,
                     fontWeight = FontWeight.Bold,
                     color = if (groupBalance.userBalance < 0) ErrorRed else SuccessGreen

@@ -41,22 +41,23 @@ import androidx.compose.ui.semantics.contentDescription
 import androidx.compose.ui.semantics.heading
 import androidx.compose.ui.semantics.semantics
 import androidx.compose.ui.unit.sp
+import com.example.fairr.ui.screens.settings.SettingsViewModel
 
-@OptIn(ExperimentalMaterialApi::class, ExperimentalMaterial3Api::class)
+@OptIn(ExperimentalMaterial3Api::class, ExperimentalMaterialApi::class)
 @Composable
 fun HomeScreen(
     navController: NavController,
     onNavigateToCreateGroup: () -> Unit,
     onNavigateToJoinGroup: () -> Unit,
-    onNavigateToSearch: () -> Unit,
-    onNavigateToNotifications: () -> Unit,
     onNavigateToGroupDetail: (String) -> Unit,
-    onNavigateToSettlements: () -> Unit,
     onNavigateToAddExpense: (String) -> Unit,
-    modifier: Modifier = Modifier,
+    onNavigateToSettlements: () -> Unit,
+    onNavigateToSearch: () -> Unit,
     viewModel: HomeViewModel = hiltViewModel()
 ) {
     val uiState = viewModel.uiState
+    val settingsViewModel: SettingsViewModel = hiltViewModel()
+    val userCurrency = settingsViewModel.selectedCurrency
     val refreshing = uiState is HomeUiState.Loading
     val pullRefreshState = rememberPullRefreshState(
         refreshing = refreshing,
@@ -87,7 +88,7 @@ fun HomeScreen(
                 )
             )
         },
-        modifier = modifier
+        modifier = Modifier
     ) { paddingValues ->
         Box(
             modifier = Modifier
@@ -132,7 +133,7 @@ fun HomeScreen(
                                 activeGroups = uiState.activeGroups,
                                 viewModel = viewModel,
                                 modifier = Modifier.semantics {
-                                    contentDescription = "Financial overview: Balance ${CurrencyFormatter.format("USD", uiState.totalBalance)}, ${uiState.totalExpenses} total expenses, ${uiState.activeGroups} active groups"
+                                    contentDescription = "Financial overview: Balance ${CurrencyFormatter.format(userCurrency, uiState.totalBalance)}, ${uiState.totalExpenses} total expenses, ${uiState.activeGroups} active groups"
                                 }
                             )
                         }

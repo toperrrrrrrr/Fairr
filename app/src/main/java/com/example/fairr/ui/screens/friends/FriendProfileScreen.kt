@@ -49,6 +49,7 @@ import com.google.firebase.auth.FirebaseAuth
 import kotlinx.coroutines.flow.first
 import java.text.SimpleDateFormat
 import java.util.*
+import com.example.fairr.ui.screens.settings.SettingsViewModel
 
 data class FriendProfileUiState(
     val friend: Friend? = null,
@@ -66,7 +67,7 @@ data class FriendBankDetails(
     val accountNumber: String,
     val routingNumber: String? = null,
     val iban: String? = null,
-    val preferredCurrency: String = "USD"
+    val preferredCurrency: String = "PHP"  // Changed from "USD" to "PHP" to match app default
 )
 
 data class FriendTransaction(
@@ -255,7 +256,7 @@ class FriendProfileViewModel @Inject constructor(
             bankName = "Chase Bank",
             accountNumber = "****1234",
             routingNumber = "****5678",
-            preferredCurrency = "USD"
+            preferredCurrency = "PHP"  // Changed from "USD" to "PHP" to match app default
         )
     }
     
@@ -274,6 +275,8 @@ fun FriendProfileScreen(
 ) {
     val uiState by viewModel.uiState.collectAsState()
     val snackbarHostState = remember { SnackbarHostState() }
+    val settingsViewModel: SettingsViewModel = hiltViewModel()
+    val userCurrency = settingsViewModel.selectedCurrency
     
     // Load friend profile on screen load
     LaunchedEffect(friendId) {
@@ -371,7 +374,8 @@ fun FriendProfileScreen(
                         item {
                             FriendProfileHeader(
                                 friend = friend,
-                                netBalance = uiState.netBalance
+                                netBalance = uiState.netBalance,
+                                userCurrency = userCurrency
                             )
                         }
                     
@@ -380,7 +384,8 @@ fun FriendProfileScreen(
                             BalanceSummaryCard(
                                 totalOwed = uiState.totalOwed,
                                 totalOwing = uiState.totalOwing,
-                                netBalance = uiState.netBalance
+                                netBalance = uiState.netBalance,
+                                userCurrency = userCurrency
                             )
                         }
                     
@@ -403,7 +408,10 @@ fun FriendProfileScreen(
                             }
                             
                             items(uiState.recentTransactions) { transaction ->
-                                TransactionCard(transaction = transaction)
+                                TransactionCard(
+                                    transaction = transaction,
+                                    userCurrency = userCurrency
+                                )
                             }
                         }
                     }
@@ -425,6 +433,7 @@ fun FriendProfileScreen(
 private fun FriendProfileHeader(
     friend: Friend,
     netBalance: Double,
+    userCurrency: String,
     modifier: Modifier = Modifier
 ) {
     ModernCard(
@@ -514,7 +523,7 @@ private fun FriendProfileHeader(
                 
                 Text(
                     text = if (netBalance != 0.0) {
-                        "${friend.name} $balanceText ${CurrencyFormatter.format("USD", kotlin.math.abs(netBalance))}"
+                        "${friend.name} $balanceText ${CurrencyFormatter.format(userCurrency, kotlin.math.abs(netBalance))}"
                     } else {
                         "All settled up!"
                     },
@@ -532,6 +541,7 @@ private fun BalanceSummaryCard(
     totalOwed: Double,
     totalOwing: Double,
     netBalance: Double,
+    userCurrency: String,
     modifier: Modifier = Modifier
 ) {
     ModernCard(
@@ -558,6 +568,7 @@ private fun BalanceSummaryCard(
                 BalanceItem(
                     title = "They owe you",
                     amount = totalOwed,
+                    userCurrency = userCurrency,
                     color = ComponentColors.Success,
                     icon = Icons.AutoMirrored.Filled.CallReceived
                 )
@@ -565,6 +576,7 @@ private fun BalanceSummaryCard(
                 BalanceItem(
                     title = "You owe them",
                     amount = totalOwing,
+                    userCurrency = userCurrency,
                     color = ComponentColors.Error,
                     icon = Icons.AutoMirrored.Filled.CallMade
                 )
@@ -577,6 +589,7 @@ private fun BalanceSummaryCard(
 private fun BalanceItem(
     title: String,
     amount: Double,
+    userCurrency: String,
     color: Color,
     icon: ImageVector,
     modifier: Modifier = Modifier
@@ -609,7 +622,7 @@ private fun BalanceItem(
         )
         
         Text(
-            text = CurrencyFormatter.format("USD", amount),
+            text = CurrencyFormatter.format(userCurrency, amount),
             style = MaterialTheme.typography.titleMedium,
             fontWeight = FontWeight.Bold,
             color = color
@@ -709,6 +722,7 @@ private fun BankDetailItem(
 @Composable
 private fun TransactionCard(
     transaction: FriendTransaction,
+    userCurrency: String,
     modifier: Modifier = Modifier
 ) {
     ModernCard(
@@ -774,9 +788,9 @@ private fun TransactionCard(
             
             Text(
                 text = when (transaction.type) {
-                    TransactionType.YOU_OWE -> "-${CurrencyFormatter.format(transaction.currency, transaction.amount)}"
-                    TransactionType.THEY_OWE -> "+${CurrencyFormatter.format(transaction.currency, transaction.amount)}"
-                    TransactionType.SETTLED -> CurrencyFormatter.format(transaction.currency, transaction.amount)
+                    TransactionType.YOU_OWE -> "-${CurrencyFormatter.format(userCurrency, transaction.amount)}"
+                    TransactionType.THEY_OWE -> "+${CurrencyFormatter.format(userCurrency, transaction.amount)}"
+                    TransactionType.SETTLED -> CurrencyFormatter.format(userCurrency, transaction.amount)
                 },
                 style = MaterialTheme.typography.bodyLarge,
                 fontWeight = FontWeight.Bold,

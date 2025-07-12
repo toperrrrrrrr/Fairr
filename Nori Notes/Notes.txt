@@ -13,10 +13,9 @@ sign out stuck on
 
 
 Group
-group invitation notification accept and deccline is not working . 
 invalid or expired invite code  
 
-The friends profile page should be the layout for the personal profile. Same layout. 
+The friends profile page should be the layout for the personal profile on the settings. Same layout. 
 Balance summary will show how much the total of other people owe the user and how much they owe other user.
 Payment details should be editable for the user profile .
 And section for friends you owe something.  
@@ -40,10 +39,9 @@ Continue with card update on other pages
 themes to select color scheme they wnant to use.
 new groups are not updating on the list.
 Uniform loading screen follow the one on settle up button from the main page.
-unable to accept group invite. 
+
 friend profile uses hard coded $
 
-invalid or expired invite code when joining using invite code
 group settings invite through email doesnt work
 Unale to accept group invite on the notification page.
 Slide to delete actioned Notifications on notification page.
@@ -55,4 +53,4 @@ Offline first. online second for syncing data.
 
 most emoji is not working for group emoji. 
 
-Please restructure the 
+Please restructure the create group page. Follow conventions to make it follow the design principles of the app. 
