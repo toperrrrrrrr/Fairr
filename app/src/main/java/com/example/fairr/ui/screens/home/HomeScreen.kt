@@ -436,19 +436,19 @@ private fun OverviewSection(
             horizontalArrangement = Arrangement.spacedBy(16.dp)
         ) {
             InfoCard(
-                title = "Total Balance",
+                title = "Balance",
                 value = viewModel.formatCurrency(totalBalance),
                 icon = Icons.Default.AccountBalance,
                 modifier = Modifier.weight(1f)
             )
             InfoCard(
-                title = "Total Expenses",
+                title = "Expenses",
                 value = viewModel.formatCurrency(totalExpenses),
                 icon = Icons.Default.Receipt,
                 modifier = Modifier.weight(1f)
             )
             InfoCard(
-                title = "Active Groups",
+                title = "Groups",
                 value = activeGroups.toString(),
                 icon = Icons.Default.Group,
                 modifier = Modifier.weight(1f)
@@ -526,7 +526,10 @@ private fun InfoCard(
             Text(
                 text = title,
                 style = MaterialTheme.typography.bodyMedium,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                textAlign = TextAlign.Center,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
             Text(
                 text = value,

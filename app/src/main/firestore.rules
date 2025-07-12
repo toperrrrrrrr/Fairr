@@ -91,8 +91,12 @@ service cloud.firestore {
                     (request.auth.uid == resource.data.createdBy) ||
                     isGroupAdmin(expenseGroupId()) );
 
-      // Deletion restricted to group admins
-      allow delete: if request.auth != null && isGroupAdmin(expenseGroupId());
+      // Deletion allowed when:
+      //  1. User is the creator of the expense (paidBy) OR
+      //  2. User is admin of the group
+      allow delete: if request.auth != null && (
+                    (request.auth.uid == resource.data.paidBy) ||
+                    isGroupAdmin(expenseGroupId()) );
     }
 
     // Settlements collection rules

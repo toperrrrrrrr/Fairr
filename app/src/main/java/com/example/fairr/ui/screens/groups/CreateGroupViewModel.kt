@@ -59,6 +59,9 @@ class CreateGroupViewModel @Inject constructor(
     var groupAvatar by mutableStateOf("")
         private set
 
+    var newMemberEmail by mutableStateOf("")
+        private set
+
     private val _members = mutableStateOf<List<GroupMember>>(emptyList())
     val members: List<GroupMember> get() = _members.value
 
@@ -116,6 +119,10 @@ class CreateGroupViewModel @Inject constructor(
 
     fun onGroupAvatarChange(avatar: String) {
         groupAvatar = avatar
+    }
+
+    fun onNewMemberEmailChange(email: String) {
+        newMemberEmail = email
     }
 
     fun addMember(member: GroupMember) {

@@ -31,6 +31,7 @@ import androidx.compose.ui.unit.sp
 import androidx.hilt.navigation.compose.hiltViewModel
 import androidx.navigation.NavController
 import com.example.fairr.data.model.*
+import com.example.fairr.data.model.RecurrenceFrequency
 import com.example.fairr.ui.theme.FairrTheme
 import com.example.fairr.ui.theme.Primary
 import com.example.fairr.ui.theme.Secondary
@@ -43,6 +44,19 @@ import android.app.Activity
 import android.content.Intent
 import android.provider.MediaStore
 import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.Timestamp
+import androidx.compose.material3.AlertDialog
+import androidx.compose.material3.TextButton
+import androidx.compose.material3.FilterChip
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Switch
+import androidx.compose.material3.DatePicker
+import androidx.compose.material3.DatePickerDialog
+import androidx.compose.material3.rememberDatePickerState
+import androidx.compose.material3.SnackbarHost
+import androidx.compose.material3.SnackbarHostState
+import androidx.compose.material3.SnackbarResult
+import kotlinx.coroutines.launch
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -53,6 +67,8 @@ fun EditExpenseScreen(
 ) {
     val context = LocalContext.current
     val state = viewModel.state
+    val snackbarHostState = remember { SnackbarHostState() }
+    val coroutineScope = rememberCoroutineScope()
     
     LaunchedEffect(expenseId) {
         viewModel.loadExpense(expenseId)
@@ -68,12 +84,29 @@ fun EditExpenseScreen(
         viewModel.events.collect { event ->
             when (event) {
                 is EditExpenseEvent.ShowError -> {
-                    // Show error message
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar(
+                            message = event.message,
+                            duration = SnackbarDuration.Short
+                        )
+                    }
                 }
                 is EditExpenseEvent.ExpenseUpdated -> {
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar(
+                            message = "Expense updated successfully",
+                            duration = SnackbarDuration.Short
+                        )
+                    }
                     navController.popBackStack()
                 }
                 is EditExpenseEvent.ExpenseDeleted -> {
+                    coroutineScope.launch {
+                        snackbarHostState.showSnackbar(
+                            message = "Expense deleted successfully",
+                            duration = SnackbarDuration.Short
+                        )
+                    }
                     navController.popBackStack()
                 }
             }
@@ -102,7 +135,8 @@ fun EditExpenseScreen(
                         }
                     }
                 )
-            }
+            },
+            snackbarHost = { SnackbarHost(snackbarHostState) }
         ) { paddingValues ->
             if (state.isLoading) {
                 Box(
@@ -110,6 +144,31 @@ fun EditExpenseScreen(
                     contentAlignment = Alignment.Center
                 ) {
                     CircularProgressIndicator()
+                }
+            } else if (state.error != null) {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally,
+                        verticalArrangement = Arrangement.spacedBy(16.dp)
+                    ) {
+                        Icon(
+                            Icons.Default.Error,
+                            contentDescription = "Error",
+                            tint = Color.Red,
+                            modifier = Modifier.size(48.dp)
+                        )
+                        Text(
+                            text = state.error,
+                            color = Color.Red,
+                            textAlign = TextAlign.Center
+                        )
+                        Button(onClick = { viewModel.loadExpense(expenseId) }) {
+                            Text("Retry")
+                        }
+                    }
                 }
             } else {
                 state.expense?.let { expense ->
@@ -134,6 +193,13 @@ fun EditExpenseScreen(
                         currencySymbol = viewModel.getCurrencySymbol(),
                         modifier = Modifier.padding(paddingValues)
                     )
+                } ?: run {
+                    Box(
+                        modifier = Modifier.fillMaxSize(),
+                        contentAlignment = Alignment.Center
+                    ) {
+                        Text("Expense not found")
+                    }
                 }
             }
         }
@@ -161,9 +227,16 @@ private fun EditExpenseContent(
     modifier: Modifier = Modifier
 ) {
     val context = LocalContext.current
+    
+    // Convert Firestore Timestamp to Date
+    val expenseDate = when (expense.date) {
+        is Timestamp -> expense.date.toDate()
+        else -> Date()
+    }
+    
     var description by remember { mutableStateOf(expense.description) }
     var amount by remember { mutableStateOf(expense.amount.toString()) }
-    var selectedDate by remember { mutableStateOf(expense.date.toDate()) }
+    var selectedDate by remember { mutableStateOf(expenseDate) }
     var selectedPaidBy by remember { mutableStateOf(expense.paidBy) }
     var selectedSplitType by remember { mutableStateOf(expense.splitType) }
     var selectedCategory by remember { mutableStateOf(expense.category) }
@@ -226,7 +299,7 @@ private fun EditExpenseContent(
         // Paid By
         item {
             OutlinedTextField(
-                value = selectedPaidBy,
+                value = groupMembers.find { it.userId == selectedPaidBy }?.name ?: selectedPaidBy,
                 onValueChange = { },
                 label = { Text("Paid By") },
                 modifier = Modifier
@@ -694,7 +767,7 @@ private fun SplitManagementDialog(
     var currentSplits by remember { mutableStateOf(splits) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     
-    val splitTypes = listOf("Equal Split", "Percentage", "Custom Amount")
+    val splitTypes = listOf("Equal", "Percentage", "Fixed Amount")
     
     AlertDialog(
         onDismissRequest = onDismiss,
@@ -901,7 +974,7 @@ private fun recalculateSplits(
     currentSplits: List<ExpenseSplit>
 ): List<ExpenseSplit> {
     return when (splitType) {
-        "Equal Split" -> {
+        "Equal" -> {
             val equalAmount = if (groupMembers.isNotEmpty()) totalAmount / groupMembers.size else 0.0
             groupMembers.map { member ->
                 currentSplits.find { it.userId == member.userId }?.copy(share = equalAmount)
@@ -935,7 +1008,7 @@ private fun recalculateSplits(
                 }
             }
         }
-        "Custom Amount" -> {
+        "Fixed Amount" -> {
             // Keep current amounts as custom amounts
             currentSplits
         }
@@ -951,7 +1024,7 @@ private fun validateSplits(
     val totalSplit = splits.sumOf { it.share }
     
     return when (splitType) {
-        "Equal Split" -> {
+        "Equal" -> {
             if (splits.isEmpty()) "No members to split between"
             else null
         }
@@ -963,7 +1036,7 @@ private fun validateSplits(
                 else -> null
             }
         }
-        "Custom Amount" -> {
+        "Fixed Amount" -> {
             when {
                 totalSplit < totalAmount * 0.99 -> "Total custom amounts must equal the expense amount (currently ${String.format("%.2f", totalSplit)} vs ${String.format("%.2f", totalAmount)})"
                 totalSplit > totalAmount * 1.01 -> "Total custom amounts cannot exceed the expense amount (currently ${String.format("%.2f", totalSplit)} vs ${String.format("%.2f", totalAmount)})"

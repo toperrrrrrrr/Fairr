@@ -37,6 +37,7 @@ import androidx.compose.ui.text.input.ImeAction
 import com.example.fairr.ui.components.ErrorType
 import com.example.fairr.ui.components.ErrorUtils
 import com.example.fairr.ui.components.StandardErrorState
+import android.util.Log
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -49,6 +50,13 @@ fun ExpenseDetailScreen(
 ) {
     val uiState = viewModel.uiState
     var showMenu by remember { mutableStateOf(false) }
+    var showDeleteDialog by remember { mutableStateOf(false) }
+
+    // Handle deletion events
+    LaunchedEffect(Unit) {
+        // Observe deletion events from ViewModel if available
+        // For now, we'll handle deletion directly in the dialog
+    }
 
     Scaffold(
         topBar = {
@@ -88,17 +96,26 @@ fun ExpenseDetailScreen(
                                 leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null) },
                                 onClick = {
                                     showMenu = false
+                                    Log.d("ExpenseDetailScreen", "Edit button clicked for expense: $expenseId")
                                     onEditExpense()
                                 }
                             )
-                            DropdownMenuItem(
-                                text = { Text("Delete") },
-                                leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null) },
-                                onClick = {
-                                    showMenu = false
-                                    onDeleteExpense()
+                            // Only show delete option if user is the expense creator or admin
+                            if (uiState is ExpenseDetailUiState.Success) {
+                                val expense = (uiState as ExpenseDetailUiState.Success).expense
+                                val currentUserId = (uiState as ExpenseDetailUiState.Success).currentUserId
+                                if (expense.paidBy == currentUserId) {
+                                    DropdownMenuItem(
+                                        text = { Text("Delete") },
+                                        leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null) },
+                                        onClick = {
+                                            showMenu = false
+                                            Log.d("ExpenseDetailScreen", "Delete button clicked for expense: $expenseId")
+                                            showDeleteDialog = true
+                                        }
+                                    )
                                 }
-                            )
+                            }
                         }
                     }
                 }
@@ -201,6 +218,35 @@ fun ExpenseDetailScreen(
                 }
             }
         }
+    }
+
+    // Delete confirmation dialog
+    if (showDeleteDialog) {
+        AlertDialog(
+            onDismissRequest = { showDeleteDialog = false },
+            title = { Text("Delete Expense") },
+            text = { Text("Are you sure you want to delete this expense? This action cannot be undone.") },
+            confirmButton = {
+                TextButton(
+                    onClick = {
+                        showDeleteDialog = false
+                        Log.d("ExpenseDetailScreen", "Delete confirmed for expense: $expenseId")
+                        // Delete the expense and handle the result
+                        viewModel.deleteExpense(expenseId)
+                        // Navigate back after a short delay to allow deletion to complete
+                        // The ViewModel will handle the actual deletion
+                        navController.popBackStack()
+                    }
+                ) {
+                    Text("Delete", color = ErrorRed)
+                }
+            },
+            dismissButton = {
+                TextButton(onClick = { showDeleteDialog = false }) {
+                    Text("Cancel")
+                }
+            }
+        )
     }
 }
 

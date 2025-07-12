@@ -193,10 +193,10 @@ fun EmojiPickerItem(
 private fun isValidEmoji(text: String): Boolean {
     if (text.isBlank()) return false
     
-    // Basic emoji validation - check if contains emoji unicode ranges
+    // More permissive emoji validation - check if contains emoji unicode ranges
     return text.any { char ->
         val codePoint = char.code
-        // Common emoji unicode ranges
+        // Extended emoji unicode ranges
         codePoint in 0x1F600..0x1F64F || // Emoticons
         codePoint in 0x1F300..0x1F5FF || // Misc Symbols and Pictographs
         codePoint in 0x1F680..0x1F6FF || // Transport and Map
@@ -205,7 +205,11 @@ private fun isValidEmoji(text: String): Boolean {
         codePoint in 0x2700..0x27BF ||   // Dingbats
         codePoint == 0x200D ||           // Zero width joiner
         codePoint in 0xFE0F..0xFE0F ||   // Variation selector
-        codePoint in 0x1F900..0x1F9FF    // Supplemental Symbols and Pictographs
+        codePoint in 0x1F900..0x1F9FF || // Supplemental Symbols and Pictographs
+        codePoint in 0x1FA70..0x1FAFF || // Symbols and Pictographs Extended-A
+        codePoint in 0x1FAB0..0x1FABF || // Symbols and Pictographs Extended-B
+        codePoint in 0x1FAC0..0x1FAFF || // Symbols and Pictographs Extended-C
+        codePoint in 0x1FAD0..0x1FAFF    // Symbols and Pictographs Extended-D
     }
 }
 

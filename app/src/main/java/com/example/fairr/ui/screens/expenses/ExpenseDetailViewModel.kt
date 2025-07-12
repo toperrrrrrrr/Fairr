@@ -93,4 +93,25 @@ class ExpenseDetailViewModel @Inject constructor(
     fun isCurrentUserParticipant(expense: Expense): Boolean {
         return expense.splitBetween.any { it.userId == auth.currentUser?.uid }
     }
+
+    fun deleteExpense(expenseId: String) {
+        viewModelScope.launch {
+            try {
+                Log.d(TAG, "Starting deletion of expense: $expenseId")
+                val expense = expenseRepository.getExpenseById(expenseId)
+                if (expense != null) {
+                    Log.d(TAG, "Found expense to delete: ${expense.description}")
+                    expenseRepository.deleteExpense(expense)
+                    Log.d(TAG, "Expense deleted successfully: $expenseId")
+                    // Emit success event or update UI state
+                } else {
+                    Log.e(TAG, "Expense not found for deletion: $expenseId")
+                    // You could emit an error state here
+                }
+            } catch (e: Exception) {
+                Log.e(TAG, "Error deleting expense: $expenseId", e)
+                // You could emit an error state here
+            }
+        }
+    }
 } 

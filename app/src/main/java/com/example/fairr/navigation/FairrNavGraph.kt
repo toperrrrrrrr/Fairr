@@ -158,6 +158,22 @@ fun FairrNavGraph(
             val expenseId = backStackEntry.arguments?.getString("expenseId") ?: return@composable
             ExpenseDetailScreen(
                 navController = navController,
+                expenseId = expenseId,
+                onEditExpense = {
+                    navController.navigate(Screen.EditExpense.createRoute(expenseId))
+                },
+                onDeleteExpense = {
+                    // Delete logic is now handled inside ExpenseDetailScreen
+                }
+            )
+        }
+        composable(
+            route = Screen.EditExpense.route,
+            arguments = listOf(navArgument("expenseId") { type = NavType.StringType })
+        ) { backStackEntry ->
+            val expenseId = backStackEntry.arguments?.getString("expenseId") ?: return@composable
+            EditExpenseScreen(
+                navController = navController,
                 expenseId = expenseId
             )
         }

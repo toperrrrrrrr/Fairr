@@ -19,6 +19,7 @@ import androidx.compose.ui.draw.shadow
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.tooling.preview.Preview
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -328,7 +329,9 @@ private fun InfoItem(
             Text(
                 text = label,
                 style = MaterialTheme.typography.bodySmall,
-                color = MaterialTheme.colorScheme.onSurfaceVariant
+                color = MaterialTheme.colorScheme.onSurfaceVariant,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
             Text(
                 text = value,
@@ -475,7 +478,7 @@ private fun GroupOverview(
                     modifier = Modifier.clickable { navController.navigate(Screen.GroupSettings.createRoute(groupId)) }
                 )
                 InfoItem(
-                    label = "Total Expenses",
+                    label = "Expenses",
                     value = CurrencyFormatter.format(currency, totalExpenses),
                     icon = Icons.Default.Receipt
                 )

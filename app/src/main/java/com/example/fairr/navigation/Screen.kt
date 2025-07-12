@@ -27,6 +27,9 @@ sealed class Screen(val route: String) {
         fun createRoute(groupId: String) = "recurring_expense_analytics/$groupId"
     }
     object EditProfile : Screen("edit_profile")
+    object EditExpense : Screen("edit_expense/{expenseId}") {
+        fun createRoute(expenseId: String) = "edit_expense/$expenseId"
+    }
     object CurrencySelection : Screen("currency_selection")
     object CategoryManagement : Screen("category_management")
     object ExportData : Screen("export_data")

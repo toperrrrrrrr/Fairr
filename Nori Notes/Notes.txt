@@ -54,3 +54,22 @@ Offline first. online second for syncing data.
 most emoji is not working for group emoji. 
 
 Please restructure the create group page. Follow conventions to make it follow the design principles of the app. 
+
+
+Create group - only 5 emoji working.
+Create group - The emoji doesnt reflect on the avatar selection. 
+
+
+Add Expenses page - I think in calculator, we need enter button.
+Expense Details edit and delete button not working.
+Expense Details comments - enter button not also working
+If you settle the balance. message pop-up "settlement recorded successful" but in the app not recorded.
+
+Friend groups - "error loading groups"
+
+not working the notifications message
+
+Dark mode not all the page working
+if you change the currency, need to refresh the app to reflect the change you want.
+In setting page if you click the notifications it will be crash the app.
+If you want to add custom categories there's message. "permission denied".

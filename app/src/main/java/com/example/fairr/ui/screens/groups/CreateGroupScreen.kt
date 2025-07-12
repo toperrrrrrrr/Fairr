@@ -54,8 +54,8 @@ fun CreateGroupScreen(
 ) {
     val scope = rememberCoroutineScope()
     val snackbarHostState = remember { SnackbarHostState() }
-    var showAddMemberDialog by remember { mutableStateOf(false) }
-    var newMemberEmail by remember { mutableStateOf("") }
+    var showEmojiPicker by remember { mutableStateOf(false) }
+    val availableCurrencies = listOf("PHP", "USD", "EUR", "JPY") // Add more as needed
 
     LaunchedEffect(Unit) {
         viewModel.navigationEvents.collect { groupId ->
@@ -111,266 +111,130 @@ fun CreateGroupScreen(
                     .fillMaxSize()
                     .padding(paddingValues)
             ) {
-                LazyColumn(
+                Column(
                     modifier = Modifier
-                        .fillMaxSize()
+                        .fillMaxWidth()
                         .padding(16.dp),
-                    verticalArrangement = Arrangement.spacedBy(20.dp)
+                    verticalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    // Header Section
-                    item {
-                        ModernCard(
-                            backgroundColor = Primary,
-                            cornerRadius = 20
+                    // Row for emoji avatar and group name
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        // Small emoji avatar button
+                        IconButton(
+                            onClick = { showEmojiPicker = true },
+                            modifier = Modifier.size(48.dp)
                         ) {
-                            Column(
-                                horizontalAlignment = Alignment.CenterHorizontally,
-                                modifier = Modifier.padding(24.dp)
-                            ) {
-                                Box(
-                                    modifier = Modifier
-                                        .size(80.dp)
-                                        .background(
-                                            color = PureWhite.copy(alpha = 0.2f),
-                                            shape = RoundedCornerShape(20.dp)
-                                        ),
-                                    contentAlignment = Alignment.Center
-                                ) {
-                                    Icon(
-                                        Icons.Default.Group,
-                                        contentDescription = "Group",
-                                        tint = PureWhite,
-                                        modifier = Modifier.size(40.dp)
-                                    )
-                                }
-                                
-                                Spacer(modifier = Modifier.height(16.dp))
-                                
-                                Text(
-                                    text = "Create Your Group",
-                                    style = MaterialTheme.typography.headlineMedium,
-                                    fontWeight = FontWeight.Bold,
-                                    color = PureWhite
-                                )
-                                
-                                Spacer(modifier = Modifier.height(8.dp))
-                                
-                                Text(
-                                    text = "Set up a group to start sharing expenses with friends and family",
-                                    style = MaterialTheme.typography.bodyMedium,
-                                    color = PureWhite.copy(alpha = 0.9f),
-                                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
-                                )
-                            }
-                        }
-                    }
-
-                    // Group Details Section
-                    item {
-                        ModernCard(
-                            cornerRadius = 16
-                        ) {
-                            Column(
-                                verticalArrangement = Arrangement.spacedBy(16.dp)
-                            ) {
-                                Text(
-                                    text = "Group Details",
-                                    style = MaterialTheme.typography.titleLarge,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = TextPrimary
-                                )
-                                
-                                // Group name field
-                                val groupNameValidation = remember(viewModel.groupName) {
-                                    ValidationUtils.validateGroupName(viewModel.groupName)
-                                }
-                                val isGroupNameError = groupNameValidation is ValidationResult.Error && viewModel.groupName.isNotBlank()
-                                
-                                ModernTextField(
-                                    value = viewModel.groupName,
-                                    onValueChange = viewModel::onGroupNameChange,
-                                    label = "Group Name",
-                                    leadingIcon = Icons.Default.Group,
-                                    errorMessage = if (isGroupNameError) {
-                                        (groupNameValidation as ValidationResult.Error).message
-                                    } else null
-                                )
-
-                                // Description field
-                                ModernTextField(
-                                    value = viewModel.groupDescription,
-                                    onValueChange = viewModel::onGroupDescriptionChange,
-                                    label = "Description (Optional)",
-                                    leadingIcon = Icons.Default.Description
-                                )
-                            }
-                        }
-                    }
-
-                    // Group Avatar Section
-                    item {
-                        ModernCard(
-                            cornerRadius = 16
-                        ) {
-                            GroupAvatarPicker(
-                                selectedAvatar = viewModel.groupAvatar,
-                                onAvatarSelected = viewModel::onGroupAvatarChange,
-                                modifier = Modifier.fillMaxWidth()
+                            GroupEmojiAvatar(
+                                avatar = viewModel.groupAvatar,
+                                groupName = viewModel.groupName.ifBlank { "G" },
+                                size = 40.dp
                             )
                         }
-                    }
-
-                    // Currency Section
-                    item {
-                        ModernCard(
-                            cornerRadius = 16
-                        ) {
-                            Column(
-                                verticalArrangement = Arrangement.spacedBy(12.dp)
-                            ) {
-                                Text(
-                                    text = "Currency",
-                                    style = MaterialTheme.typography.titleMedium,
-                                    fontWeight = FontWeight.SemiBold,
-                                    color = TextPrimary
-                                )
-                                
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Text(
-                                        text = "Group Currency",
-                                        style = MaterialTheme.typography.bodyLarge,
-                                        color = TextSecondary
-                                    )
-                                    
-                                    Text(
-                                        text = com.example.fairr.util.CurrencyFormatter.getSymbol(viewModel.groupCurrency),
-                                        style = MaterialTheme.typography.titleMedium,
-                                        fontWeight = FontWeight.SemiBold,
-                                        color = Primary
-                                    )
-                                }
-                                
-                                Text(
-                                    text = "All expenses in this group will be tracked in ${com.example.fairr.util.CurrencyFormatter.getSymbol(viewModel.groupCurrency)}",
-                                    style = MaterialTheme.typography.bodySmall,
-                                    color = TextTertiary
-                                )
-                            }
-                        }
-                    }
-
-                    // Members Section
-                    item {
-                        ModernCard(
-                            cornerRadius = 16
-                        ) {
-                            Column(
-                                verticalArrangement = Arrangement.spacedBy(16.dp)
-                            ) {
-                                Row(
-                                    modifier = Modifier.fillMaxWidth(),
-                                    horizontalArrangement = Arrangement.SpaceBetween,
-                                    verticalAlignment = Alignment.CenterVertically
-                                ) {
-                                    Column {
-                                        Text(
-                                            text = "Invite Members",
-                                            style = MaterialTheme.typography.titleMedium,
-                                            fontWeight = FontWeight.SemiBold,
-                                            color = TextPrimary
-                                        )
-                                        Text(
-                                            text = "${viewModel.members.size} member${if (viewModel.members.size != 1) "s" else ""}",
-                                            style = MaterialTheme.typography.bodySmall,
-                                            color = TextSecondary
-                                        )
-                                    }
-                                    
-                                    OutlinedButton(
-                                        onClick = { showAddMemberDialog = true },
-                                        colors = ButtonDefaults.outlinedButtonColors(
-                                            contentColor = Primary
-                                        ),
-                                        border = androidx.compose.foundation.BorderStroke(
-                                            1.dp, Primary
-                                        ),
-                                        shape = RoundedCornerShape(8.dp)
-                                    ) {
-                                        Icon(
-                                            Icons.Default.PersonAdd,
-                                            contentDescription = "Add Member",
-                                            modifier = Modifier.size(16.dp)
-                                        )
-                                        Spacer(modifier = Modifier.width(8.dp))
-                                        Text("Add Member")
-                                    }
-                                }
-                                
-                                if (viewModel.members.isEmpty()) {
-                                    Box(
-                                        modifier = Modifier
-                                            .fillMaxWidth()
-                                            .padding(vertical = 32.dp),
-                                        contentAlignment = Alignment.Center
-                                    ) {
-                                        Column(
-                                            horizontalAlignment = Alignment.CenterHorizontally
-                                        ) {
-                                            Icon(
-                                                Icons.Default.People,
-                                                contentDescription = "No members",
-                                                modifier = Modifier.size(48.dp),
-                                                tint = TextTertiary
-                                            )
-                                            Spacer(modifier = Modifier.height(12.dp))
-                                            Text(
-                                                text = "No members yet",
-                                                style = MaterialTheme.typography.bodyLarge,
-                                                color = TextSecondary
-                                            )
-                                            Text(
-                                                text = "Add members to start sharing expenses",
-                                                style = MaterialTheme.typography.bodySmall,
-                                                color = TextTertiary
-                                            )
-                                        }
-                                    }
-                                } else {
-                                    LazyColumn(
-                                        verticalArrangement = Arrangement.spacedBy(8.dp)
-                                    ) {
-                                        items(viewModel.members) { member ->
-                                            MemberCard(
-                                                member = member,
-                                                onRemove = { viewModel.removeMember(member) }
-                                            )
-                                        }
-                                    }
-                                }
-                            }
-                        }
-                    }
-
-                    // Create Group Button
-                    item {
-                        val groupNameValidation = remember(viewModel.groupName) {
-                            ValidationUtils.validateGroupName(viewModel.groupName)
-                        }
-                        val isValidToSubmit = groupNameValidation is ValidationResult.Success
-                        
-                        ModernButton(
-                            text = "Create Group",
-                            onClick = { viewModel.createGroup() },
-                            enabled = isValidToSubmit,
-                            icon = Icons.Default.Group,
-                            modifier = Modifier
-                                .fillMaxWidth()
-                                .height(56.dp)
+                        // Group name text box
+                        ModernTextField(
+                            value = viewModel.groupName,
+                            onValueChange = viewModel::onGroupNameChange,
+                            label = "Group Name",
+                            leadingIcon = Icons.Default.Group,
+                            modifier = Modifier.weight(1f)
                         )
+                    }
+                    // Description text box
+                    ModernTextField(
+                        value = viewModel.groupDescription,
+                        onValueChange = viewModel::onGroupDescriptionChange,
+                        label = "Description",
+                        leadingIcon = Icons.Default.Description
+                    )
+                    // Currency selector (DropdownMenu)
+                    var expanded by remember { mutableStateOf(false) }
+                    Box {
+                        OutlinedButton(onClick = { expanded = true }, modifier = Modifier.fillMaxWidth()) {
+                            Text(viewModel.groupCurrency)
+                            Icon(Icons.Default.ArrowDropDown, contentDescription = null)
+                        }
+                        DropdownMenu(expanded = expanded, onDismissRequest = { expanded = false }) {
+                            availableCurrencies.forEach { currency ->
+                                DropdownMenuItem(
+                                    text = { Text(currency) },
+                                    onClick = {
+                                        viewModel.onGroupCurrencyChange(currency)
+                                        expanded = false
+                                    }
+                                )
+                            }
+                        }
+                    }
+                    // Invite members section
+                    Text(
+                        text = "Invite members",
+                        style = MaterialTheme.typography.titleMedium,
+                        fontWeight = FontWeight.SemiBold,
+                        color = TextPrimary
+                    )
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically,
+                        horizontalArrangement = Arrangement.spacedBy(8.dp)
+                    ) {
+                        ModernTextField(
+                            value = viewModel.newMemberEmail,
+                            onValueChange = viewModel::onNewMemberEmailChange,
+                            label = "Email",
+                            leadingIcon = Icons.Default.Email,
+                            keyboardType = KeyboardType.Email,
+                            modifier = Modifier.weight(1f)
+                        )
+                        Button(
+                            onClick = {
+                                if (ValidationUtils.validateEmail(viewModel.newMemberEmail) is ValidationResult.Success) {
+                                    viewModel.addMember(
+                                        GroupMember(
+                                            id = "temp_${System.currentTimeMillis()}",
+                                            name = viewModel.newMemberEmail.substringBefore("@"),
+                                            email = viewModel.newMemberEmail
+                                        )
+                                    )
+                                    viewModel.onNewMemberEmailChange("")
+                                } else {
+                                    scope.launch {
+                                        snackbarHostState.showSnackbar("Invalid email address")
+                                    }
+                                }
+                            },
+                            enabled = viewModel.newMemberEmail.isNotBlank()
+                        ) {
+                            Text("Invite")
+                        }
+                    }
+                    // List of invited members (future offline functionality)
+                    if (viewModel.members.isNotEmpty()) {
+                        Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
+                            viewModel.members.forEach { member ->
+                                Row(
+                                    verticalAlignment = Alignment.CenterVertically,
+                                    horizontalArrangement = Arrangement.SpaceBetween,
+                                    modifier = Modifier.fillMaxWidth()
+                                ) {
+                                    Text(member.email, modifier = Modifier.weight(1f))
+                                    IconButton(onClick = { viewModel.removeMember(member) }) {
+                                        Icon(Icons.Default.Close, contentDescription = "Remove")
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    // Spacer to push the button to the bottom
+                    Spacer(modifier = Modifier.weight(1f))
+                    // Create group button
+                    Button(
+                        onClick = { viewModel.createGroup() },
+                        enabled = viewModel.groupName.isNotBlank(),
+                        modifier = Modifier.fillMaxWidth()
+                    ) {
+                        Text("Create Group")
                     }
                 }
             }
@@ -435,82 +299,13 @@ fun CreateGroupScreen(
         }
     }
 
-    if (showAddMemberDialog) {
-        val keyboardController = LocalSoftwareKeyboardController.current
-        
-        AlertDialog(
-            onDismissRequest = { 
-                keyboardController?.hide()
-                showAddMemberDialog = false 
-            },
-            title = { 
-                Text(
-                    "Invite Member",
-                    style = MaterialTheme.typography.titleLarge,
-                    fontWeight = FontWeight.SemiBold
-                )
-            },
-            text = {
-                Column {
-                    Text(
-                        text = "Enter the email address of the person you want to invite. They will receive an invitation to join this group.",
-                        style = MaterialTheme.typography.bodyMedium,
-                        color = TextSecondary
-                    )
-                    Spacer(modifier = Modifier.height(16.dp))
-                    
-                    val emailValidation = remember(newMemberEmail) {
-                        ValidationUtils.validateEmail(newMemberEmail)
-                    }
-                    val isEmailError = emailValidation is ValidationResult.Error && newMemberEmail.isNotBlank()
-                    
-                    ModernTextField(
-                        value = newMemberEmail,
-                        onValueChange = { newMemberEmail = it },
-                        label = "Email",
-                        leadingIcon = Icons.Default.Email,
-                        keyboardType = KeyboardType.Email,
-                        errorMessage = if (isEmailError) {
-                            (emailValidation as ValidationResult.Error).message
-                        } else null
-                    )
-                }
-            },
-            confirmButton = {
-                val emailValidation = remember(newMemberEmail) {
-                    ValidationUtils.validateEmail(newMemberEmail)
-                }
-                val isEmailValid = emailValidation is ValidationResult.Success
-                
-                TextButton(
-                    onClick = {
-                        keyboardController?.hide()
-                        if (newMemberEmail.isNotBlank() && isEmailValid) {
-                            viewModel.addMember(
-                                GroupMember(
-                                    id = "temp_${System.currentTimeMillis()}",
-                                    name = newMemberEmail.substringBefore("@"),
-                                    email = newMemberEmail
-                                )
-                            )
-                            newMemberEmail = ""
-                            showAddMemberDialog = false
-                        }
-                    },
-                    enabled = isEmailValid && newMemberEmail.isNotBlank()
-                ) {
-                    Text("Invite")
-                }
-            },
-            dismissButton = {
-                TextButton(
-                    onClick = { 
-                        keyboardController?.hide()
-                        showAddMemberDialog = false 
-                    }
-                ) {
-                    Text("Cancel")
-                }
+    // Emoji picker dialog
+    if (showEmojiPicker) {
+        EmojiPickerDialog(
+            onDismiss = { showEmojiPicker = false },
+            onEmojiSelected = {
+                viewModel.onGroupAvatarChange(it)
+                showEmojiPicker = false
             }
         )
     }
@@ -629,8 +424,7 @@ private fun GroupAvatarPicker(
             columns = GridCells.Fixed(8),
             contentPadding = PaddingValues(4.dp),
             horizontalArrangement = Arrangement.spacedBy(4.dp),
-            verticalArrangement = Arrangement.spacedBy(4.dp),
-            modifier = Modifier.height(200.dp)
+            verticalArrangement = Arrangement.spacedBy(4.dp)
         ) {
             items(emojiOptions) { emoji ->
                 EmojiPickerItem(
@@ -641,6 +435,14 @@ private fun GroupAvatarPicker(
                 )
             }
         }
+        
+        // Debug info (can be removed later)
+        Text(
+            text = "Available emojis: ${emojiOptions.size}",
+            style = MaterialTheme.typography.bodySmall,
+            color = TextSecondary,
+            modifier = Modifier.padding(top = 8.dp)
+        )
     }
 }
 
